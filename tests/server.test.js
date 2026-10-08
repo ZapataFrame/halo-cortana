@@ -2,6 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { request } from 'node:http';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { createApp } from '../server/app.js';
 
 const config = { provider: 'ollama', model: 'test-only' };
@@ -13,6 +16,28 @@ async function fixture(t, options = {}) {
   const post = (path, body, extra = {}) => fetch(base + path, { method: 'POST', headers: { 'Content-Type': 'application/json', ...extra }, body: typeof body === 'string' ? body : JSON.stringify(body) });
   return { server, base, post };
 }
+
+test('fallo de lectura responde con error completo y permite recuperar el recurso', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'hologram-static-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeFile(join(root, 'index.html'), '<html>visor real</html>');
+  let fail = true, reads = 0;
+  const { base } = await fixture(t, { root, readAsset: async target => {
+    reads++;
+    if (fail) throw new Error('ruta-interna-privada');
+    return readFile(target);
+  } });
+  const failed = await fetch(base + '/hologram', { signal: AbortSignal.timeout(2000) });
+  assert.equal(failed.status, 404);
+  assert.deepEqual(await failed.json(), { error: 'Archivo no disponible.' });
+  fail = false;
+  const recovered = await fetch(base + '/hologram');
+  assert.equal(recovered.status, 200);
+  assert.equal(await recovered.text(), '<html>visor real</html>');
+  const head = await fetch(base + '/hologram', { method: 'HEAD' });
+  assert.equal(head.status, 200); assert.equal(await head.text(), '');
+  assert.equal(reads, 2);
+});
 
 test('entrada inválida, JSON corrupto y solicitud grande no invocan el proveedor', async t => {
   let calls = 0;

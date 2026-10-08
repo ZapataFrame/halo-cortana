@@ -83,6 +83,8 @@ Una sola figura, material blanco/gris luminoso sobre negro. Reposo neutro y recr
 
 Orientación guardada en calibración v1: `auto`, `portrait`, `landscape`; datos anteriores usan `auto`. Si la postura del viewport no coincide con el modo elegido, añadir 90° en sentido horario a la rotación de calibración, módulo 360. El patrón usa exactamente ese giro. El modo transforma la imagen; no promete bloquear la orientación física del SO. Espejos siguen en ejes de pantalla.
 
+Calibración precisa: campos numéricos junto a los rangos. Tamaño 25–200 %, X/Y −45…45 % del viewport (derecha/abajo positivos), giro del cuerpo −180…180° en pasos de 5°. Porcentajes enteros; internamente tamaño y X/Y conservan el contrato fraccionario v1. Valores válidos se aplican al escribir sin truncar dígitos; Enter confirma y acota a límites. Entradas vacías o con paso inválido conservan el último ajuste válido. El patrón F/punto permanece visible al ocultar ajustes, se apaga con su checkbox o Restablecer y nunca se activa automáticamente al recargar.
+
 `POST /api/animation {"animation":"idle"|"gangnam"}` es privado al PC y valida catálogo cerrado. `GET /api/presentation` añade `animation` a `sessionId`, `revision`, `phase`; no publica texto ni claves. Los visores consultan cada segundo, recuperan el movimiento actual al abrirse y lo conservan si falla la red. No se exige sincronización exacta de frames entre pantallas. Reiniciar servidor devuelve reposo; reiniciar chat no cambia baile/calibración.
 
 La [referencia física](https://wisnuwisdantio.com/category/experiments/peppers-ghost-holographic-projection/) documenta un reflector y distintas posiciones de pantalla. Punto de partida 45°; la caja real determina espejo/rotación/distancias. No prometer altura proyectada sin medidas. Patrón asimétrico temporal prueba lateralidad y se retira en presentación.
@@ -94,6 +96,8 @@ Petición 2026-10-08: evaluar y probar el GLB añadido en Descargas. Copia monoc
 El modelo contiene 18,948 triángulos, skin de 79 joints y una animación Twerking. Se usa pose estática; animación nativa y retargeting de Gangnam no forman parte de esta prueba. Botones de movimiento se deshabilitan en el control Cortana; ese visor ignora Gangnam solicitado desde otros controles. Avatar/baile originales permanecen disponibles por la ruta sin parámetro. Centro, escala y giro inicial 180° se aplican al cargar; no cambian calibración guardada.
 
 Adaptación reproducible en `tools/prepare-cortana.mjs`: conserva rig/geometría/animación y atribución, sustituye materiales especulares antiguos no soportados por PBR monocromático y elimina referencias a texturas. No reproduce los colores del modelo original. Ficha de hashes y licencia **declarada en el archivo** CC BY-NC 4.0 en `public/models/README.md`; origen web respondió 403. No se modifica el original de Descargas ni se selecciona este modelo como avatar final.
+
+Verificación digital reproducible: `npm run qa:visual -- loading|error` sirve el visor y assets reales en loopback 3001. `loading` retiene el GLB hasta pulsar Enter; `error` provoca fallo de lectura. No carga `.env` ni llama a un LLM. El servidor lee los recursos antes de enviar HTTP 200 para responder con un error completo si falla la lectura. Negro de carga/normal/error comprobado en H-05; esto no valida pantalla ni reflector físicos.
 
 ## 7. LLM, credenciales y costes
 
@@ -131,6 +135,7 @@ IDs nuevos conservan separación respecto a D-01…D-12 del plan histórico.
 | D-26 | CONFIRMADA | 2026-10-08 | Probar reversiblemente el GLB Cortana aportado en Descargas mediante variante opcional monocromática/estática. Mantener avatar/baile originales y atribución del archivo; no dar por resuelto retargeting ni elegir arte final. |
 | D-25 | CONFIRMADA | 2026-10-08 | Petición del propietario: conservar GPT y añadir selección de Qwen local en Ollama desde PC. Catálogo local validado, cambio explícito sin reinicio, contexto nuevo y selección temporal; sin descargas ni pagos. |
 | D-24 | CONFIRMADA | 2026-10-07 | Petición de baile libre: recreación Gangnam Style MIT + humanoide Quaternius CC0 compatible. Curvas horneadas a keyframes, control compartido desde PC y recursos locales sin música. No es un asset oficial de Fortnite. |
+| D-27 | CONFIRMADA | 2026-10-07 | Elección de implementación en H-06: calibración numérica en porcentajes/grados junto a rangos, mismo contrato v1. Patrón visible sin panel para ajustar reflexión; corregir atributo hidden del SVG. Mediciones/UI verificadas; óptica real pendiente. ID antes D-25 en rama de calibración, renumerado al integrar para conservar D-25 del selector. |
 
 D-08 (voz primero) queda reemplazada para el corte actual por D-13/D-16. Decisiones del juego siguen conservadas en archivo histórico; no ejecutar su roadmap mientras este objetivo esté activo.
 

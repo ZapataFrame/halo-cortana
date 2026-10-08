@@ -5,6 +5,18 @@ import { applyProjection, effectiveRotation } from './projection.js';
 
 export function createViewer(container, { compact = false, avatarId = 'dancer' } = {}) {
   const imported = avatarId === 'cortana';
+  const numericControls = [
+    ['scale', 'Tamaño', 'Tamaño', 25, 200, 1, 100, '%'],
+    ['x', 'Horizontal', 'Posición horizontal', -45, 45, 1, 100, '%'],
+    ['y', 'Vertical', 'Posición vertical', -45, 45, 1, 100, '%'],
+    ['turn', 'Vista del cuerpo', 'Vista del cuerpo', -180, 180, 5, 1, '°'],
+  ].map(([key, label, name, min, max, step, multiplier, unit]) => {
+    const id = `${compact ? 'preview' : 'projection'}-${key}-value`;
+    return `<div class="calibration-field">
+      <div class="calibration-field-heading"><label for="${id}">${label}</label><span class="calibration-number"><input id="${id}" aria-label="${name} en ${unit === '%' ? 'porcentaje' : 'grados'}" type="number" min="${min}" max="${max}" step="${step}" data-setting="${key}" data-multiplier="${multiplier}"><span aria-hidden="true">${unit}</span></span></div>
+      <input aria-label="${name}" data-setting="${key}" type="range" min="${min / multiplier}" max="${max / multiplier}" step="${step / multiplier}">
+    </div>`;
+  }).join('');
   container.innerHTML = `
     <div class="render-surface" aria-label="Humanoide holográfico" data-status="loading"></div>
     <svg class="calibration-pattern" viewBox="0 0 200 200" aria-label="Patrón asimétrico de calibración" hidden>
@@ -17,10 +29,8 @@ export function createViewer(container, { compact = false, avatarId = 'dancer' }
       <p class="viewer-diagnostics" aria-live="polite">Cargando modelo…</p>
       <label class="select-row">Orientación<select aria-label="Orientación" data-setting="orientation"><option value="auto">Automática</option><option value="portrait">Vertical</option><option value="landscape">Horizontal</option></select></label>
       <p class="small muted">El modo adapta la imagen al montaje. Gira también el dispositivo; usa la rotación para afinar la reflexión.</p>
-      <label>Tamaño <output data-value="scale"></output><input aria-label="Tamaño" data-setting="scale" type="range" min="0.25" max="2" step="0.01"></label>
-      <label>Horizontal <output data-value="x"></output><input aria-label="Posición horizontal" data-setting="x" type="range" min="-0.45" max="0.45" step="0.01"></label>
-      <label>Vertical <output data-value="y"></output><input aria-label="Posición vertical" data-setting="y" type="range" min="-0.45" max="0.45" step="0.01"></label>
-      <label>Vista del cuerpo <output data-value="turn"></output><input aria-label="Vista del cuerpo" data-setting="turn" type="range" min="-180" max="180" step="5"></label>
+      ${numericControls}
+      <p class="small muted">Los valores válidos se aplican al escribir. Enter confirma y ajusta los límites. X/Y son porcentajes de pantalla; positivos mueven a la derecha y abajo.</p>
       <label class="select-row">Rotación de pantalla<select aria-label="Rotación de pantalla" data-setting="rotation"><option value="0">0°</option><option value="90">90°</option><option value="180">180°</option><option value="270">270°</option></select></label>
       <div class="check-grid">
         <label><input data-setting="mirrorX" type="checkbox"> Espejo horizontal</label>
@@ -79,34 +89,51 @@ export function createViewer(container, { compact = false, avatarId = 'dancer' }
   function updateInputs() {
     panel.querySelectorAll('[data-setting]').forEach(input => {
       if (input.type === 'checkbox') input.checked = settings[input.dataset.setting];
-      else input.value = settings[input.dataset.setting];
-    });
-    panel.querySelectorAll('[data-value]').forEach(output => {
-      const key = output.dataset.value;
-      output.textContent = key === 'scale' ? `${Math.round(settings[key] * 100)}%` : key === 'turn' ? `${settings[key]}°` : `${Math.round(settings[key] * 100)}%`;
+      else input.value = input.type === 'number' ? Math.round(settings[input.dataset.setting] * Number(input.dataset.multiplier)) : settings[input.dataset.setting];
     });
   }
   function persist() {
     if (!saveCalibration(localStorage, settings)) notice.textContent = 'No fue posible guardar los ajustes; seguirán activos en esta sesión.';
     updateInputs(); resize();
   }
-  container.querySelectorAll('[data-setting]').forEach(input => input.addEventListener('input', () => {
-    settings = normalizeCalibration({ ...settings, [input.dataset.setting]: input.type === 'checkbox' ? input.checked : input.dataset.setting === 'orientation' ? input.value : Number(input.value) });
-    persist();
-  }));
+  panel.querySelectorAll('[data-setting]').forEach(input => {
+    if (input.type === 'number') input.addEventListener('input', () => {
+      const value = input.valueAsNumber;
+      if (!Number.isFinite(value) || input.validity.stepMismatch || value < Number(input.min) || value > Number(input.max)) return;
+      settings = normalizeCalibration({ ...settings, [input.dataset.setting]: value / Number(input.dataset.multiplier) });
+      // No reescribir el campo mientras se teclea: permitir 100 sin truncar el primer 1.
+      panel.querySelector(`input[type="range"][data-setting="${input.dataset.setting}"]`).value = settings[input.dataset.setting];
+      notice.textContent = '';
+      if (!saveCalibration(localStorage, settings)) notice.textContent = 'No fue posible guardar los ajustes; seguirán activos en esta sesión.';
+      resize();
+    });
+    function applyValue() {
+      if (input.type === 'number' && (!Number.isFinite(input.valueAsNumber) || input.validity.stepMismatch)) {
+        notice.textContent = 'Valor inválido: usa porcentajes enteros y ángulos en pasos de 5°. Se conservó el ajuste anterior.';
+        updateInputs(); return;
+      }
+      const value = input.type === 'checkbox' ? input.checked : input.dataset.setting === 'orientation' ? input.value : Number(input.value) / Number(input.dataset.multiplier || 1);
+      settings = normalizeCalibration({ ...settings, [input.dataset.setting]: value });
+      notice.textContent = ''; persist();
+    }
+    input.addEventListener(input.type === 'number' ? 'blur' : 'input', applyValue);
+    if (input.type === 'number') input.addEventListener('keydown', event => {
+      if (event.key === 'Enter') { event.preventDefault(); applyValue(); }
+      if (event.key === 'Escape') { updateInputs(); input.blur(); }
+    });
+  });
   container.querySelector('[data-action="reset"]').addEventListener('click', () => {
-    settings = { ...DEFAULT_CALIBRATION }; isPattern = false; pattern.hidden = true;
+    notice.textContent = '';
+    settings = { ...DEFAULT_CALIBRATION }; isPattern = false; pattern.setAttribute('hidden', '');
     panel.querySelector('[data-action="pattern"]').checked = false;
     surface.hidden = false; persist();
   });
   container.querySelector('[data-action="pattern"]').addEventListener('change', event => {
-    isPattern = event.target.checked; pattern.hidden = !isPattern; surface.hidden = isPattern; resize();
+    isPattern = event.target.checked; pattern.toggleAttribute('hidden', !isPattern); surface.hidden = isPattern; resize();
   });
   container.querySelector('.calibration-hotspot')?.addEventListener('click', () => { panel.hidden = false; });
   container.querySelector('[data-action="hide"]')?.addEventListener('click', () => {
     panel.hidden = true;
-    isPattern = false; pattern.hidden = true; surface.hidden = false;
-    panel.querySelector('[data-action="pattern"]').checked = false;
   });
   async function requestWakeLock() {
     if (!navigator.wakeLock || !window.isSecureContext) {

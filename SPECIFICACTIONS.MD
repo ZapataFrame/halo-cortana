@@ -91,6 +91,10 @@ Calibración precisa: campos numéricos junto a los rangos. Tamaño 25–200 %, 
 
 `POST /api/animation {"animation":"idle"|"gangnam"}` es privado al PC y valida catálogo cerrado. `GET /api/presentation` añade `animation` a `sessionId`, `revision`, `phase`; no publica texto ni claves. Los visores consultan cada segundo, recuperan el movimiento actual al abrirse y lo conservan si falla la red. No se exige sincronización exacta de frames entre pantallas. Reiniciar servidor devuelve reposo; reiniciar chat no cambia baile/calibración.
 
+H-30 prepara recuperación PC para H-12: contrato cerrado, sesión de 8–80 caracteres alfanuméricos/guiones, revisión entera segura no negativa, cuatro fases y dos movimientos. Se ignoran revisiones antiguas/duplicadas de una misma sesión; una sesión nueva permite volver a revisión cero. Revisión idéntica con contenido distinto se considera inválida. Datos inválidos no se aplican.
+
+Una consulta activa con timeout 2.5 s, siguiente consulta 1 s después de terminar (3 s en segundo plano). Al volver a primer plano se inicia una lectura actual; salir suspende/aborta el ciclo, y volver de caché de navegación lo reanuda sin aceptar respuestas antiguas. Conectividad separada de fase: durante corte se conserva figura/animación/calibración y se apaga el pulso de procesamiento. El aviso aparece únicamente en control/calibración, oculto en la proyección. Reconectar solo lee estado, nunca reenvía chat. Cortes/reinicios PC comprobados en H-30; latencia ≤2 s y recuperación móvil física siguen en H-12.
+
 La [referencia física](https://wisnuwisdantio.com/category/experiments/peppers-ghost-holographic-projection/) documenta un reflector y distintas posiciones de pantalla. Punto de partida 45°; la caja real determina espejo/rotación/distancias. No prometer altura proyectada sin medidas. Patrón asimétrico temporal prueba lateralidad y se retira en presentación.
 
 ### Alternativa Cortana aportada (H-24/H-26)
@@ -159,6 +163,7 @@ IDs nuevos conservan separación respecto a D-01…D-12 del plan histórico.
 | D-28 | CONFIRMADA | 2026-10-08 | Petición del propietario: mostrar las texturas originales de Cortana. Excepción de color para el avatar importado; conservar interfaz monocromática y negro puro. Reutilizar rig existente; no rerig ni activar clips automáticamente. |
 | D-29 | CONFIRMADA | 2026-10-08 | Petición vigente: prueba temporal de Ollama Cloud con Gemma 4 31B. Adaptador directo y arranque cloud; conservar GPT y local en selector, sin fallback ni pagos. Clave y generación real verificadas en H-28; plan gratuito/saldo/cuota no inspeccionados. |
 | D-30 | CONFIRMADA | 2026-10-08 | Incremento técnico de recuperación H-29 en la continuación autorizada: diagnóstico explícito sin generar texto, usando APIs documentadas; catálogo Cloud no valida credencial. Indicador exige comprobación, configuración privada y descarte de resultados concurrentes. Motivo: distinguir fallos de configuración antes del ensayo sin alterar la conversación. |
+| D-31 | CONFIRMADA | 2026-10-08 | Preparar H-12 con recuperación PC independiente H-30, manteniendo su aceptación física pendiente. Validar sesión/revisión y ciclo de consultas; avisos de desconexión solo fuera de proyección. Motivo: evitar estados antiguos y mostrar recuperación del servidor sin perder el avatar ni generar solicitudes LLM. |
 
 D-08 (voz primero) queda reemplazada para el corte actual por D-13/D-16. Decisiones del juego siguen conservadas en archivo histórico; no ejecutar su roadmap mientras este objetivo esté activo.
 
@@ -171,6 +176,7 @@ D-08 (voz primero) queda reemplazada para el corte actual por D-13/D-16. Decisio
 | Q-08 | Pantalla útil, reflector/material/medidas, posición pantalla y caja ya fabricada. | H-06/H-08. |
 | Q-10 | OLLAMA_API_KEY y acceso/cuota a gemma4:31b de la cuenta. | H-28 DONE: propietario guardó clave; Gemma respondió y recuperó contexto tras cancelación. Detalle de plan/saldo/cuota no inspeccionado. |
 | Q-09 | Confirmar que se presentará con este PC; datos de otro equipo si cambia. | Equipo actual verificado: CachyOS, 15 GiB RAM, Node 22.22.2, Ollama en CPU. Compatibilidad de otro equipo sin comprobar. |
+| Q-11 | ¿Adelantar voz en PC mientras se valida dispositivo/caja? | Consulta enviada tras pedir continuar tareas. H-15/H-16 conservan su orden tras H-14 hasta recibir cambio de prioridad; no se supone aprobación por falta de respuesta. |
 
 Q-06/Q-08 y configuración privada Q-07/Q-10 enviadas al propietario. GPT rechazó la clave (401); Cloud tiene acceso real verificado después de la configuración del propietario. Los datos físicos siguen pendientes. Los faltantes no impiden implementar funciones independientes; sí impiden declarar éxito físico o una respuesta real de GPT.
 

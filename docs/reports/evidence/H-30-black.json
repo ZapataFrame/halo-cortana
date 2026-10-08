@@ -1,0 +1,194 @@
+[
+  {
+    "file": "H-30-before.png",
+    "dimensions": [
+      792,
+      954
+    ],
+    "backgroundSamples": [
+      {
+        "position": [
+          5,
+          5
+        ],
+        "rgb": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "position": [
+          786,
+          5
+        ],
+        "rgb": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "position": [
+          5,
+          948
+        ],
+        "rgb": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "position": [
+          786,
+          948
+        ],
+        "rgb": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "position": [
+          99,
+          477
+        ],
+        "rgb": [
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  {
+    "file": "H-30-offline.png",
+    "dimensions": [
+      792,
+      954
+    ],
+    "backgroundSamples": [
+      {
+        "position": [
+          5,
+          5
+        ],
+        "rgb": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "position": [
+          786,
+          5
+        ],
+        "rgb": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "position": [
+          5,
+          948
+        ],
+        "rgb": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "position": [
+          786,
+          948
+        ],
+        "rgb": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "position": [
+          99,
+          477
+        ],
+        "rgb": [
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  {
+    "file": "H-30-reconnected.png",
+    "dimensions": [
+      792,
+      954
+    ],
+    "backgroundSamples": [
+      {
+        "position": [
+          5,
+          5
+        ],
+        "rgb": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "position": [
+          786,
+          5
+        ],
+        "rgb": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "position": [
+          5,
+          948
+        ],
+        "rgb": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "position": [
+          786,
+          948
+        ],
+        "rgb": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "position": [
+          99,
+          477
+        ],
+        "rgb": [
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  }
+]

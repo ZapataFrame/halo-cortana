@@ -1,0 +1,80 @@
+{
+  "checkedAt": "2026-10-08T23:21:57.178Z",
+  "generationRequested": false,
+  "browserViews": "secuenciales en una sola pestaña",
+  "controlBefore": {
+    "avatarStatus": "ready",
+    "chatEntries": 0,
+    "connection": "connected",
+    "revision": "6",
+    "session": "aaa4c5fe-5c02-423b-8c0a-ee935da30f30",
+    "size": "101",
+    "texturedMaterials": "4"
+  },
+  "viewerBefore": {
+    "animation": "idle",
+    "avatarStatus": "ready",
+    "canvasCount": 1,
+    "connection": "connected",
+    "panelHidden": true,
+    "phase": "responded",
+    "revision": "6",
+    "session": "aaa4c5fe-5c02-423b-8c0a-ee935da30f30",
+    "texturedMaterials": "4",
+    "viewport": [
+      792,
+      954
+    ]
+  },
+  "viewerOffline": {
+    "animation": "idle",
+    "avatarStatus": "ready",
+    "canvasCount": 1,
+    "connection": "offline",
+    "panelHidden": true,
+    "phase": "idle",
+    "revision": "6",
+    "session": "aaa4c5fe-5c02-423b-8c0a-ee935da30f30",
+    "texturedMaterials": "4"
+  },
+  "viewerAfter": {
+    "animation": "idle",
+    "avatarStatus": "ready",
+    "canvasCount": 1,
+    "connection": "connected",
+    "panelHidden": true,
+    "phase": "idle",
+    "revision": "0",
+    "session": "85ec3d52-4ff9-4fe3-a0d9-69036b888aaf",
+    "texturedMaterials": "4"
+  },
+  "controlSecondBefore": {
+    "avatarStatus": "ready",
+    "chatEntries": 0,
+    "connection": "connected",
+    "phaseChip": "En reposo",
+    "revision": "0",
+    "session": "85ec3d52-4ff9-4fe3-a0d9-69036b888aaf",
+    "size": "101",
+    "texturedMaterials": "4"
+  },
+  "controlOffline": {
+    "avatarStatus": "ready",
+    "connection": "offline",
+    "connectionText": "PC sin conexión. Reintentando…",
+    "phaseChip": "PC sin conexión",
+    "size": "101",
+    "texturedMaterials": "4"
+  },
+  "controlAfter": {
+    "avatarStatus": "ready",
+    "chatEntries": 0,
+    "connection": "connected",
+    "connectionText": "Conexión con el PC activa.",
+    "phaseChip": "En reposo",
+    "revision": "0",
+    "session": "8d7f06b8-f2e1-4c1d-af4a-b1af9383a417",
+    "size": "101",
+    "texturedMaterials": "4"
+  }
+}

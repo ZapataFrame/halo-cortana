@@ -294,6 +294,14 @@ Las tareas H-20…H-22 tienen prioridad por instrucción más reciente del propi
 - Mostrar diferencias entre configurado, comprobado y acceso pendiente; no mostrar luz verde por tener una cadena en .env. Mantener figura/calibración/chat/movimiento intactos.
 - Aceptación: key ausente, 401/403/404/429, servicio caído y catálogo/modelo ausente explicados sin cuerpo privado. Modelo correcto comprobado en fixtures; error 401 real del entorno. Pruebas HTTP de origen/campos/concurrencia sin mutar historial y build/render reales. No cerrar H-20/H-28 por esta comprobación: requieren respuestas reales.
 
+**H-30 — Preparación de sincronización y recuperación en PC. Depende de H-10/H-26/H-29.**
+
+- Parte técnica independiente de H-12 mientras faltan H-11 manual y H-07 físico. Conservar sus dependencias y aceptación móvil: un ensayo PC no las sustituye.
+- Validar el contrato público cerrado sessionId/revision/phase/animation; ignorar revisiones antiguas, evitar repetir aplicaciones y aceptar revisión cero de una sesión nueva tras reinicio.
+- Mantener una consulta activa, timeout y un temporizador de repetición; detener/abortar al salir y reanudar sin duplicados tras volver de caché de navegación.
+- Mostrar conectividad únicamente en control y panel de calibración. Durante un corte conservar modelo, movimiento y ajustes; desactivar pulso de procesamiento y recuperar estado actual al reconectar sin enviar chat.
+- Aceptación: pruebas de payload inválido/revisión vieja/duplicado/nueva sesión, consultas sin solapamiento, parada y respuesta tardía, recuperación y suspensión. Build/render real y detener/reiniciar servidor con avatar ya cargado: figura y negro conservados, reconexión y nueva sesión reconocidas, ningún mensaje generado. Registrar limitaciones de navegador PC; físico y voz pendientes.
+
 **H-18 — Mejoras posteriores. Depende de H-17. Estado DEFERRED.**
 
 - Modelo final, materiales, labios, escucha por nombre, aplicación instalada o sin PC y más proveedores. Cada mejora necesita nueva tarjeta y objetivo medible.

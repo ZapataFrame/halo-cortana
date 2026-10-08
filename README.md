@@ -29,6 +29,8 @@ Si el celular no conecta: comprueba IP, servidor, misma Wi-Fi y aislamiento de c
 
 Los ajustes se guardan en cada navegador/origen; los del PC no calibran remotamente el celular. **Restablecer** vuelve a automático y valores iniciales. HTTP LAN puede limitar fullscreen/wake lock; usa ajustes del dispositivo si hace falta. **Contornos** muestra malla triangular. Sin piso ni texto de chat en la proyección.
 
+Si se corta la conexión con el PC, el avatar ya cargado conserva su figura, movimiento y ajustes. El control y la calibración avisan **PC sin conexión**; el visor con ajustes cerrados sigue mostrando solo la figura. Al restaurar el servidor se recupera su sesión automáticamente. Reiniciar el servidor vacía el contexto de conversación; la reconexión no reenvía mensajes.
+
 ## Baile
 
 En el control pulsa **Bailar Gangnam Style**; los visores conectados cambian de movimiento. **Reposo** lo detiene. Al abrir un visor nuevo recupera la selección actual. Funciona sin API; no incluye música. Reiniciar chat conserva el baile; reiniciar servidor vuelve a reposo.
@@ -92,7 +94,7 @@ Usa el nombre exacto que muestra `ollama list` si tu modelo es otro. No se desca
 
 ## Verificación
 
-37 pruebas aprobadas: controles numéricos, proyección, texturas, proveedores, cancelación, diagnóstico y consultas concurrentes. Build correcto. Evidencia previa de respuestas Qwen, cancelación y recargas en los reportes. **Cloud real verificado; GPT requiere clave válida (401 inicial; ahora ausente), sin generación GPT comprobada. Celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
+44 pruebas aprobadas: controles numéricos, proyección, texturas, proveedores, cancelación, diagnóstico y recuperación de sesión sin consultas duplicadas. Build correcto; dos cortes/reinicios PC comprobados. Evidencia previa de respuestas Qwen, cancelación y recargas en los reportes. **Cloud real verificado; GPT requiere clave válida (401 inicial; ahora ausente), sin generación GPT comprobada. Celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
 
 ```bash
 npm test

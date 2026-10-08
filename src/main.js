@@ -1,12 +1,13 @@
 import './style.css';
 import { createViewer } from './viewer.js';
+import { createPresentationSync } from './presentation-sync.js';
 
 const app = document.querySelector('#app');
 const hologram = location.pathname === '/hologram';
 const avatarId = new URLSearchParams(location.search).get('avatar') === 'cortana' ? 'cortana' : 'dancer';
 const importedAvatar = avatarId === 'cortana';
 const viewerPath = `/hologram${importedAvatar ? '?avatar=cortana' : ''}`;
-let viewer, pollTimer;
+let viewer, disposed = false;
 
 if (hologram) {
   document.body.classList.add('projection-page');
@@ -29,7 +30,7 @@ if (hologram) {
           <div class="messages" aria-label="Conversación" role="log" aria-live="polite"><div class="empty-chat"><span class="empty-symbol">✧</span><h2>Inicia el contacto.</h2><p>Pregúntame algo o cuéntame qué estás construyendo.</p><div class="suggestions"><button>¿Qué es Pepper’s Ghost?</button><button>Preséntate como Cortana</button></div></div></div>
           <p id="chat-status" class="chat-status" role="status"></p><form id="chat-form"><label class="sr-only" for="message">Mensaje para Cortana</label><textarea id="message" placeholder="Escribe un mensaje…" maxlength="2000" rows="2" required></textarea><div class="composer-footer"><span class="small muted">Texto por ahora · voz en la siguiente etapa</span><button class="button" id="send" type="submit">Enviar ↗</button><button class="button secondary" id="cancel" type="button" hidden>Cancelar</button></div></form>
         </section>
-        <section class="connection-card card"><div class="card-heading"><span class="eyebrow">03 / PANTALLA EXTERNA</span><span class="small muted">MISMA RED WI-FI</span></div><h2>Lleva el avatar a tu celular.</h2><p>Abre esta dirección en su navegador. Toca la esquina superior izquierda del visor para ajustar espejo, posición y tamaño.</p><div id="viewer-links" class="viewer-links"><a href="${viewerPath}">Abrir visor local</a></div><p class="small muted">Una figura sobre negro puro. Ajusta brillo y bloqueo de pantalla en tu dispositivo.</p></section>
+        <section class="connection-card card"><div class="card-heading"><span class="eyebrow">03 / PANTALLA EXTERNA</span><span class="small muted">MISMA RED WI-FI</span></div><h2>Lleva el avatar a tu celular.</h2><p>Abre esta dirección en su navegador. Toca la esquina superior izquierda del visor para ajustar espejo, posición y tamaño.</p><div id="viewer-links" class="viewer-links"><a href="${viewerPath}">Abrir visor local</a></div><p class="small muted" id="server-connection" role="status">Conectando con el PC…</p><p class="small muted">Una figura sobre negro puro. Ajusta brillo y bloqueo de pantalla en tu dispositivo.</p></section>
         <section class="adjustment-card card"><div class="card-heading"><span class="eyebrow">04 / CALIBRACIÓN</span><span class="small muted">GUARDADO LOCAL</span></div><div id="desktop-settings"></div></section>
       </div><footer><span>DEMO LOCAL · VISOR + IA</span><a href="/models/README.md" target="_blank" rel="noopener">Modelo y baile / fuentes y licencias ↗</a></footer>
     </div>`;
@@ -222,20 +223,35 @@ if (hologram) {
   }).catch(() => { app.querySelector('#provider-status').textContent = 'Servidor no disponible. Inicia npm run demo.'; });
 }
 
-async function poll() {
-  try {
-    const response = await fetch('/api/presentation', { signal: AbortSignal.timeout(2500), cache: 'no-store' });
-    if (!response.ok) throw new Error();
-    const state = await response.json();
+const presentationSync = createPresentationSync({
+  interval: () => document.hidden ? 3000 : 1000,
+  onState(state) {
     viewer.setPhase(state.phase);
     viewer.setAnimation(state.animation);
+    app.dataset.sessionId = state.sessionId; app.dataset.revision = String(state.revision);
     app.querySelectorAll('button[data-animation]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.animation === (importedAvatar ? 'idle' : state.animation))));
     const chip = app.querySelector('.phase-chip');
     if (chip) { chip.dataset.phase = state.phase; chip.textContent = { idle: 'En reposo', processing: 'Procesando', responded: 'Respuesta lista', error: 'Proveedor sin respuesta' }[state.phase] || 'En reposo'; }
-  } catch { viewer.setPhase('idle'); }
-  pollTimer = setTimeout(poll, document.hidden ? 3000 : 1000);
-}
-poll();
+  },
+  onConnection(connected) {
+    viewer.setConnection(connected); app.dataset.connection = connected ? 'connected' : 'offline';
+    const connection = app.querySelector('#server-connection');
+    if (connection) connection.textContent = connected ? 'Conexión con el PC activa.' : 'PC sin conexión. Reintentando…';
+    if (!connected) {
+      viewer.setPhase('idle');
+      const chip = app.querySelector('.phase-chip');
+      if (chip) { chip.dataset.phase = 'offline'; chip.textContent = 'PC sin conexión'; }
+    }
+  },
+});
+presentationSync.start();
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && !disposed) { presentationSync.stop(); presentationSync.start(); }
+});
 window.addEventListener('pagehide', event => {
-  if (!event.persisted) { clearTimeout(pollTimer); viewer.destroy(); }
+  presentationSync.stop();
+  if (!event.persisted) { disposed = true; viewer.destroy(); }
+});
+window.addEventListener('pageshow', event => {
+  if (event.persisted && !disposed) presentationSync.start();
 });

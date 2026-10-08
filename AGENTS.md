@@ -11,6 +11,7 @@ Prioridad vigente desde 2026-10-07: MVP holográfico para mañana, 2026-10-08. P
 - Ampliación vigente H-20…H-22: GPT principal solicitado por el propietario, orientación automática/vertical/horizontal y baile libre. Ollama es alternativa explícita; sin fallback automático. Credencial privada pendiente no bloquea funciones visuales independientes.
 - Ampliación 2026-10-08 H-25…H-28: merge de calibración en main, texturas originales de Cortana, guía de rig/múltiples clips y prueba temporal Ollama Cloud/Gemma 4. `docs/GUIA_RIG_ANIMACIONES.md` y `docs/API_OLLAMA_CLOUD.md` registran preparación y límites. Credencial cloud no bloquea visor; no declarar generación sin cuenta real.
 - H-29: diagnóstico explícito sin generación desde PC. Catálogo Cloud no valida clave/cuota; conservar presentación/contexto y descartar resultados si cambia proveedor o comienza un chat. Evidencia real H-28 separada del diagnóstico.
+- H-30 prepara recuperación PC de H-12: estado público validado, sesión/revisión y ciclo de vida sin duplicar consultas; avisos solo fuera de proyección. No sustituye pruebas de H-11 manual ni H-07/H-12 móvil. Q-11 consulta reordenar voz; sin respuesta conservar H-14→H-15.
 - `docs/API_OPENAI.md`: alta/configuración API y distinción de costes; no implica gasto autorizado ni cuenta verificada.
 - `docs/archive/`: definiciones anteriores del simulador; no ejecutar su orden de tareas durante el MVP holográfico.
 - `docs/reports/`: reportes cuando un avance, experimento o bloqueo lo justifique.

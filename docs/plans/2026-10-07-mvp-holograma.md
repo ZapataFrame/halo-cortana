@@ -259,6 +259,19 @@ Las tareas H-20…H-22 tienen prioridad por instrucción más reciente del propi
 - Adaptar materiales no soportados a monocromático; preparar variante opcional control/visor con URL propia, conservando avatar y baile originales. No retargeting ni animación automática.
 - Aceptación: carga real sin dependencias externas, cuerpo completo/frontal sobre negro, acceso desde opción de control y URL de visor, calibración disponible, prueba de rig/animación conservados, build y reporte. Dispositivo/caja permanecen pendientes.
 
+**H-25 — Integrar validación/calibración con main. Depende de H-06/H-23/H-24.**
+
+- Comparar ramas con remoto, preservar selector y Cortana del compañero, integrar controles numéricos/patrón y errores de lectura.
+- Resolver documentos/IDs duplicados conservando decisiones y evidencia histórica.
+- Aceptación: commit de merge, pruebas y build, sin marcadores de conflicto ni credenciales versionadas. No sustituye pruebas físicas.
+
+**H-26 — Recuperar texturas originales de Cortana. Depende de H-25.**
+
+- Inspeccionar el original en Descargas: PNG, materiales, mapas, alpha, skin y clips. Conservar original y atribución.
+- Preparar GLB autosuficiente compatible con GLTFLoader, conservando texturas y BIN. No generalizar una conversión de materiales que solo es válida para este asset difuso.
+- Mantener mapas al renderizar, pulso de procesamiento sobre intensidad original, negro y controles/patrón previos. Tratar ausencia de mapas como fallo; liberar recursos al desmontar.
+- Aceptación: cuatro materiales con imágenes realmente cargadas, ocho PNG válidos, rig/clip conservados; captura frontal completa, cinco puntos de fondo RGB 0/0/0 y prueba numérica/patrón. Tests/build aprobados; móvil/caja siguen pendientes.
+
 **H-18 — Mejoras posteriores. Depende de H-17. Estado DEFERRED.**
 
 - Modelo final, materiales, labios, escucha por nombre, aplicación instalada o sin PC y más proveedores. Cada mejora necesita nueva tarjeta y objetivo medible.

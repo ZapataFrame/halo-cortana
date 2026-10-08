@@ -1,5 +1,5 @@
-// Adaptación monocromática: no traduce materiales especulares antiguos a PBR.
-// Conserva geometría, rig, animación, binario y atribución; elimina referencias a texturas.
+// Conversión específica del asset aportado: diffuse/emissive/normal se conservan.
+// Sus materiales tienen specularFactor=0 y glossinessFactor=0: dielectric roughness=1.
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 const source = process.argv[2];
@@ -14,11 +14,26 @@ for (let offset = 12; offset < bytes.length;) {
 }
 const document = JSON.parse(chunks[0].bytes.toString());
 if (document.buffers?.some(buffer => buffer.uri) || document.images?.some(image => image.uri)) throw new Error('Se requiere un GLB autocontenido.');
-document.asset.extras = { ...document.asset.extras, adaptation: 'Materiales monocromáticos para visor local; geometría/rig/animación sin modificar.',
+document.asset.extras = { ...document.asset.extras, adaptation: 'Materiales diffuse-only a PBR; texturas, alpha, rig, animación y binario conservados.',
   originalSha256: createHash('sha256').update(bytes).digest('hex') };
-document.materials = (document.materials || []).map(material => ({ name: material.name, doubleSided: true,
-  pbrMetallicRoughness: { baseColorFactor: [0.74, 0.74, 0.74, 1], metallicFactor: 0.1, roughnessFactor: 0.7 } }));
-delete document.textures; delete document.images; delete document.samplers;
+if (!document.images?.length || !document.textures?.length) throw new Error('Usa el GLB original con imágenes, no la variante monocromática.');
+document.materials = (document.materials || []).map(material => {
+  const old = material.extensions?.KHR_materials_pbrSpecularGlossiness;
+  if (!old) return material;
+  if (old.specularGlossinessTexture || (old.specularFactor || [1, 1, 1]).some(value => value !== 0) || old.glossinessFactor !== 0) {
+    throw new Error('Esta conversión solo admite los materiales diffuse-only del Cortana aportado.');
+  }
+  const converted = { ...material, pbrMetallicRoughness: {
+    baseColorFactor: old.diffuseFactor || [1, 1, 1, 1],
+    ...(old.diffuseTexture ? { baseColorTexture: old.diffuseTexture } : {}),
+    metallicFactor: 0, roughnessFactor: 1,
+  } };
+  const extensions = { ...material.extensions };
+  delete extensions.KHR_materials_pbrSpecularGlossiness;
+  if (Object.keys(extensions).length) converted.extensions = extensions;
+  else delete converted.extensions;
+  return converted;
+});
 for (const key of ['extensionsRequired', 'extensionsUsed']) {
   if (document[key]) document[key] = document[key].filter(value => value !== 'KHR_materials_pbrSpecularGlossiness');
   if (!document[key]?.length) delete document[key];

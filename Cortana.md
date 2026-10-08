@@ -1,6 +1,6 @@
 # Cortana — MVP holográfico activo
 
-Actualizado: 2026-10-07. Primero visor, después conversación por texto y después voz. Este documento describe la asistente del corte solicitado para mañana; visor y conversación textual implementados; aceptación móvil/física pendiente.
+Actualizado: 2026-10-08. Primero visor, después conversación por texto y después voz. Este documento describe la asistente del corte solicitado para mañana; visor y conversación textual implementados; aceptación móvil/física pendiente.
 
 La versión previa del agente del simulador se conserva en `docs/archive/Cortana-2026-10-05.md`. Alcance actual: `SPECIFICACTIONS.MD`; tareas/estados: `ROADMAP.MD`; tarjetas y pruebas: `docs/plans/2026-10-07-mvp-holograma.md`.
 
@@ -46,7 +46,7 @@ Inicialmente blanco/gris luminoso para contrastar sobre negro. Silueta completa 
 
 ### Variante Cortana aportada (2026-10-08)
 
-Opción **Cortana importada**: `?avatar=cortana` en control/visor. Copia local del GLB proporcionado, 18,948 triángulos y rig de 79 joints, material monocromático, frente corregido 180° y pose estática. Original intacto y atribución/CC BY-NC declarada conservadas en la ficha. No reproduce su clip Twerking ni reutiliza Gangnam del rig Quaternius. Cada pantalla abre su URL; selección visual no cambia proveedores ni conversación backend. No es aún selección de avatar final ni prueba de caja.
+Opción **Cortana importada**: `?avatar=cortana` en control/visor. Copia local del GLB proporcionado, 18,948 triángulos y rig de 79 joints, cuatro materiales con ocho imágenes originales integradas, frente corregido 180° y pose estática. Original intacto y atribución/CC BY-NC declarada conservadas en la ficha. No reproduce su clip Twerking ni reutiliza Gangnam del rig Quaternius. Cada pantalla abre su URL; selección visual no cambia proveedores ni conversación backend. La adaptación H-26 conserva color, alpha del cabello y mapas normales/emisivos; el fondo y la interfaz permanecen negros/monocromáticos. No es aún selección de avatar final ni prueba de caja.
 
 ## 5. Conversación y proveedor
 

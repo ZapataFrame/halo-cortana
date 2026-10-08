@@ -39,7 +39,7 @@ Es una recreación libre de un baile presente en Fortnite, descargada de **Progr
 
 En **Avatar**, pulsa **Cortana importada**. También puedes abrir [control Cortana](http://localhost:3000/control?avatar=cortana) o [visor Cortana](http://localhost:3000/hologram?avatar=cortana). La dirección para celular que aparece en ese control incluye la selección de Cortana.
 
-La copia local está adaptada a blanco/gris sobre negro; el original de Descargas permanece intacto. Para regresar pulsa **Humanoide + Gangnam**. GPT y Qwen funcionan igual en ambas vistas. La selección del modelo viaja en la URL; cada pantalla debe abrir la variante deseada. La calibración existente se conserva y puede necesitar ajuste para esta silueta.
+La copia local utiliza las **texturas originales** de ojos, rostro, cuerpo y cabello sobre negro puro. El original de Descargas permanece intacto. Para regresar pulsa **Humanoide + Gangnam**. GPT y Qwen funcionan igual en ambas vistas. La selección del modelo viaja en la URL; cada pantalla debe abrir la variante deseada. La calibración existente se conserva y puede necesitar ajuste para esta silueta.
 
 Esta primera prueba muestra una **pose estática**. El archivo incluye una animación llamada `Twerking`; no se activa automáticamente. Gangnam Style sigue disponible con el humanoide original, pues usa otro esqueleto. [Atribución y cambios](public/models/README.md): licencia CC BY-NC 4.0 declarada en los metadatos del archivo.
 

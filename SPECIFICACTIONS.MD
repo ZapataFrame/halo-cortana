@@ -89,13 +89,13 @@ Calibración precisa: campos numéricos junto a los rangos. Tamaño 25–200 %, 
 
 La [referencia física](https://wisnuwisdantio.com/category/experiments/peppers-ghost-holographic-projection/) documenta un reflector y distintas posiciones de pantalla. Punto de partida 45°; la caja real determina espejo/rotación/distancias. No prometer altura proyectada sin medidas. Patrón asimétrico temporal prueba lateralidad y se retira en presentación.
 
-### Alternativa Cortana aportada (H-24)
+### Alternativa Cortana aportada (H-24/H-26)
 
-Petición 2026-10-08: evaluar y probar el GLB añadido en Descargas. Copia monocromática local opcional con `?avatar=cortana`, disponible tanto en control como visor; valor desconocido conserva `dancer`. La selección viaja en la URL de cada pantalla, incluida la dirección LAN generada desde control. No añade endpoints ni sincronización global de avatar. Conversación/proveedor, calibración, orientación y estado mantienen sus contratos.
+Petición 2026-10-08: evaluar y probar el GLB añadido en Descargas. Copia local opcional con texturas originales desde H-26, seleccionable con `?avatar=cortana`, disponible tanto en control como visor; valor desconocido conserva `dancer`. La selección viaja en la URL de cada pantalla, incluida la dirección LAN generada desde control. No añade endpoints ni sincronización global de avatar. Conversación/proveedor, calibración, orientación y estado mantienen sus contratos.
 
 El modelo contiene 18,948 triángulos, skin de 79 joints y una animación Twerking. Se usa pose estática; animación nativa y retargeting de Gangnam no forman parte de esta prueba. Botones de movimiento se deshabilitan en el control Cortana; ese visor ignora Gangnam solicitado desde otros controles. Avatar/baile originales permanecen disponibles por la ruta sin parámetro. Centro, escala y giro inicial 180° se aplican al cargar; no cambian calibración guardada.
 
-Adaptación reproducible en `tools/prepare-cortana.mjs`: conserva rig/geometría/animación y atribución, sustituye materiales especulares antiguos no soportados por PBR monocromático y elimina referencias a texturas. No reproduce los colores del modelo original. Ficha de hashes y licencia **declarada en el archivo** CC BY-NC 4.0 en `public/models/README.md`; origen web respondió 403. No se modifica el original de Descargas ni se selecciona este modelo como avatar final.
+Adaptación reproducible en `tools/prepare-cortana.mjs`: conserva rig/geometría/animación, ocho imágenes incorporadas, alpha, mapas normales/emisivos y atribución. En este archivo los materiales antiguos tienen especular y brillo cero: se convierten a PBR baseColor/metallic=0/roughness=1 conservando los mapas difusos. El script rechaza materiales especulares que necesiten otra conversión. Sustituye la adaptación monocromática histórica H-24. El visor clona estos materiales; carga real sin mapas se considera error. CSP permite imágenes/blob de GLB, sin habilitar scripts externos. Ficha de hashes y licencia **declarada en el archivo** CC BY-NC 4.0 en `public/models/README.md`; origen web respondió 403. No se modifica el original de Descargas ni se selecciona este modelo como avatar final.
 
 Verificación digital reproducible: `npm run qa:visual -- loading|error` sirve el visor y assets reales en loopback 3001. `loading` retiene el GLB hasta pulsar Enter; `error` provoca fallo de lectura. No carga `.env` ni llama a un LLM. El servidor lee los recursos antes de enviar HTTP 200 para responder con un error completo si falla la lectura. Negro de carga/normal/error comprobado en H-05; esto no valida pantalla ni reflector físicos.
 
@@ -136,6 +136,8 @@ IDs nuevos conservan separación respecto a D-01…D-12 del plan histórico.
 | D-25 | CONFIRMADA | 2026-10-08 | Petición del propietario: conservar GPT y añadir selección de Qwen local en Ollama desde PC. Catálogo local validado, cambio explícito sin reinicio, contexto nuevo y selección temporal; sin descargas ni pagos. |
 | D-24 | CONFIRMADA | 2026-10-07 | Petición de baile libre: recreación Gangnam Style MIT + humanoide Quaternius CC0 compatible. Curvas horneadas a keyframes, control compartido desde PC y recursos locales sin música. No es un asset oficial de Fortnite. |
 | D-27 | CONFIRMADA | 2026-10-07 | Elección de implementación en H-06: calibración numérica en porcentajes/grados junto a rangos, mismo contrato v1. Patrón visible sin panel para ajustar reflexión; corregir atributo hidden del SVG. Mediciones/UI verificadas; óptica real pendiente. ID antes D-25 en rama de calibración, renumerado al integrar para conservar D-25 del selector. |
+
+| D-28 | CONFIRMADA | 2026-10-08 | Petición del propietario: mostrar las texturas originales de Cortana. Excepción de color para el avatar importado; conservar interfaz monocromática y negro puro. Reutilizar rig existente; no rerig ni activar clips automáticamente. |
 
 D-08 (voz primero) queda reemplazada para el corte actual por D-13/D-16. Decisiones del juego siguen conservadas en archivo histórico; no ejecutar su roadmap mientras este objetivo esté activo.
 

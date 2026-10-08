@@ -1,0 +1,73 @@
+{
+  "viewport": [
+    1280,
+    720
+  ],
+  "status": "ready",
+  "texturedMaterials": 4,
+  "background": [
+    {
+      "point": [
+        10,
+        10
+      ],
+      "rgb": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "point": [
+        1269,
+        10
+      ],
+      "rgb": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "point": [
+        10,
+        709
+      ],
+      "rgb": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "point": [
+        1269,
+        709
+      ],
+      "rgb": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "point": [
+        640,
+        10
+      ],
+      "rgb": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "model": {
+    "images": 8,
+    "joints": 79,
+    "triangles": 18948,
+    "bytes": 4867260,
+    "sha256": "7b8d39c4e400230d31f2df6dc9a6497af45151b9a1f732a7edefd6ea9ae84edc"
+  },
+  "sourceBinaryUnchanged": true
+}

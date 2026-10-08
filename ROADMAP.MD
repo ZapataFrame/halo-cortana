@@ -58,7 +58,7 @@ A visual es el primer hito. Para cumplir la solicitud completa de mañana se req
 | H-24 | DONE | H-03, H-04 | P0 | Codex, 2026-10-08: GLB Cortana aportado adaptado a PBR monocromático, 18,948 triángulos/79 joints; variante estática opcional control/visor, original y avatar/baile previos conservados. 24 pruebas/build y revisión frontal PC 1280×720; captura/reporte H-24. Animación/retargeting y móvil/caja no verificados. |
 | H-25 | DONE | H-06, H-23, H-24 | P0 | Codex, 2026-10-08: integrar rama de calibración en main, preservar cambios del compañero y resolver cuatro conflictos. 25 pruebas y build aprobados; D-25 duplicado de calibración renumerado D-27. Reporte H-25. |
 | H-26 | DONE | H-25 | P0 | Codex, 2026-10-08: ocho imágenes originales y cuatro materiales PBR texturados recuperados; BIN original intacto. Rig/clip y negro conservados. 25 pruebas, build, revisión PC 1280×720, cinco muestras RGB 0/0/0 y calibración/patrón comprobados. Reporte H-26. |
-| H-27 | TODO | H-26 | P1 | Guía específica del rig actual, Mixamo/Rigify, contrato GLB de varios clips y retargeting; identificar qué requiere intervención manual y pruebas. |
+| H-27 | DONE | H-26 | P1 | Codex, 2026-10-08: docs/GUIA_RIG_ANIMACIONES.md; rig real, mapa de huesos, Mixamo/Rigify, contrato GLB multi-clip y pruebas. Fuentes oficiales consultadas, enlaces locales comprobados. Guía documental; no exportación/retargeting implementados. |
 | H-28 | TODO | H-23, H-10 | P1 | Adaptador Ollama Cloud para gemma4:31b y selector; clave privada/backend, sin fallback ni pagos. Validación de conversación real depende de autenticación. |
 | H-18 | DEFERRED | H-17 | P3 | Avatar final, labios, wake word, app instalada y otras mejoras con nuevo alcance. |
 

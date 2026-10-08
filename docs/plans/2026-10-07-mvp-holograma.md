@@ -272,6 +272,13 @@ Las tareas H-20…H-22 tienen prioridad por instrucción más reciente del propi
 - Mantener mapas al renderizar, pulso de procesamiento sobre intensidad original, negro y controles/patrón previos. Tratar ausencia de mapas como fallo; liberar recursos al desmontar.
 - Aceptación: cuatro materiales con imágenes realmente cargadas, ocho PNG válidos, rig/clip conservados; captura frontal completa, cinco puntos de fondo RGB 0/0/0 y prueba numérica/patrón. Tests/build aprobados; móvil/caja siguen pendientes.
 
+**H-27 — Guía de rig y múltiples animaciones. Depende de H-26.**
+
+- Inspeccionar rig/nombres/clip/morphs reales y recomendar reutilización antes de rerig.
+- Explicar Mixamo, alternativa Rigify, pesos, pose base, retargeting y exportación GLB multi-clip. Citar documentación oficial actual.
+- Proponer contrato de entrega, catálogo mínimo y aceptación por clip/ciclo/transición/envolvente/móvil/caja.
+- Aceptación documental: guía existente, datos consistentes con asset, enlaces válidos y distinción entre propuesta e implementación. No necesita inventar exportación Blender ni subir archivos a terceros.
+
 **H-18 — Mejoras posteriores. Depende de H-17. Estado DEFERRED.**
 
 - Modelo final, materiales, labios, escucha por nombre, aplicación instalada o sin PC y más proveedores. Cada mejora necesita nueva tarjeta y objetivo medible.

@@ -46,7 +46,7 @@ Inicialmente blanco/gris luminoso para contrastar sobre negro. Silueta completa 
 
 ### Variante Cortana aportada (2026-10-08)
 
-Opción **Cortana importada**: `?avatar=cortana` en control/visor. Copia local del GLB proporcionado, 18,948 triángulos y rig de 79 joints, cuatro materiales con ocho imágenes originales integradas, frente corregido 180° y pose estática. Original intacto y atribución/CC BY-NC declarada conservadas en la ficha. No reproduce su clip Twerking ni reutiliza Gangnam del rig Quaternius. Cada pantalla abre su URL; selección visual no cambia proveedores ni conversación backend. La adaptación H-26 conserva color, alpha del cabello y mapas normales/emisivos; el fondo y la interfaz permanecen negros/monocromáticos. No es aún selección de avatar final ni prueba de caja.
+Opción **Cortana importada**: `?avatar=cortana` en control/visor. Copia local del GLB proporcionado, 18,948 triángulos y rig de 79 joints, cuatro materiales con ocho imágenes originales integradas, frente corregido 180° y pose estática. Original intacto y atribución/CC BY-NC declarada conservadas en la ficha. No reproduce su clip Twerking ni reutiliza Gangnam del rig Quaternius. Cada pantalla abre su URL; selección visual no cambia proveedores ni conversación backend. La adaptación H-26 conserva color, alpha del cabello y mapas normales/emisivos; el fondo y la interfaz permanecen negros/monocromáticos. No es aún selección de avatar final ni prueba de caja. Preparación de movimientos: `docs/GUIA_RIG_ANIMACIONES.md`; aprovechar el rig existente antes de plantear uno nuevo.
 
 ## 5. Conversación y proveedor
 

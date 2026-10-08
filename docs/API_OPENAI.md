@@ -51,3 +51,7 @@ La guía no usa credenciales de sesión de ChatGPT/Codex ni las convierte en una
 Sin clave: visor y baile funcionan, el control indica configuración pendiente y el chat devuelve 503 `NOT_CONFIGURED`. OpenAI 401 → clave rechazada; 403 → acceso al modelo; 429 → cuota/límite. No se devuelve el cuerpo privado del error. Timeout 504; cancelación descarta respuestas tardías. Sin fallback ni reintento automático.
 
 Alternativa explícita `LLM_PROVIDER=ollama`, `OLLAMA_URL=http://127.0.0.1:11434`, `OLLAMA_MODEL=phi4-mini:latest`: produjo respuestas reales en este PC. Las mediciones históricas están en el [reporte inicial](reports/2026-10-07-H-01-12-visor-llm.md); ejecución CPU, salida 48 tokens. API GPT pendiente de clave y validación real en H-20.
+
+## Cambio desde el panel (2026-10-08)
+
+Puedes alternar sin reiniciar entre **GPT / OpenAI** y **Local / Ollama (Qwen)** en `/control`, con **Cambiar modelo**. El selector local utiliza los modelos ya instalados, incluido `qwen2.5:32b` en este PC. Conserva la configuración y clave GPT del servidor; cambiar inicia un contexto nuevo y no modifica `.env`. Al reiniciar se recupera `LLM_PROVIDER`. No hay fallback automático. Detalles en [README](../README.md).

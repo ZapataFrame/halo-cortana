@@ -71,3 +71,10 @@ footer { display: flex; justify-content: space-between; padding: 26px 0 35px; co
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 @media(max-width: 800px) { .dashboard { padding: 0 20px; } .topbar { height: 80px; } .topbar-label { font-size: 8px; } .intro { padding-top: 30px; flex-wrap: wrap; } .workspace { grid-template-columns: 1fr; } .preview { height: 380px; } .composer-footer .small { max-width: 140px; } footer { font-size: 8px; } }
 @media(prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+
+.provider-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px 24px; border-bottom: 1px solid #242429; }
+.provider-controls label { display: grid; gap: 7px; font-size: 10px; color: #a2a2ae; min-width: 0; }
+.provider-controls select { width: 100%; min-width: 0; font-size: 12px; padding: 9px; }
+.provider-controls .button-row, .provider-controls p { grid-column: 1 / -1; margin: 0; flex-wrap: wrap; }
+.provider-controls .button-row { align-items: center; gap: 16px; }
+@media(max-width: 450px) { .provider-controls { grid-template-columns: 1fr; } }

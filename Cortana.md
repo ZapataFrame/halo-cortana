@@ -8,7 +8,7 @@ La versión previa del agente del simulador se conserva en `docs/archive/Cortana
 
 Un humanoide sencillo adquirido de internet, visible sobre negro puro en celular/pantalla y calibrable para una caja Pepper’s Ghost. No requiere parecido exacto, lipsync, rig nuevo ni shaders complejos. Por nueva petición del propietario incluye modos vertical/horizontal y un baile libre, activable desde PC.
 
-GPT es ahora principal para texto; falta su clave privada para verificar una respuesta real. El usuario escribe desde PC; el móvil mantiene el avatar. Ollama queda como alternativa explícita. Reconocimiento y respuesta hablada se agregan después de la demostración de mañana.
+GPT es ahora principal para texto; falta su clave privada para verificar una respuesta real. El usuario escribe desde PC; el móvil mantiene el avatar. Ollama queda como alternativa explícita, seleccionable desde el panel con Qwen local (H-23). Reconocimiento y respuesta hablada se agregan después de la demostración de mañana.
 
 ## 2. Flujo activo
 
@@ -49,6 +49,8 @@ Inicialmente blanco/gris luminoso para contrastar sobre negro. Silueta completa 
 Control PC separado del área reflejada: escribir, enviar, cancelar, leer respuesta y ver estado/proveedor. Personalidad aplicada mediante prompt del backend: «Eres Cortana, asistente de un prototipo holográfico. Responde en español de forma breve. Este MVP solo muestra tu modelo y admite conversación; no afirmes controlar un simulador ni dispositivos».
 
 Sin herramientas de estrategia ni acciones de mundo en este corte. No anunciar «tanque creado», «escuchando» o «hablando» cuando esas funciones no existen. Historial breve y explícito; reiniciar conversación no reinicia calibración.
+
+Selector del control PC: **GPT / OpenAI** o **Local / Ollama (Qwen)** y modelo instalado. **Actualizar modelos** vuelve a consultar Ollama; **Cambiar modelo** inicia conversación nueva, conserva baile/calibración y aplica hasta reiniciar servidor. No hay cambio automático ante errores.
 
 Proveedor principal: OpenAI Responses con `gpt-4.1-mini`, seleccionado para chat breve sin razonamiento previo. Falta clave privada; latencia/calidad real todavía no comprobadas. Adaptador local disponible al elegir `LLM_PROVIDER=ollama`, sin fallback automático. Clave únicamente en backend PC; suscripción ChatGPT/Codex no equivale a créditos API. Ver `docs/API_OPENAI.md`.
 

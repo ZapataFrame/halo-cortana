@@ -243,6 +243,14 @@ Las tareas H-20…H-22 tienen prioridad por instrucción más reciente del propi
 - Visor nuevo recupera el baile por consulta; transición suave, no desaparece ante error GPT. Movimiento no invoca al LLM ni publica chat/clave.
 - Aceptación: rig real cambia brazos/piernas, dos fases visibles, vuelve a reposo, ciclo acotado; botón y recuperación de selección comprobados; recursos funcionan localmente con licencia. No exigir sincronización exacta de frames ni considerar FPS instantáneos como benchmark móvil.
 
+**H-23 — Seleccionar GPT o Qwen local desde PC. Depende de H-03 y H-10.**
+
+- Solicitud 2026-10-08: conservar GPT y permitir usar Qwen; propietario confirma Ollama.
+- Listar modelos instalados mediante backend privado; selector proveedor/modelo, actualización y aplicación desde control PC. No aceptar URLs/claves desde navegador ni descargar modelos automáticamente.
+- Cambiar sin reiniciar servidor; iniciar conversación nueva y vaciar cache de IDs. Conservar baile/calibración. Selección temporal, configuración de arranque en `.env` existente.
+- Aceptación técnica: GPT→Qwen→GPT, modelo ausente/servicio caído, origen inválido, concurrencia, historial/cache y clave protegida; build y revisión visual.
+- Aceptación real: descubrir Qwen instalado y enviar una pregunta desde el panel, registrar respuesta o bloqueo/latencia real. GPT real sigue sujeto a H-20; no cerrarlo con fixtures.
+
 **H-18 — Mejoras posteriores. Depende de H-17. Estado DEFERRED.**
 
 - Modelo final, materiales, labios, escucha por nombre, aplicación instalada o sin PC y más proveedores. Cada mejora necesita nueva tarjeta y objetivo medible.

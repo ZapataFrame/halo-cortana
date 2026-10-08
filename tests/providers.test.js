@@ -43,3 +43,21 @@ test('fallos HTTP no leen datos privados y las respuestas vacías son errores', 
   }
   await assert.rejects(generateReply(config, [], 'hola', undefined, async () => ({ ok: true, json: async () => ({ output: [] }) })), /EMPTY_RESPONSE/);
 });
+
+test('Ollama envía el modelo Qwen elegido, historial y cancelación sin clave OpenAI', async () => {
+  const config = providerConfig({ LLM_PROVIDER: 'ollama', OLLAMA_MODEL: 'qwen2.5:32b' });
+  const controller = new AbortController();
+  const history = [{ role: 'user', content: 'Me llamo Ana' }, { role: 'assistant', content: 'Hola Ana' }];
+  const result = await generateReply(config, history, '¿Mi nombre?', controller.signal, async (url, options) => {
+    assert.equal(url, 'http://127.0.0.1:11434/api/chat');
+    assert.equal(options.headers.Authorization, undefined); assert.equal(options.signal, controller.signal);
+    const body = JSON.parse(options.body);
+    assert.equal(body.model, 'qwen2.5:32b'); assert.equal(body.stream, false);
+    assert.deepEqual(body.messages.slice(1), [...history, { role: 'user', content: '¿Mi nombre?' }]);
+    return { ok: true, json: async () => ({ message: { content: 'Ana.' }, done_reason: 'length' }) };
+  });
+  assert.deepEqual(result, { text: 'Ana.', truncated: true });
+  for (const url of ['https://example.com', 'http://192.168.1.1:11434', 'file:///tmp/test']) {
+    assert.throws(() => providerConfig({ LLM_PROVIDER: 'ollama', OLLAMA_URL: url }));
+  }
+});

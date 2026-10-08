@@ -1,6 +1,6 @@
 # Halo Strategy Lab — Especificación activa
 
-Actualizado: 2026-10-07. Estado: **MVP holográfico implementado y probado parcialmente en PC para 2026-10-08**. Hora de entrega pendiente. El juego de estrategia está diferido por instrucción del propietario.
+Actualizado: 2026-10-08. Estado: **MVP holográfico implementado y probado parcialmente en PC para 2026-10-08**. Hora de entrega pendiente. El juego de estrategia está diferido por instrucción del propietario.
 
 Fuente de trabajo: esta especificación, `Cortana.md`, `ROADMAP.MD` y `docs/plans/2026-10-07-mvp-holograma.md`. La definición del simulador del 2026-10-05 se conserva en `docs/archive/SPECIFICACTIONS-2026-10-05.md`; no es alcance de mañana.
 
@@ -16,6 +16,7 @@ Fuente de trabajo: esta especificación, `Cortana.md`, `ROADMAP.MD` y `docs/plan
 - HC-08: dejar de lado por ahora editor, batalla y comandos de estrategia.
 - HC-09: usar API GPT como proveedor principal; Ollama queda como alternativa explícita.
 - HC-10: incluir modos de montaje automático, vertical y horizontal, sin perder calibración.
+- HC-12: permitir cambiar desde el control PC entre GPT y Qwen local mediante Ollama, conservando OpenAI.
 - HC-11: incorporar un baile presente en Fortnite mediante una recreación disponible con licencia libre.
 
 Se conservan Linux como PC principal, poca experiencia y preferencia por recursos sencillos. La petición más reciente autoriza usar GPT; todavía falta una clave API del propietario. No activar pagos, contratar servicios ni reutilizar credenciales de sesión. La alternativa local conserva un recorrido sin coste por llamada. No asumir Android/iOS ni que exista ya reflector fabricado.
@@ -58,6 +59,7 @@ El móvil renderiza el modelo; no es un stream de escritorio ni una segunda simu
 | HRF-14 | STT posterior | Pulsar para hablar, transcripción editable; no enviar comandos del juego. | H-16, H-17 |
 | HRF-15 | GPT principal | Backend Responses con clave privada, 3 respuestas reales y seguimiento; errores de clave/cuota no activan Ollama. | H-20 |
 | HRF-16 | Modos de orientación | Automático/vertical/horizontal persistentes; adaptación al resize y giro adicional compatible con espejos, sin deformación. | H-21 |
+| HRF-18 | Selector GPT/local | Listar modelos instalados de Ollama, seleccionar Qwen y volver a GPT sin reiniciar; validar catálogo, bloquear cambio durante respuesta y vaciar contexto/cache al cambiar. | H-23 |
 | HRF-17 | Baile libre | Recursos locales con licencias/hash, esqueleto animado y botón PC para iniciar/detener en todos los visores. Funciona sin API. | H-22 |
 
 ## 5. Calidad y métricas propuestas
@@ -93,6 +95,14 @@ Primera interacción por texto, contexto breve de Cortana, sin herramientas de m
 
 Mantener claves fuera del navegador, bundle, URL, assets y logs. No copiar credenciales de sesión de ChatGPT/Codex. No activar facturación por iniciativa del agente. Ollama respondió realmente con `phi4-mini:latest` (3.8B Q4_K_M), en CPU; sus mediciones previas se conservan como históricas. GPT es ahora predeterminado. Se escogió [gpt-4.1-mini](https://developers.openai.com/api/docs/models/gpt-4.1-mini) para conversación breve por su perfil de baja latencia sin etapa de razonamiento; no se ha medido aún en este equipo. Falta `OPENAI_API_KEY`; no se ha realizado una llamada real a OpenAI. Ausencia de configuración devuelve 503; 401/403/429 del proveedor tienen mensajes controlados. Sin reintento automático ni cambio silencioso al modelo local.
 
+### Selección de proveedor desde PC (H-23)
+
+`GET /api/providers` privado a loopback/Host/Origin local devuelve proveedor/modelo activos, modelo GPT configurado y nombres instalados obtenidos de `GET /api/tags` de Ollama. Sin clave ni URL privada. `POST /api/provider {"provider":"openai"|"ollama","model":"nombre"}` permite únicamente GPT configurado en servidor o un modelo instalado en Ollama. Rechaza campos adicionales, endpoints arbitrarios y cambios durante generación (409). Una consulta fallida no muta selección/contexto. El servidor vuelve a validar que no comenzó un chat mientras consultaba el catálogo.
+
+El cambio es compartido por los controles conectados, dura hasta reiniciar servidor y vacía historial e IDs completados; el panel borra la conversación/reintento al confirmar. Calibración y movimiento se conservan. El arranque sigue usando `LLM_PROVIDER`, `OPENAI_MODEL` y `OLLAMA_MODEL` de entorno; no se modifica `.env` ni se aplica fallback automático. Qwen usa el adaptador Ollama existente, con 48 tokens y timeout 60 s; no se promete latencia por tamaño/modelo.
+
+El propietario confirmó Ollama el 2026-10-08. Catálogo real: `qwen2.5:32b` y `llama3.1:latest`. No descargar otro modelo por iniciativa propia. Referencias verificadas: [catálogo Ollama](https://docs.ollama.com/api/tags) y [chat Ollama](https://docs.ollama.com/api/chat).
+
 ## 8. Decisiones activas
 
 IDs nuevos conservan separación respecto a D-01…D-12 del plan histórico.
@@ -110,6 +120,7 @@ IDs nuevos conservan separación respecto a D-01…D-12 del plan histórico.
 | D-21 | CONFIRMADA | 2026-10-07 | Separar H-19 (dispositivo/caja/hora) de preparación PC. H-04 mide render técnico en PC; H-07/H-08 conservan aceptación móvil/física. No dar esas pruebas por realizadas. |
 | D-22 | CONFIRMADA | 2026-10-07 | Petición del propietario: GPT principal. Selección técnica gpt-4.1-mini/Responses, clave solo backend; Ollama opcional explícito. Sin activar pagos; llamada real pendiente de clave. |
 | D-23 | CONFIRMADA | 2026-10-07 | Petición del propietario: modos automático/vertical/horizontal. Adaptación de imagen según viewport más rotación adicional, persistencia compatible v1; sin depender del bloqueo de orientación del navegador. |
+| D-25 | CONFIRMADA | 2026-10-08 | Petición del propietario: conservar GPT y añadir selección de Qwen local en Ollama desde PC. Catálogo local validado, cambio explícito sin reinicio, contexto nuevo y selección temporal; sin descargas ni pagos. |
 | D-24 | CONFIRMADA | 2026-10-07 | Petición de baile libre: recreación Gangnam Style MIT + humanoide Quaternius CC0 compatible. Curvas horneadas a keyframes, control compartido desde PC y recursos locales sin música. No es un asset oficial de Fortnite. |
 
 D-08 (voz primero) queda reemplazada para el corte actual por D-13/D-16. Decisiones del juego siguen conservadas en archivo histórico; no ejecutar su roadmap mientras este objetivo esté activo.

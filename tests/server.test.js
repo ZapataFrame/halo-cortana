@@ -115,3 +115,72 @@ test('conversación conserva seis pares recientes y reiniciar elimina el context
   await post('/api/chat', { message: 'nuevo', requestId: 'request-reset' });
   assert.deepEqual(latest, []);
 });
+
+const selectable = {
+  openai: { provider: 'openai', model: 'gpt-4.1-mini', key: 'test-private-key' },
+  ollama: { provider: 'ollama', model: 'phi4-mini:latest', url: 'http://127.0.0.1:11434' },
+};
+
+test('selector cambia GPT→Qwen→GPT, limpia contexto/cache y conserva baile sin exponer secretos', async t => {
+  const seen = [];
+  const { post, base } = await fixture(t, { config: selectable.openai, configs: selectable,
+    models: async () => ['qwen2.5:32b', 'llama3.1:latest'],
+    reply: async (selected, history) => { seen.push({ ...selected, history }); return { text: 'ok' }; },
+  });
+  const catalog = await (await fetch(base + '/api/providers')).json();
+  assert.deepEqual(catalog.localModels, ['qwen2.5:32b', 'llama3.1:latest']);
+  assert.ok(!JSON.stringify(catalog).includes('test-private-key'));
+  await post('/api/animation', { animation: 'gangnam' });
+  const message = { message: 'hola', requestId: 'request-shared' };
+  await post('/api/chat', message);
+  await post('/api/chat', { message: 'seguimiento', requestId: 'request-followup' });
+  assert.equal(seen[1].history.length, 2);
+  for (const selection of [{ provider: 'ollama', model: 'qwen2.5:32b' }, { provider: 'openai', model: 'gpt-4.1-mini' }]) {
+    assert.equal((await post('/api/provider', selection)).status, 200);
+    const response = await (await post('/api/chat', message)).json();
+    assert.equal(response.model, selection.model); assert.equal(response.cached, undefined);
+    assert.deepEqual(seen.at(-1).history, []);
+  }
+  assert.equal(seen.at(-1).key, 'test-private-key');
+  assert.equal((await (await fetch(base + '/api/presentation')).json()).animation, 'gangnam');
+});
+
+test('selector rechaza entradas, origen y Host inválidos; caída local no cambia proveedor ni historial', async t => {
+  let unavailable = false, seen;
+  const { post, base } = await fixture(t, { config: selectable.openai, configs: selectable,
+    models: async () => { if (unavailable) throw new Error('private-detail'); return ['qwen2.5:32b']; },
+    reply: async (_config, history) => { seen = history; return { text: 'ok' }; },
+  });
+  await post('/api/chat', { message: 'primero', requestId: 'request-first' });
+  const before = await (await fetch(base + '/api/presentation')).json();
+  for (const selection of [null, {}, { provider: 'unknown', model: 'x' }, { provider: 'ollama', model: 'missing' },
+    { provider: 'openai', model: 'other' }, { provider: 'ollama', model: 'qwen2.5:32b', url: 'http://example.com' }]) {
+    assert.equal((await post('/api/provider', selection)).status, 400);
+  }
+  const selection = { provider: 'ollama', model: 'qwen2.5:32b' };
+  assert.equal((await post('/api/provider', selection, { Origin: 'https://example.com' })).status, 403);
+  assert.equal((await fetch(base + '/api/providers', { headers: { Origin: 'https://example.com' } })).status, 403);
+  unavailable = true;
+  assert.equal((await post('/api/provider', selection)).status, 503);
+  const catalog = await (await fetch(base + '/api/providers')).json();
+  assert.equal(catalog.provider, 'openai'); assert.deepEqual(catalog.localModels, []);
+  assert.ok(!JSON.stringify(catalog).includes('private-detail'));
+  assert.deepEqual(await (await fetch(base + '/api/presentation')).json(), before);
+  await post('/api/chat', { message: 'segundo', requestId: 'request-second' });
+  assert.equal(seen.length, 2);
+});
+
+test('cambiar modelo durante generación o consulta concurrente no mezcla respuestas', async t => {
+  let releaseReply, releaseModels;
+  const { post } = await fixture(t, { config: selectable.openai, configs: selectable,
+    models: async () => new Promise(resolve => { releaseModels = () => resolve(['qwen2.5:32b']); }),
+    reply: async () => new Promise(resolve => { releaseReply = () => resolve({ text: 'respuesta original' }); }),
+  });
+  const switching = post('/api/provider', { provider: 'ollama', model: 'qwen2.5:32b' });
+  while (!releaseModels) await new Promise(resolve => setTimeout(resolve, 5));
+  const pending = post('/api/chat', { message: 'hola', requestId: 'request-active' });
+  while (!releaseReply) await new Promise(resolve => setTimeout(resolve, 5));
+  releaseModels(); assert.equal((await switching).status, 409);
+  assert.equal((await post('/api/provider', { provider: 'openai', model: 'gpt-4.1-mini' })).status, 409);
+  releaseReply(); assert.equal((await (await pending).json()).provider, 'openai');
+});

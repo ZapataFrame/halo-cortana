@@ -16,13 +16,19 @@ if (hologram) {
       <div class="intro"><div><span class="eyebrow">PEPPER’S GHOST · LABORATORIO LOCAL</span><h1>Una presencia.<br>Una conversación.</h1><p>Proyecta el avatar desde tu pantalla y conversa desde el PC.</p></div><a class="button" href="/hologram" target="_blank" rel="noopener">Abrir visor ↗</a></div>
       <div class="workspace">
         <section class="avatar-card card"><div class="card-heading"><span class="eyebrow">01 / AVATAR</span><span class="phase-chip" data-phase="idle">En reposo</span></div><div class="preview"></div><div class="motion-controls"><span class="eyebrow">MOVIMIENTO</span><div class="button-row"><button class="button secondary" data-animation="idle" aria-pressed="true">Reposo</button><button class="button secondary" data-animation="gangnam" aria-pressed="false">Bailar Gangnam Style</button></div><p class="small muted" id="animation-status" role="status">Controla el baile del visor desde este PC.</p></div><div class="avatar-caption"><span>QUATERNIUS</span><span>HUMANOIDE CC0 · BAILE MIT</span></div></section>
-        <section class="conversation-card card"><div class="card-heading"><span class="eyebrow">02 / CONVERSACIÓN</span><button class="text-button" id="reset-chat">Nueva conversación</button></div><div class="provider-line"><span class="status-dot"></span><span id="provider-status">Comprobando GPT…</span></div>
+        <section class="conversation-card card"><div class="card-heading"><span class="eyebrow">02 / CONVERSACIÓN</span><button class="text-button" id="reset-chat">Nueva conversación</button></div><div class="provider-line"><span class="status-dot"></span><span id="provider-status">Comprobando proveedor…</span></div>
+          <form id="provider-form" class="provider-controls">
+            <label for="provider-select">Proveedor<select id="provider-select" disabled><option value="openai">GPT / OpenAI</option><option value="ollama">Local / Ollama (Qwen)</option></select></label>
+            <label for="model-select">Modelo<select id="model-select" disabled></select></label>
+            <div class="button-row"><button class="button secondary" id="apply-provider" disabled>Cambiar modelo</button><button class="text-button" id="refresh-models" type="button" disabled>Actualizar modelos</button></div>
+            <p class="small muted" id="provider-help" role="status">Cambiar inicia una conversación nueva. La selección dura hasta reiniciar el servidor.</p>
+          </form>
           <div class="messages" aria-label="Conversación" role="log" aria-live="polite"><div class="empty-chat"><span class="empty-symbol">✧</span><h2>Inicia el contacto.</h2><p>Pregúntame algo o cuéntame qué estás construyendo.</p><div class="suggestions"><button>¿Qué es Pepper’s Ghost?</button><button>Preséntate como Cortana</button></div></div></div>
           <p id="chat-status" class="chat-status" role="status"></p><form id="chat-form"><label class="sr-only" for="message">Mensaje para Cortana</label><textarea id="message" placeholder="Escribe un mensaje…" maxlength="2000" rows="2" required></textarea><div class="composer-footer"><span class="small muted">Texto por ahora · voz en la siguiente etapa</span><button class="button" id="send" type="submit">Enviar ↗</button><button class="button secondary" id="cancel" type="button" hidden>Cancelar</button></div></form>
         </section>
         <section class="connection-card card"><div class="card-heading"><span class="eyebrow">03 / PANTALLA EXTERNA</span><span class="small muted">MISMA RED WI-FI</span></div><h2>Lleva el avatar a tu celular.</h2><p>Abre esta dirección en su navegador. Toca la esquina superior izquierda del visor para ajustar espejo, posición y tamaño.</p><div id="viewer-links" class="viewer-links"><a href="/hologram">Abrir visor local</a></div><p class="small muted">Una figura sobre negro puro. Ajusta brillo y bloqueo de pantalla en tu dispositivo.</p></section>
         <section class="adjustment-card card"><div class="card-heading"><span class="eyebrow">04 / CALIBRACIÓN</span><span class="small muted">GUARDADO LOCAL</span></div><div id="desktop-settings"></div></section>
-      </div><footer><span>DEMO LOCAL · VISOR + GPT</span><a href="/models/README.md" target="_blank" rel="noopener">Modelo y baile / fuentes y licencias ↗</a></footer>
+      </div><footer><span>DEMO LOCAL · VISOR + IA</span><a href="/models/README.md" target="_blank" rel="noopener">Modelo y baile / fuentes y licencias ↗</a></footer>
     </div>`;
   const preview = app.querySelector('.preview');
   viewer = createViewer(preview, { compact: true });
@@ -44,7 +50,70 @@ if (hologram) {
     } catch (error) { animationStatus.textContent = error.message || 'No se pudo cambiar la animación.'; }
     finally { motionButtons.forEach(item => { item.disabled = false; }); }
   }));
-  let active = null, retry = null;
+  let active = null, retry = null, changingProvider = false, localControl = false, catalog = null;
+  const providerSelect = app.querySelector('#provider-select'), modelSelect = app.querySelector('#model-select');
+  const providerHelp = app.querySelector('#provider-help');
+  function fillModels() {
+    const names = providerSelect.value === 'openai' ? [catalog?.openaiModel].filter(Boolean) : catalog?.localModels || [];
+    modelSelect.replaceChildren(...names.map(name => new Option(name, name)));
+    if (providerSelect.value === catalog?.provider && names.includes(catalog.model)) modelSelect.value = catalog.model;
+    else if (providerSelect.value === 'ollama') modelSelect.value = names.find(name => /qwen/i.test(name)) || names[0] || '';
+    if (!names.length) modelSelect.add(new Option('Sin modelos disponibles', ''));
+    providerHelp.textContent = providerSelect.value === 'ollama' && !names.length
+      ? catalog?.detail || 'No hay modelos instalados en Ollama. Instala tu Qwen y actualiza la lista.'
+      : 'Cambiar inicia una conversación nueva. La selección dura hasta reiniciar el servidor.';
+    updateControls();
+  }
+  function updateControls() {
+    const locked = Boolean(active || changingProvider || !localControl);
+    providerSelect.disabled = locked || !catalog;
+    modelSelect.disabled = locked || !modelSelect.value;
+    app.querySelector('#apply-provider').disabled = locked || !modelSelect.value;
+    app.querySelector('#refresh-models').disabled = locked;
+    input.disabled = locked; send.disabled = locked;
+    app.querySelector('#reset-chat').disabled = locked;
+  }
+  async function refreshInfo() {
+    const response = await fetch('/api/info');
+    if (!response.ok) throw new Error('No se pudo consultar el proveedor.');
+    const info = await response.json();
+    localControl = info.localControl;
+    app.querySelector('#provider-status').textContent = `${info.provider.toUpperCase()} / ${info.model} · ${info.health.detail}`;
+    app.querySelector('.status-dot').classList.toggle('ready', info.health.ready);
+    updateControls();
+    return info;
+  }
+  async function refreshModels() {
+    const response = await fetch('/api/providers');
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'No se pudo consultar los modelos.');
+    catalog = data; providerSelect.value = data.provider; fillModels();
+  }
+  providerSelect.addEventListener('change', fillModels);
+  modelSelect.addEventListener('change', updateControls);
+  app.querySelector('#refresh-models').addEventListener('click', async () => {
+    changingProvider = true; updateControls();
+    try { await refreshModels(); await refreshInfo(); }
+    catch (error) { providerHelp.textContent = error.message; }
+    finally { changingProvider = false; updateControls(); }
+  });
+  app.querySelector('#provider-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    if (active || changingProvider || !localControl) return;
+    changingProvider = true; updateControls();
+    try {
+      const response = await fetch('/api/provider', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider: providerSelect.value, model: modelSelect.value }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      messages.replaceChildren(); retry = null; input.value = '';
+      catalog.provider = data.provider; catalog.model = data.model;
+      status.textContent = `Nueva conversación con ${data.model}.`;
+      providerHelp.textContent = 'Modelo cambiado. Puedes volver a GPT o a otro modelo local cuando quieras.';
+      await refreshInfo();
+    } catch (error) { providerHelp.textContent = error.message; }
+    finally { changingProvider = false; updateControls(); }
+  });
   function addMessage(role, text, meta = '') {
     messages.querySelector('.empty-chat')?.remove();
     const article = document.createElement('article'); article.className = `message ${role}`;
@@ -54,9 +123,9 @@ if (hologram) {
     if (meta) { const detail = document.createElement('span'); detail.className = 'small muted'; detail.textContent = meta; article.append(detail); }
     messages.append(article); messages.scrollTop = messages.scrollHeight;
   }
-  function busy(value) { send.hidden = value; cancel.hidden = !value; input.disabled = value; app.querySelector('#reset-chat').disabled = value; }
+  function busy(value) { send.hidden = value; cancel.hidden = !value; updateControls(); }
   async function submit(message, reused) {
-    if (active) return;
+    if (active || changingProvider || !localControl) return;
     const requestId = reused?.requestId || crypto.randomUUID();
     const controller = new AbortController();
     const current = { requestId, message, controller }; active = current; busy(true);
@@ -104,11 +173,11 @@ if (hologram) {
       messages.replaceChildren(); retry = null; status.textContent = 'Nueva conversación lista.'; input.focus();
     } catch { status.textContent = 'No fue posible reiniciar. Comprueba el servidor.'; }
   });
-  fetch('/api/info').then(response => response.json()).then(info => {
-    app.querySelector('#provider-status').textContent = `${info.provider.toUpperCase()} / ${info.model} · ${info.health.detail}`;
-    app.querySelector('.status-dot').classList.toggle('ready', info.health.ready);
+  updateControls();
+  refreshInfo().then(async info => {
     if (!info.localControl) { input.disabled = true; send.disabled = true; motionButtons.forEach(item => { item.disabled = true; }); status.textContent = 'Abre http://localhost:3000/control en el PC para conversar.'; }
     else if (!info.health.ready) status.textContent = info.health.detail;
+    if (info.localControl) await refreshModels();
     const links = app.querySelector('#viewer-links');
     for (const url of info.viewerUrls) {
       const row = document.createElement('div'), link = document.createElement('a'), copy = document.createElement('button');

@@ -1,13 +1,15 @@
 # Halo Strategy Lab — Roadmap activa
 
-Actualizado: 2026-10-07. **Prioridad: MVP holográfico para mañana, 2026-10-08; hora pendiente.** El simulador está diferido por instrucción del propietario. El propietario autorizó iniciar implementación tras cerrar el plan.
+Actualizado: 2026-10-08. **Prioridad: MVP holográfico para mañana, 2026-10-08; hora pendiente.** El simulador está diferido por instrucción del propietario. El propietario autorizó iniciar implementación tras cerrar el plan.
 
 ## Cómo continuar
 
 Leer `AGENTS.md`, `SPECIFICACTIONS.MD`, `Cortana.md` y `docs/plans/2026-10-07-mvp-holograma.md`. Usar esta tabla para estado y las tarjetas del plan para trabajo/aceptación. Los reportes registran evidencia, no duplican requisitos.
 
 **Planificación completada:** H-00 `DONE`, responsable Codex, con verificación documental registrada.
-**Ampliación actual:** H-20…H-22 por petición del propietario. GPT principal preparado; validación real `BLOCKED` por clave. Orientación y baile con evidencia técnica, sin cerrar móvil/caja.
+**Nueva ampliación H-23:** selector GPT/Ollama solicitado y confirmado con Qwen local; evidencia en `docs/reports/2026-10-08-H-23-selector-qwen.md`.
+
+**Ampliación anterior:** H-20…H-22 por petición del propietario. GPT principal preparado; validación real `BLOCKED` por clave. Orientación y baile con evidencia técnica, sin cerrar móvil/caja.
 
 **Base implementada:** visor negro, calibración y conversación local histórica; GPT sustituye a Ollama como proveedor principal. **Siguiente:** clave privada para H-20; H-19 identifica celular/caja/hora. El bloqueo previo del seguimiento de chat no se presenta como resuelto por las pruebas nuevas de orientación/baile.
 
@@ -50,6 +52,7 @@ A visual es el primer hito. Para cumplir la solicitud completa de mañana se req
 | H-20 | BLOCKED | H-03, H-10 | P0 | GPT principal (`gpt-4.1-mini`/Responses) configurado, adaptador/errores probados y .env privado preparado sin clave. Falta OPENAI_API_KEY para 3 respuestas + seguimiento/latencias reales. Pregunta enviada; sin activar pagos ni fallback local. Codex, 2026-10-07. |
 | H-21 | DONE | H-03, H-04 | P0 | Tres modos verificados a 390×844/844×390, giros 0/90 correctos, tres recargas y geometría/espejos probados. Capturas + `docs/reports/evidence/H-21-orientation.json`; calibración v1 compatible. Codex, 2026-10-07. Física sigue en H-07/H-08. |
 | H-22 | DONE | H-03, H-04 | P0 | Gangnam Style MIT + humanoide Quaternius CC0 locales, 65 huesos, 14318 triángulos y ciclo de 7.273 s. Botones PC reposo/baile, selección recuperada al abrir visor, GLB/clip reales probados y negro 5 puntos por captura. Licencias/hash/script en ficha; reporte H-20…22. Codex, 2026-10-07. |
+| H-23 | DONE | H-03, H-10 | P0 | Codex, 2026-10-08: selector GPT/Ollama con catálogo local validado, contexto/cache nuevos y configuración OpenAI conservada. 23 pruebas y build correctos; UI GPT→Qwen→GPT y cancelación verificados. Respuesta real de qwen2.5:32b en 58.1 s; captura/reporte H-23. Selección hasta reinicio; GPT real sigue pendiente H-20. |
 | H-18 | DEFERRED | H-17 | P3 | Avatar final, labios, wake word, app instalada y otras mejoras con nuevo alcance. |
 
 P0 primero. H-09 puede preparar proveedor mientras se consigue el visor, pero no debe quitar prioridad a H-02…H-08. P1 también necesario para A+B; P2/P3 no se ejecutan para cumplir la entrega de mañana.
@@ -64,6 +67,7 @@ Q-06/Q-08 pendientes: dispositivo/hora/caja. Q-07: GPT solicitado como principal
 
 | Fecha | Tarea | Avance | Pendiente |
 |---|---|---|---|
+| 2026-10-08 | H-23 | Selector GPT/Qwen implementado; Ollama real descubrió qwen2.5:32b y llama3.1:latest. Respuesta UI real 58.1 s, cancelación y vuelta a GPT comprobadas. 23 pruebas, build y captura. Reporte: `docs/reports/2026-10-08-H-23-selector-qwen.md`. | Sin clave GPT en este entorno; H-20 y tareas físicas conservan sus pendientes. Siguiente disponible: configurar clave H-20 o aportar dispositivo/caja H-19; H-08 depende de H-07. |
 | 2026-10-07 | H-00 | Plan detallado, guía API y alcance vigente. Verificados 7 documentos, 60 IDs únicos, 19 tareas H sin ciclos, 18 tarjetas de producto, 9 pruebas QA, referencias concretas y un solo AGENTS. Evidencia: `docs/reports/2026-10-07-H-00-plan-holograma.md`. | Implementación H-01…H-14 pendiente; no hay modelo descargado, app ni prueba física/API. Dispositivo/hora/coste por confirmar. |
 | 2026-10-07 | H-01…H-12 | Visor/ajustes/chat local implementados, build exitoso y 11 pruebas; negro digital normal/error, LAN 200/403, respuestas reales/contexto/cancelación. Evidencia: `docs/reports/2026-10-07-H-01-12-visor-llm.md`. | Carga/rangos/UI completa por probar; bloqueo de automatización registrado. Celular/caja/FPS/ensayos pendientes. A+B todavía sin aceptación física. |
 | 2026-10-07 | H-20…H-22 | GPT principal preparado; orientación y baile verificados. 19 pruebas pasan, build correcto, 6 casos de orientación y 3 recargas, esqueleto/baile real y negro muestreado. Evidencia: `docs/reports/2026-10-07-H-20-22-gpt-orientacion-baile.md`. | H-20 BLOCKED por clave; aún sin respuesta ni latencia GPT. Teléfono/caja/ensayo y pendientes previos siguen abiertos. No se crearon commits: Git no funcional en el entorno. |

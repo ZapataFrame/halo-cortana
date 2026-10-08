@@ -3,7 +3,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { networkInterfaces } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import { generateReply, providerHealth } from './providers.js';
+import { generateReply, providerHealth, localModels } from './providers.js';
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.glb': 'model/gltf-binary', '.json': 'application/json', '.md': 'text/plain; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml' };
 const LOCAL = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
@@ -29,7 +29,7 @@ async function readJson(req) {
   try { return JSON.parse(text); } catch { throw new Error('JSON inválido.'); }
 }
 
-export function createApp({ config, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, timeoutMs = 60000 } = {}) {
+export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, timeoutMs = 60000 } = {}) {
   const sessionId = randomUUID();
   let revision = 0, phase = 'idle', animation = 'idle', active = null, history = [];
   const completed = new Map();
@@ -52,6 +52,14 @@ export function createApp({ config, root = resolve('dist'), port = 3000, reply =
     catch { json(res, 400, { error: 'Ruta inválida.' }); return; }
     try {
       if (req.method === 'GET' && pathname === '/api/presentation') { json(res, 200, state()); return; }
+      if (req.method === 'GET' && pathname === '/api/providers') {
+        if (!localWrite(req, res)) return;
+        let installed = [], detail = '';
+        try { if (configs.ollama) installed = await models(configs.ollama); }
+        catch { detail = 'Ollama no responde. Inicia Ollama en el PC y pulsa Actualizar modelos.'; }
+        json(res, 200, { provider: config.provider, model: config.model, openaiModel: configs.openai?.model,
+          localModels: installed, detail }); return;
+      }
       if (req.method === 'GET' && pathname === '/api/info') {
         const addresses = Object.values(networkInterfaces()).flat().filter(item => item && !item.internal && item.family === 'IPv4').map(item => `http://${item.address}:${port}/hologram`);
         json(res, 200, { provider: config.provider, model: config.model, health: await health(config), localControl: LOCAL.has(req.socket.remoteAddress), viewerUrls: addresses, limits: { input: 2000, historyPairs: 6, timeoutMs } }); return;
@@ -59,6 +67,28 @@ export function createApp({ config, root = resolve('dist'), port = 3000, reply =
       if (req.method === 'POST' && pathname.startsWith('/api/')) {
         if (!localWrite(req, res)) return;
         const body = await readJson(req);
+        if (pathname === '/api/provider') {
+          if (active) { json(res, 409, { error: 'Espera o cancela la respuesta antes de cambiar de modelo.' }); return; }
+          if (!body || !['openai', 'ollama'].includes(body.provider) || !configs[body.provider]
+            || typeof body.model !== 'string' || !body.model || body.model.length > 200
+            || Object.keys(body).some(key => !['provider', 'model'].includes(key))) {
+            json(res, 400, { error: 'Selecciona un proveedor y modelo disponibles.' }); return;
+          }
+          const selected = configs[body.provider];
+          if (body.provider === 'ollama') {
+            let installed;
+            try { installed = await models(selected); }
+            catch { json(res, 503, { error: 'Ollama no responde. Inicia el servicio local y actualiza los modelos.' }); return; }
+            if (!installed.includes(body.model)) { json(res, 400, { error: 'El modelo no está instalado en Ollama. Actualiza la lista.' }); return; }
+          } else if (body.model !== selected.model) {
+            json(res, 400, { error: 'El modelo GPT se configura en OPENAI_MODEL del PC.' }); return;
+          }
+          // La consulta del catálogo puede coincidir con un envío de otra pestaña.
+          if (active) { json(res, 409, { error: 'Hay una respuesta en curso. Espera o cancélala.' }); return; }
+          config = { ...selected, model: body.model };
+          history = []; completed.clear(); setPhase('idle');
+          json(res, 200, { provider: config.provider, model: config.model, ...state() }); return;
+        }
         if (pathname === '/api/animation') {
           if (!['idle', 'gangnam'].includes(body.animation)) { json(res, 400, { error: 'Animación no disponible.' }); return; }
           animation = body.animation; revision++;
@@ -81,6 +111,7 @@ export function createApp({ config, root = resolve('dist'), port = 3000, reply =
         }
         if (active) { json(res, 409, { error: 'Hay una respuesta en curso. Espera o cancélala.' }); return; }
         const controller = new AbortController();
+        const requestConfig = config;
         const token = { requestId, controller };
         active = token; setPhase('processing');
         let timedOut = false;
@@ -89,12 +120,12 @@ export function createApp({ config, root = resolve('dist'), port = 3000, reply =
         res.on('close', disconnected);
         const start = performance.now();
         try {
-          const generated = await reply(config, history.slice(), message, controller.signal);
+          const generated = await reply(requestConfig, history.slice(), message, controller.signal);
           if (controller.signal.aborted || active !== token) throw new Error('CANCELLED');
           history.push({ role: 'user', content: message }, { role: 'assistant', content: generated.text });
           history = history.slice(-12);
           setPhase('responded');
-          const result = { reply: generated.text, truncated: generated.truncated, provider: config.provider, model: config.model, elapsedMs: Math.round(performance.now() - start), ...state() };
+          const result = { reply: generated.text, truncated: generated.truncated, provider: requestConfig.provider, model: requestConfig.model, elapsedMs: Math.round(performance.now() - start), ...state() };
           completed.set(requestId, { message, result });
           if (completed.size > 20) completed.delete(completed.keys().next().value);
           if (!res.destroyed) json(res, 200, result);

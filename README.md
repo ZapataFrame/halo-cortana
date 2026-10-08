@@ -1,6 +1,6 @@
 # Cortana · Holograma
 
-Humanoide sobre **negro puro** para una caja Pepper’s Ghost, modos vertical/horizontal y **Gangnam Style** activable desde PC. Conversación por texto preparada para GPT; falta configurar la clave API. El celular presenta el avatar; voz y simulador táctico quedan para después.
+Humanoide sobre **negro puro** para una caja Pepper’s Ghost, modos vertical/horizontal y **Gangnam Style** activable desde PC. Conversación por texto con selector GPT o Qwen local en Ollama; GPT requiere su clave API. El celular presenta el avatar; voz y simulador táctico quedan para después.
 
 ## Abrir la demo
 
@@ -48,11 +48,28 @@ Reinicia con `Ctrl+C` y `npm start`; recarga `/control`. La suscripción ChatGPT
 
 Conversación desde `localhost` en PC: Enter envía, Shift+Enter agrega línea. **Cancelar** detiene la espera; **Nueva conversación** vacía contexto. Entrada de 2000 caracteres, seis pares recientes, 256 tokens de salida y timeout 60 s. Errores de clave/cuota se explican en el control; no hay cambio automático a Ollama ni reintentos automáticos.
 
-Alternativa sin coste por llamada: elegir explícitamente `LLM_PROVIDER=ollama` y `OLLAMA_MODEL=phi4-mini:latest` en `.env`. Requiere [Ollama](https://ollama.com/) activo y el modelo instalado (`ollama pull phi4-mini`). En este PC respondió en CPU; sus latencias anteriores están en el reporte inicial. **Todavía no hay micrófono ni audio.**
+## Usar tu Qwen local y alternar con GPT
+
+1. Mantén [Ollama](https://ollama.com/) activo en este PC. `ollama list` debe mostrar tu modelo (en este equipo: **`qwen2.5:32b`**).
+2. En `/control`, sección **Conversación**, selecciona **Local / Ollama (Qwen)** y elige `qwen2.5:32b` en **Modelo**.
+3. Pulsa **Cambiar modelo** y envía un mensaje. **Actualizar modelos** renueva la lista si instalaste otro modelo o encendiste Ollama después.
+4. Para volver, selecciona **GPT / OpenAI** y pulsa **Cambiar modelo**. Conserva la clave y configuración OpenAI existentes; no necesitas reiniciar para alternar.
+
+Cada cambio empieza una conversación nueva. La selección se comparte entre las pestañas de control y dura hasta reiniciar el servidor; entonces vuelve al proveedor de `.env` (GPT si no se indica otro). Cancela o termina la respuesta antes de cambiar. El proveedor activo aparece sobre el selector; las opciones editadas se aplican al pulsar el botón.
+
+Para arrancar siempre en Qwen, edita solo estas líneas de tu `.env`, conservando las de OpenAI, y reinicia:
+
+```dotenv
+LLM_PROVIDER=ollama
+OLLAMA_URL=http://127.0.0.1:11434
+OLLAMA_MODEL=qwen2.5:32b
+```
+
+Usa el nombre exacto que muestra `ollama list` si tu modelo es otro. No se descarga ningún modelo automáticamente. El backend se conecta a Ollama en loopback; el celular sigue mostrando el avatar. Si Ollama no responde, revisa su servicio y pulsa **Actualizar modelos**. Salida local de 48 tokens, timeout 60 s; un modelo grande puede superar ese tiempo. Sin coste por llamada; rendimiento sujeto al equipo. **Todavía no hay micrófono ni audio.**
 
 ## Verificación
 
-19 pruebas automatizadas y build correctos. Baile y orientación inspeccionados en navegador PC. **GPT real pendiente de clave; celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
+23 pruebas automatizadas y build correctos. Selector GPT→Qwen→GPT, respuesta real Qwen (58,1 s) y cancelación comprobados en navegador PC. Baile y orientación cuentan con evidencia previa. **GPT real pendiente de clave; celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
 
 ```bash
 npm test

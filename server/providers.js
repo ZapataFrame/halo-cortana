@@ -1,7 +1,6 @@
 const SYSTEM_PROMPT = 'Eres Cortana, asistente de una demo holográfica. Responde en español, máximo 25 palabras. Solo conversas: no ejecutas acciones, no tienes voz ni herramientas.';
 
-export function providerConfig(env = process.env) {
-  const provider = env.LLM_PROVIDER || 'openai';
+export function providerConfig(env = process.env, provider = env.LLM_PROVIDER || 'openai') {
   if (!['ollama', 'openai'].includes(provider)) throw new Error('LLM_PROVIDER debe ser ollama u openai.');
   if (provider === 'openai') {
     return { provider, model: env.OPENAI_MODEL || 'gpt-4.1-mini', key: env.OPENAI_API_KEY?.trim() || '', url: 'https://api.openai.com/v1/responses' };
@@ -13,16 +12,21 @@ export function providerConfig(env = process.env) {
   return { provider, model: env.OLLAMA_MODEL || 'phi4-mini:latest', url: url.origin };
 }
 
+export async function localModels(config, request = fetch) {
+  const response = await request(`${config.url}/api/tags`, { signal: AbortSignal.timeout(3000) });
+  if (!response.ok) throw new Error('OLLAMA_UNAVAILABLE');
+  const data = await response.json();
+  if (!Array.isArray(data.models)) throw new Error('OLLAMA_INVALID_CATALOG');
+  return [...new Set(data.models.map(item => item.name).filter(name => typeof name === 'string' && name.length > 0 && name.length <= 200))].sort();
+}
+
 export async function providerHealth(config) {
   if (config.provider === 'openai') return {
     ready: Boolean(config.key && config.model), verified: false,
     detail: config.key && config.model ? 'GPT configurado; esperando el primer mensaje.' : 'Añade OPENAI_API_KEY al archivo .env del PC y reinicia el servidor.',
   };
   try {
-    const response = await fetch(`${config.url}/api/tags`, { signal: AbortSignal.timeout(3000) });
-    if (!response.ok) throw new Error('service');
-    const data = await response.json();
-    const found = data.models?.some(item => item.name === config.model);
+    const found = (await localModels(config)).includes(config.model);
     return { ready: Boolean(found), verified: true, detail: found ? 'Modelo local disponible.' : `Modelo ${config.model} no instalado.` };
   } catch {
     return { ready: false, verified: false, detail: 'Ollama no responde. El visor sigue disponible.' };

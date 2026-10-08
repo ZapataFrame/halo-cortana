@@ -6,6 +6,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createApp } from '../server/app.js';
+import { providerConfig } from '../server/providers.js';
 
 const config = { provider: 'ollama', model: 'test-only' };
 async function fixture(t, options = {}) {
@@ -208,4 +209,57 @@ test('cambiar modelo durante generación o consulta concurrente no mezcla respue
   releaseModels(); assert.equal((await switching).status, 409);
   assert.equal((await post('/api/provider', { provider: 'openai', model: 'gpt-4.1-mini' })).status, 409);
   releaseReply(); assert.equal((await (await pending).json()).provider, 'openai');
+});
+
+test('selector Cloud valida modelo, borra contexto/cache y mantiene baile sin revelar clave', async t => {
+  const configs = Object.fromEntries(['openai', 'ollama', 'ollama-cloud'].map(provider => [provider, providerConfig({ OLLAMA_API_KEY: 'cloud-private-test' }, provider)]));
+  const seen = [];
+  const { base, post } = await fixture(t, { config: configs.openai, configs, models: async () => ['qwen2.5:32b'],
+    reply: async (selected, history) => { seen.push({ provider: selected.provider, history }); return { text: 'fixture de protocolo' }; },
+  });
+  await post('/api/chat', { message: 'antes', requestId: 'request-cloud-switch' });
+  await post('/api/animation', { animation: 'gangnam' });
+  const catalog = await (await fetch(base + '/api/providers')).json();
+  assert.equal(catalog.cloudModel, 'gemma4:31b'); assert.equal(catalog.cloudConfigured, true);
+  assert.ok(!JSON.stringify(catalog).includes('cloud-private-test'));
+  for (const body of [
+    { provider: 'ollama-cloud', model: 'unknown' },
+    { provider: 'ollama-cloud', model: 'gemma4:31b', url: 'https://unrelated.example' },
+    { provider: 'ollama-cloud', model: 'gemma4:31b', key: 'other' },
+  ]) assert.equal((await post('/api/provider', body)).status, 400);
+  assert.equal((await post('/api/provider', { provider: 'ollama-cloud', model: 'gemma4:31b' }, { Origin: 'https://unrelated.example' })).status, 403);
+  const applied = await post('/api/provider', { provider: 'ollama-cloud', model: 'gemma4:31b' });
+  assert.equal(applied.status, 200); assert.equal((await applied.json()).animation, 'gangnam');
+  const response = await post('/api/chat', { message: 'después', requestId: 'request-cloud-switch' });
+  const data = await response.json();
+  assert.equal(response.status, 200); assert.equal(data.provider, 'ollama-cloud'); assert.equal(data.cached, undefined);
+  assert.deepEqual(seen[1], { provider: 'ollama-cloud', history: [] });
+  const info = await (await fetch(base + '/api/info')).text();
+  assert.ok(!info.includes('cloud-private-test')); assert.ok(!info.includes('https://ollama.com'));
+  assert.equal((await post('/api/provider', { provider: 'openai', model: configs.openai.model })).status, 200);
+});
+
+test('Cloud informa autenticación/cuota sin alterar historial ni movimiento', async t => {
+  let seen;
+  const { post, base } = await fixture(t, { config: providerConfig({ LLM_PROVIDER: 'ollama-cloud' }),
+    reply: async (_selected, history, message) => {
+      seen = history;
+      if (message === 'ok') return { text: 'fixture de protocolo' };
+      throw new Error(message === 'sin-clave' ? 'PROVIDER_NOT_CONFIGURED' : `PROVIDER_HTTP_${message}`);
+    },
+  });
+  await post('/api/animation', { animation: 'gangnam' });
+  for (const [message, status, code] of [
+    ['sin-clave', 503, 'NOT_CONFIGURED'], ['401', 502, 'AUTH_ERROR'], ['402', 503, 'USAGE_LIMIT'],
+    ['403', 502, 'ACCESS_ERROR'], ['404', 502, 'MODEL_UNAVAILABLE'], ['429', 503, 'RATE_LIMIT'],
+  ]) {
+    const response = await post('/api/chat', { message, requestId: `request-cloud-${message}` });
+    assert.equal(response.status, status);
+    const data = await response.json(); assert.equal(data.code, code); assert.ok(!data.error.includes('GPT'));
+  }
+  const missing = await post('/api/chat', { message: 'sin-clave', requestId: 'request-cloud-missing' });
+  assert.match((await missing.json()).error, /OLLAMA_API_KEY/);
+  assert.equal((await post('/api/chat', { message: 'ok', requestId: 'request-cloud-ok' })).status, 200);
+  assert.deepEqual(seen, []);
+  assert.equal((await (await fetch(base + '/api/presentation')).json()).animation, 'gangnam');
 });

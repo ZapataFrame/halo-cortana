@@ -58,6 +58,7 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
         try { if (configs.ollama) installed = await models(configs.ollama); }
         catch { detail = 'Ollama no responde. Inicia Ollama en el PC y pulsa Actualizar modelos.'; }
         json(res, 200, { provider: config.provider, model: config.model, openaiModel: configs.openai?.model,
+          cloudModel: configs['ollama-cloud']?.model, cloudConfigured: Boolean(configs['ollama-cloud']?.key),
           localModels: installed, detail }); return;
       }
       if (req.method === 'GET' && pathname === '/api/info') {
@@ -69,7 +70,7 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
         const body = await readJson(req);
         if (pathname === '/api/provider') {
           if (active) { json(res, 409, { error: 'Espera o cancela la respuesta antes de cambiar de modelo.' }); return; }
-          if (!body || !['openai', 'ollama'].includes(body.provider) || !configs[body.provider]
+          if (!body || !['openai', 'ollama', 'ollama-cloud'].includes(body.provider) || !configs[body.provider]
             || typeof body.model !== 'string' || !body.model || body.model.length > 200
             || Object.keys(body).some(key => !['provider', 'model'].includes(key))) {
             json(res, 400, { error: 'Selecciona un proveedor y modelo disponibles.' }); return;
@@ -81,7 +82,9 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
             catch { json(res, 503, { error: 'Ollama no responde. Inicia el servicio local y actualiza los modelos.' }); return; }
             if (!installed.includes(body.model)) { json(res, 400, { error: 'El modelo no está instalado en Ollama. Actualiza la lista.' }); return; }
           } else if (body.model !== selected.model) {
-            json(res, 400, { error: 'El modelo GPT se configura en OPENAI_MODEL del PC.' }); return;
+            json(res, 400, { error: body.provider === 'ollama-cloud'
+              ? 'El modelo cloud se configura en OLLAMA_CLOUD_MODEL del PC.'
+              : 'El modelo GPT se configura en OPENAI_MODEL del PC.' }); return;
           }
           // La consulta del catálogo puede coincidir con un envío de otra pestaña.
           if (active) { json(res, 409, { error: 'Hay una respuesta en curso. Espera o cancélala.' }); return; }
@@ -131,7 +134,15 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
           if (!res.destroyed) json(res, 200, result);
         } catch (error) {
           if (active === token) setPhase(controller.signal.aborted && !timedOut ? 'idle' : 'error');
-          const providerError = {
+          const cloud = requestConfig.provider === 'ollama-cloud';
+          const providerError = cloud ? {
+            PROVIDER_NOT_CONFIGURED: [503, 'NOT_CONFIGURED', 'Falta OLLAMA_API_KEY. Guárdala en .env del PC y reinicia el servidor.'],
+            PROVIDER_HTTP_401: [502, 'AUTH_ERROR', 'Ollama Cloud rechazó la clave. Comprueba OLLAMA_API_KEY en el PC.'],
+            PROVIDER_HTTP_402: [503, 'USAGE_LIMIT', 'Ollama Cloud requiere créditos o acceso adicional para este modelo. Revisa tu cuenta; no se activan pagos desde la aplicación.'],
+            PROVIDER_HTTP_403: [502, 'ACCESS_ERROR', 'Tu cuenta de Ollama Cloud no tiene acceso al modelo. Revisa sus permisos y el plan gratuito disponible.'],
+            PROVIDER_HTTP_404: [502, 'MODEL_UNAVAILABLE', 'El modelo cloud no está disponible. Comprueba OLLAMA_CLOUD_MODEL con el catálogo de Ollama.'],
+            PROVIDER_HTTP_429: [503, 'RATE_LIMIT', 'Ollama Cloud alcanzó un límite de uso o solicitudes. Revisa tu cuota e intenta más tarde.'],
+          }[error.message] : {
             PROVIDER_NOT_CONFIGURED: [503, 'NOT_CONFIGURED', 'Falta la clave de GPT. Añade OPENAI_API_KEY al archivo .env del PC y reinicia el servidor.'],
             PROVIDER_HTTP_401: [502, 'AUTH_ERROR', 'GPT rechazó la clave API. Comprueba OPENAI_API_KEY en el PC.'],
             PROVIDER_HTTP_403: [502, 'ACCESS_ERROR', 'La cuenta API no tiene acceso al modelo seleccionado. Revisa su configuración en OpenAI Platform.'],

@@ -1,6 +1,6 @@
 # Cortana · Holograma
 
-Humanoide sobre **negro puro** para una caja Pepper’s Ghost, modos vertical/horizontal y **Gangnam Style** activable desde PC. Conversación por texto con selector GPT o Qwen local en Ollama; GPT requiere su clave API. El celular presenta el avatar; voz y simulador táctico quedan para después.
+Humanoide sobre **negro puro** para una caja Pepper’s Ghost, modos vertical/horizontal y **Gangnam Style** activable desde PC. Conversación por texto con selector **Gemma 4 en Ollama Cloud, GPT o Qwen local**. Los proveedores cloud requieren su propia clave API. El celular presenta el avatar; voz y simulador táctico quedan para después.
 
 ## Abrir la demo
 
@@ -14,7 +14,7 @@ npm run demo
 - **PC:** [control, baile y conversación](http://localhost:3000/control).
 - **Celular:** misma Wi-Fi; abre la dirección en **Pantalla externa**. Equipo actual: `http://192.168.1.66:3000/hologram`; la IP puede cambiar.
 - Puerto 3000. Detener con `Ctrl+C`; después de compilar basta `npm start`.
-- Visor y baile usan recursos locales. GPT necesita internet; una caída del proveedor conserva la figura.
+- Visor y baile usan recursos locales. GPT y Ollama Cloud necesitan internet; una caída del proveedor conserva la figura.
 
 Si el celular no conecta: comprueba IP, servidor, misma Wi-Fi y aislamiento de clientes. Si hay firewall, habilita TCP 3000 en esa red según tu sistema; no necesitas abrir puertos del router.
 
@@ -43,9 +43,21 @@ La copia local utiliza las **texturas originales** de ojos, rostro, cuerpo y cab
 
 Esta primera prueba muestra una **pose estática**. El archivo incluye una animación llamada `Twerking`; no se activa automáticamente. [Guía para preparar varias animaciones](docs/GUIA_RIG_ANIMACIONES.md). Gangnam Style sigue disponible con el humanoide original, pues usa otro esqueleto. [Atribución y cambios](public/models/README.md): licencia CC BY-NC 4.0 declarada en los metadatos del archivo.
 
+## Probar Gemma 4 31B en Ollama Cloud
+
+En **Proveedor**, elige **Ollama Cloud / Gemma 4**, modelo `gemma4:31b`, y pulsa **Cambiar modelo**. No descarga el modelo en la laptop. Guarda una clave creada en [Ollama API keys](https://ollama.com/settings/keys) en el `.env` existente del PC:
+
+```dotenv
+LLM_PROVIDER=ollama-cloud
+OLLAMA_CLOUD_MODEL=gemma4:31b
+OLLAMA_API_KEY=tu_clave_privada
+```
+
+Reinicia `npm start` para cargar la clave. [Guía completa y prueba de aceptación](docs/API_OLLAMA_CLOUD.md). La integración está preparada; falta la clave para comprobar respuestas reales. El plan Free tiene créditos/modelos iniciales limitados; el acceso gratuito a Gemma 31B de tu cuenta está sin verificar. No se activan pagos. [Condiciones actuales de Ollama](https://ollama.com/pricing).
+
 ## Configurar GPT
 
-El proveedor predeterminado es **OpenAI / `gpt-4.1-mini`**, mediante Responses. Crea una clave propia en [OpenAI Platform](https://platform.openai.com/api-keys) y guárdala solo en `.env` del PC. Si el archivo ya existe, edítalo; no lo reemplaces.
+GPT sigue disponible como **OpenAI / `gpt-4.1-mini`**, mediante Responses. La prueba actual arranca en Ollama Cloud si copias el `.env.example`. Crea una clave propia en [OpenAI Platform](https://platform.openai.com/api-keys) y guárdala solo en `.env` del PC. Si el archivo ya existe, edítalo; no lo reemplaces.
 
 ```dotenv
 LLM_PROVIDER=openai
@@ -78,7 +90,7 @@ Usa el nombre exacto que muestra `ollama list` si tu modelo es otro. No se desca
 
 ## Verificación
 
-25 pruebas aprobadas tras integrar los controles numéricos, negro de carga/normal/error y patrón con el selector GPT/Qwen y la variante Cortana aportada. Evidencia previa de respuestas Qwen, cancelación y recargas en los reportes. **GPT real pendiente de clave; celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
+29 pruebas aprobadas tras integrar los controles numéricos, negro de carga/normal/error y patrón con el selector GPT/Qwen y la variante Cortana aportada. Evidencia previa de respuestas Qwen, cancelación y recargas en los reportes. **Cloud real pendiente de OLLAMA_API_KEY; GPT todavía sin llamada real verificada. Celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
 
 ```bash
 npm test

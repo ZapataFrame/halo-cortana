@@ -279,6 +279,14 @@ Las tareas H-20…H-22 tienen prioridad por instrucción más reciente del propi
 - Proponer contrato de entrega, catálogo mínimo y aceptación por clip/ciclo/transición/envolvente/móvil/caja.
 - Aceptación documental: guía existente, datos consistentes con asset, enlaces válidos y distinción entre propuesta e implementación. No necesita inventar exportación Blender ni subir archivos a terceros.
 
+**H-28 — Ollama Cloud / Gemma 4 31B. Depende de H-23/H-10.**
+
+- API directa fija ollama.com/api/chat; modelo gemma4:31b confirmado por catálogo público. Clave OLLAMA_API_KEY exclusivamente backend; no descargar pesos ni reutilizar credenciales GPT/CLI.
+- Agregar selección explícita Cloud junto a GPT y Qwen local; aplicar modelo configurado en PC, iniciar nuevo contexto/cache y preservar presentación/calibración. Sin fallback ni pagos.
+- Enviar chat no streaming con pensamiento desactivado, salida 256 tokens y límites/cancelación/timeout existentes. Explicar ausencia/clave/cuota/acceso/modelo sin filtrar respuesta privada.
+- Aceptación técnica: contrato/errores, clave privada y destino fijo, cambio de proveedor validado, contextos separados y figura estable; suite/build y render reales.
+- Aceptación real: clave y acceso de cuenta, tres preguntas+seguimiento con latencias, cancelación y nueva solicitud. Plan Free limitado: no afirmar gratuidad del modelo sin cuenta verificada. Falta de autenticación mantiene BLOCKED, aunque integración técnica esté lista.
+
 **H-18 — Mejoras posteriores. Depende de H-17. Estado DEFERRED.**
 
 - Modelo final, materiales, labios, escucha por nombre, aplicación instalada o sin PC y más proveedores. Cada mejora necesita nueva tarjeta y objetivo medible.
@@ -299,6 +307,7 @@ Las tareas H-20…H-22 tienen prioridad por instrucción más reciente del propi
 | QA-09 Ensayo | Guion completo 2 veces, 10 min con IA. | A+B reproducibles y limitaciones explícitas. | Reporte final. |
 | QA-10 Orientación | Tres modos, dos aspectos, 3 recargas y espejos. | Giro sin acumulación, figura íntegra y ajuste conservado. | Pruebas de geometría, DOM y capturas PC. |
 | QA-11 Baile | Iniciar/detener PC, abrir visor, provocar fallo GPT. | Esqueleto real, selección recuperada y negro continuo. | Clip/GLB reales, pruebas HTTP y capturas. |
+| QA-13 Cloud | Configurar clave y tres preguntas + seguimiento/cancelación. | Respuestas reales Gemma y contexto; errores no cambian proveedor ni figura. | Catálogo/contratos verificados; generación pendiente de clave. |
 | QA-12 GPT | Clave privada, 3 mensajes + seguimiento. | Respuestas reales y latencias; errores legibles sin fallback. | Registro pendiente de credencial. |
 
 ## 7. Orden, tiempos y recortes

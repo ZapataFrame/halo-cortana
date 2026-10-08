@@ -1,0 +1,27 @@
+{
+  "provider": "ollama-cloud",
+  "model": "gemma4:31b",
+  "health": {
+    "ready": false,
+    "verified": false,
+    "detail": "Añade OLLAMA_API_KEY al archivo .env del PC y reinicia el servidor. El visor sigue disponible."
+  },
+  "missingKey": {
+    "httpStatus": 503,
+    "error": "Falta OLLAMA_API_KEY. Guárdala en .env del PC y reinicia el servidor.",
+    "code": "NOT_CONFIGURED"
+  },
+  "publicStateKeys": [
+    "sessionId",
+    "revision",
+    "phase",
+    "animation"
+  ],
+  "generationVerified": false,
+  "catalog": {
+    "endpoint": "https://ollama.com/api/tags",
+    "httpStatus": 200,
+    "listedModel": "gemma4:31b",
+    "checkedAt": "2026-10-08T22:35:15.508Z"
+  }
+}

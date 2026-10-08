@@ -61,3 +61,41 @@ test('Ollama envía el modelo Qwen elegido, historial y cancelación sin clave O
     assert.throws(() => providerConfig({ LLM_PROVIDER: 'ollama', OLLAMA_URL: url }));
   }
 });
+
+test('Cloud usa destino fijo y exige su propia clave sin llamar a otro proveedor', async () => {
+  const config = providerConfig({ LLM_PROVIDER: 'ollama-cloud', OLLAMA_URL: 'https://unrelated.example', OPENAI_API_KEY: 'gpt-test-only' });
+  assert.equal(config.url, 'https://ollama.com'); assert.equal(config.model, 'gemma4:31b');
+  assert.equal(config.key, '');
+  const health = await providerHealth(config);
+  assert.equal(health.ready, false); assert.equal(health.verified, false);
+  assert.match(health.detail, /OLLAMA_API_KEY/);
+  let calls = 0;
+  await assert.rejects(generateReply(config, [], 'hola', undefined, async () => { calls++; }), /NOT_CONFIGURED/);
+  assert.equal(calls, 0);
+});
+
+test('Gemma Cloud envía contexto/abort, protege clave y devuelve solo contenido final', async () => {
+  const config = providerConfig({ LLM_PROVIDER: 'ollama-cloud', OLLAMA_API_KEY: ' cloud-private-test ' });
+  const history = [{ role: 'user', content: 'Me llamo Ana' }, { role: 'assistant', content: 'Hola Ana' }];
+  const snapshot = structuredClone(history), controller = new AbortController();
+  const result = await generateReply(config, history, '¿Mi nombre?', controller.signal, async (url, options) => {
+    assert.equal(url, 'https://ollama.com/api/chat');
+    assert.equal(options.headers.Authorization, 'Bearer cloud-private-test');
+    assert.equal(options.signal, controller.signal); assert.equal(options.redirect, 'error');
+    const body = JSON.parse(options.body);
+    assert.equal(body.model, 'gemma4:31b'); assert.equal(body.stream, false); assert.equal(body.think, false);
+    assert.equal(body.options.num_predict, 256);
+    assert.deepEqual(body.messages.slice(1), [...history, { role: 'user', content: '¿Mi nombre?' }]);
+    assert.ok(!options.body.includes('cloud-private-test')); assert.equal(body.tools, undefined);
+    return { ok: true, json: async () => ({ message: { content: 'Ana.', thinking: 'no mostrar' }, done_reason: 'stop' }) };
+  });
+  assert.deepEqual(result, { text: 'Ana.', truncated: false }); assert.deepEqual(history, snapshot);
+  for (const status of [401, 402, 403, 404, 429, 500]) {
+    await assert.rejects(generateReply(config, [], 'hola', undefined, async () => ({ ok: false, status,
+      json() { throw new Error('No leer cuerpo privado'); },
+    })), new RegExp(`PROVIDER_HTTP_${status}`));
+  }
+  await assert.rejects(generateReply(config, [], 'hola', undefined, async () => ({ ok: true,
+    json: async () => ({ message: { thinking: 'solo pensamiento' } }),
+  })), /EMPTY_RESPONSE/);
+});

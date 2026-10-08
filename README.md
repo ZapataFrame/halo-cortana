@@ -34,6 +34,14 @@ En el control pulsa **Bailar Gangnam Style**; los visores conectados cambian de 
 
 Es una recreación libre de un baile presente en Fortnite, descargada de **ProgramAsWeights/avatar**, con código MIT y humanoide **Quaternius CC0**. No es el archivo oficial del juego. [Fuentes, licencias y hashes](public/models/README.md).
 
+## Probar tu GLB Cortana
+
+En **Avatar**, pulsa **Cortana importada**. También puedes abrir [control Cortana](http://localhost:3000/control?avatar=cortana) o [visor Cortana](http://localhost:3000/hologram?avatar=cortana). La dirección para celular que aparece en ese control incluye la selección de Cortana.
+
+La copia local está adaptada a blanco/gris sobre negro; el original de Descargas permanece intacto. Para regresar pulsa **Humanoide + Gangnam**. GPT y Qwen funcionan igual en ambas vistas. La selección del modelo viaja en la URL; cada pantalla debe abrir la variante deseada. La calibración existente se conserva y puede necesitar ajuste para esta silueta.
+
+Esta primera prueba muestra una **pose estática**. El archivo incluye una animación llamada `Twerking`; no se activa automáticamente. Gangnam Style sigue disponible con el humanoide original, pues usa otro esqueleto. [Atribución y cambios](public/models/README.md): licencia CC BY-NC 4.0 declarada en los metadatos del archivo.
+
 ## Configurar GPT
 
 El proveedor predeterminado es **OpenAI / `gpt-4.1-mini`**, mediante Responses. Crea una clave propia en [OpenAI Platform](https://platform.openai.com/api-keys) y guárdala solo en `.env` del PC. Si el archivo ya existe, edítalo; no lo reemplaces.
@@ -69,7 +77,7 @@ Usa el nombre exacto que muestra `ollama list` si tu modelo es otro. No se desca
 
 ## Verificación
 
-23 pruebas automatizadas y build correctos. Selector GPT→Qwen→GPT, respuesta real Qwen (58,1 s) y cancelación comprobados en navegador PC. Baile y orientación cuentan con evidencia previa. **GPT real pendiente de clave; celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
+24 pruebas automatizadas y build correctos. Selector GPT→Qwen→GPT, respuesta real Qwen (58,1 s) y cancelación comprobados en navegador PC. Baile y orientación cuentan con evidencia previa. **GPT real pendiente de clave; celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
 
 ```bash
 npm test

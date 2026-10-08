@@ -3,7 +3,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DEFAULT_CALIBRATION, loadCalibration, normalizeCalibration, saveCalibration } from './calibration.js';
 import { applyProjection, effectiveRotation } from './projection.js';
 
-export function createViewer(container, { compact = false } = {}) {
+export function createViewer(container, { compact = false, avatarId = 'dancer' } = {}) {
+  const imported = avatarId === 'cortana';
   container.innerHTML = `
     <div class="render-surface" aria-label="Humanoide holográfico" data-status="loading"></div>
     <svg class="calibration-pattern" viewBox="0 0 200 200" aria-label="Patrón asimétrico de calibración" hidden>
@@ -140,14 +141,15 @@ export function createViewer(container, { compact = false } = {}) {
       diagnostics.textContent = 'Se perdió el contexto gráfico. Recarga el visor.';
     });
     Promise.all([
-      new GLTFLoader().loadAsync('/models/dancer.glb'),
-      fetch('/models/dancer-motion.json').then(response => { if (!response.ok) throw new Error(); return response.json(); }),
+      new GLTFLoader().loadAsync(imported ? '/models/cortana.glb' : '/models/dancer.glb'),
+      imported ? Promise.resolve(null) : fetch('/models/dancer-motion.json').then(response => { if (!response.ok) throw new Error(); return response.json(); }),
     ]).then(([gltf, motion]) => {
       if (destroyed) return;
       const character = gltf.scene;
       character.name = 'HologramRig';
+      if (imported) character.rotation.y += Math.PI;
       avatar = new THREE.Group(); avatar.add(character);
-      if (motion.clips?.length) {
+      if (motion?.clips?.length) {
         mixer = new THREE.AnimationMixer(character);
         for (const json of motion.clips) {
           const clip = THREE.AnimationClip.parse(json);
@@ -159,7 +161,7 @@ export function createViewer(container, { compact = false } = {}) {
         avatar.traverse(item => { if (item.isSkinnedMesh) item.computeBoundingBox(); });
       }
       // Ajustar siempre desde la pose de reposo, incluso si el PC ya baila.
-      mixer.stopAllAction(); actions.get('idle').reset().play(); mixer.update(0);
+      if (mixer) { mixer.stopAllAction(); actions.get('idle').reset().play(); mixer.update(0); }
       avatar.updateMatrixWorld(true);
       avatar.traverse(item => { if (item.isSkinnedMesh) item.computeBoundingBox(); });
       const bounds = new THREE.Box3().setFromObject(avatar);
@@ -167,15 +169,17 @@ export function createViewer(container, { compact = false } = {}) {
       const fit = 2 / size.y;
       avatar.scale.multiplyScalar(fit);
       avatar.position.addScaledVector(center, -fit);
-      modelWidth = Math.max((motion.envelope.max[0] - motion.envelope.min[0]) * fit, size.z * fit);
+      modelWidth = Math.max(motion ? (motion.envelope.max[0] - motion.envelope.min[0]) * fit : size.x * fit, size.z * fit);
       avatar.traverse(item => {
         if (!item.isMesh) return;
         item.material = new THREE.MeshStandardMaterial({ color: 0xbcbcbc, roughness: 0.7, metalness: 0.1, emissive: 0x303030, emissiveIntensity: 0.4 });
         item.frustumCulled = false;
       });
-      currentAction = null; mixer.stopAllAction(); playAnimation(animation);
+      currentAction = null; mixer?.stopAllAction(); playAnimation(animation);
       body.add(avatar);
       modelReady = true; surface.dataset.status = 'ready';
+      surface.dataset.avatar = imported ? 'cortana' : 'dancer';
+      if (imported) notice.textContent = 'Cortana importada · pose estática. Gangnam Style usa el humanoide original.';
       diagnostics.textContent = 'Modelo cargado · midiendo FPS…'; resize();
     }).catch(() => {
       surface.dataset.status = 'error'; diagnostics.textContent = 'No se pudo cargar el modelo. Revisa la conexión con el PC y recarga.';
@@ -205,6 +209,7 @@ export function createViewer(container, { compact = false } = {}) {
   }
   function playAnimation(value) {
     if (!['idle', 'gangnam'].includes(value)) return;
+    if (imported) value = 'idle';
     animation = value; surface.dataset.animation = value;
     const next = actions.get(value);
     if (!next || next === currentAction) return;

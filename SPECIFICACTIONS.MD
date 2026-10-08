@@ -87,6 +87,14 @@ Orientación guardada en calibración v1: `auto`, `portrait`, `landscape`; datos
 
 La [referencia física](https://wisnuwisdantio.com/category/experiments/peppers-ghost-holographic-projection/) documenta un reflector y distintas posiciones de pantalla. Punto de partida 45°; la caja real determina espejo/rotación/distancias. No prometer altura proyectada sin medidas. Patrón asimétrico temporal prueba lateralidad y se retira en presentación.
 
+### Alternativa Cortana aportada (H-24)
+
+Petición 2026-10-08: evaluar y probar el GLB añadido en Descargas. Copia monocromática local opcional con `?avatar=cortana`, disponible tanto en control como visor; valor desconocido conserva `dancer`. La selección viaja en la URL de cada pantalla, incluida la dirección LAN generada desde control. No añade endpoints ni sincronización global de avatar. Conversación/proveedor, calibración, orientación y estado mantienen sus contratos.
+
+El modelo contiene 18,948 triángulos, skin de 79 joints y una animación Twerking. Se usa pose estática; animación nativa y retargeting de Gangnam no forman parte de esta prueba. Botones de movimiento se deshabilitan en el control Cortana; ese visor ignora Gangnam solicitado desde otros controles. Avatar/baile originales permanecen disponibles por la ruta sin parámetro. Centro, escala y giro inicial 180° se aplican al cargar; no cambian calibración guardada.
+
+Adaptación reproducible en `tools/prepare-cortana.mjs`: conserva rig/geometría/animación y atribución, sustituye materiales especulares antiguos no soportados por PBR monocromático y elimina referencias a texturas. No reproduce los colores del modelo original. Ficha de hashes y licencia **declarada en el archivo** CC BY-NC 4.0 en `public/models/README.md`; origen web respondió 403. No se modifica el original de Descargas ni se selecciona este modelo como avatar final.
+
 ## 7. LLM, credenciales y costes
 
 La tarifa de uso con clave API es distinta de la suscripción ChatGPT/Codex. No considerar una suscripción como saldo API; verificar cuenta propia. Consultar [planes](https://learn.chatgpt.com/docs/pricing), [tarifas API](https://developers.openai.com/api/docs/pricing) y la guía `docs/API_OPENAI.md`.
@@ -120,6 +128,7 @@ IDs nuevos conservan separación respecto a D-01…D-12 del plan histórico.
 | D-21 | CONFIRMADA | 2026-10-07 | Separar H-19 (dispositivo/caja/hora) de preparación PC. H-04 mide render técnico en PC; H-07/H-08 conservan aceptación móvil/física. No dar esas pruebas por realizadas. |
 | D-22 | CONFIRMADA | 2026-10-07 | Petición del propietario: GPT principal. Selección técnica gpt-4.1-mini/Responses, clave solo backend; Ollama opcional explícito. Sin activar pagos; llamada real pendiente de clave. |
 | D-23 | CONFIRMADA | 2026-10-07 | Petición del propietario: modos automático/vertical/horizontal. Adaptación de imagen según viewport más rotación adicional, persistencia compatible v1; sin depender del bloqueo de orientación del navegador. |
+| D-26 | CONFIRMADA | 2026-10-08 | Probar reversiblemente el GLB Cortana aportado en Descargas mediante variante opcional monocromática/estática. Mantener avatar/baile originales y atribución del archivo; no dar por resuelto retargeting ni elegir arte final. |
 | D-25 | CONFIRMADA | 2026-10-08 | Petición del propietario: conservar GPT y añadir selección de Qwen local en Ollama desde PC. Catálogo local validado, cambio explícito sin reinicio, contexto nuevo y selección temporal; sin descargas ni pagos. |
 | D-24 | CONFIRMADA | 2026-10-07 | Petición de baile libre: recreación Gangnam Style MIT + humanoide Quaternius CC0 compatible. Curvas horneadas a keyframes, control compartido desde PC y recursos locales sin música. No es un asset oficial de Fortnite. |
 

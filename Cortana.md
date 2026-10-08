@@ -44,6 +44,10 @@ Avatar activo: Superhero Male de Quaternius, CC0, obtenido del repositorio Progr
 
 Inicialmente blanco/gris luminoso para contrastar sobre negro. Silueta completa con márgenes; sin suelo, skybox ni entorno. Contornos triangulares opcionales ya disponibles; outline fino y arte final después de verificar reflejo. Reacción al procesamiento o animación de reposo son mejoras; no desplazan H-08.
 
+### Variante Cortana aportada (2026-10-08)
+
+Opción **Cortana importada**: `?avatar=cortana` en control/visor. Copia local del GLB proporcionado, 18,948 triángulos y rig de 79 joints, material monocromático, frente corregido 180° y pose estática. Original intacto y atribución/CC BY-NC declarada conservadas en la ficha. No reproduce su clip Twerking ni reutiliza Gangnam del rig Quaternius. Cada pantalla abre su URL; selección visual no cambia proveedores ni conversación backend. No es aún selección de avatar final ni prueba de caja.
+
 ## 5. Conversación y proveedor
 
 Control PC separado del área reflejada: escribir, enviar, cancelar, leer respuesta y ver estado/proveedor. Personalidad aplicada mediante prompt del backend: «Eres Cortana, asistente de un prototipo holográfico. Responde en español de forma breve. Este MVP solo muestra tu modelo y admite conversación; no afirmes controlar un simulador ni dispositivos».

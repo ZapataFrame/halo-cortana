@@ -251,6 +251,12 @@ Las tareas H-20…H-22 tienen prioridad por instrucción más reciente del propi
 - Aceptación técnica: GPT→Qwen→GPT, modelo ausente/servicio caído, origen inválido, concurrencia, historial/cache y clave protegida; build y revisión visual.
 - Aceptación real: descubrir Qwen instalado y enviar una pregunta desde el panel, registrar respuesta o bloqueo/latencia real. GPT real sigue sujeto a H-20; no cerrarlo con fixtures.
 
+**H-24 — Evaluar y probar GLB Cortana aportado. Depende de H-03 y H-04.**
+
+- Registrar original, hash, geometría/rig/animaciones y atribución declarada. Mantener original intacto.
+- Adaptar materiales no soportados a monocromático; preparar variante opcional control/visor con URL propia, conservando avatar y baile originales. No retargeting ni animación automática.
+- Aceptación: carga real sin dependencias externas, cuerpo completo/frontal sobre negro, acceso desde opción de control y URL de visor, calibración disponible, prueba de rig/animación conservados, build y reporte. Dispositivo/caja permanecen pendientes.
+
 **H-18 — Mejoras posteriores. Depende de H-17. Estado DEFERRED.**
 
 - Modelo final, materiales, labios, escucha por nombre, aplicación instalada o sin PC y más proveedores. Cada mejora necesita nueva tarjeta y objetivo medible.

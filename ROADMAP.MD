@@ -7,7 +7,9 @@ Actualizado: 2026-10-08. **Prioridad: MVP holográfico para mañana, 2026-10-08;
 Leer `AGENTS.md`, `SPECIFICACTIONS.MD`, `Cortana.md` y `docs/plans/2026-10-07-mvp-holograma.md`. Usar esta tabla para estado y las tarjetas del plan para trabajo/aceptación. Los reportes registran evidencia, no duplican requisitos.
 
 **Planificación completada:** H-00 `DONE`, responsable Codex, con verificación documental registrada.
-**Nueva ampliación H-23:** selector GPT/Ollama solicitado y confirmado con Qwen local; evidencia en `docs/reports/2026-10-08-H-23-selector-qwen.md`.
+**Nueva ampliación H-24:** Cortana aportada disponible como variante estática opcional, con evidencia en `docs/reports/2026-10-08-H-24-glb-cortana.md`.
+
+**Ampliación H-23:** selector GPT/Ollama solicitado y confirmado con Qwen local; evidencia en `docs/reports/2026-10-08-H-23-selector-qwen.md`.
 
 **Ampliación anterior:** H-20…H-22 por petición del propietario. GPT principal preparado; validación real `BLOCKED` por clave. Orientación y baile con evidencia técnica, sin cerrar móvil/caja.
 
@@ -53,6 +55,7 @@ A visual es el primer hito. Para cumplir la solicitud completa de mañana se req
 | H-21 | DONE | H-03, H-04 | P0 | Tres modos verificados a 390×844/844×390, giros 0/90 correctos, tres recargas y geometría/espejos probados. Capturas + `docs/reports/evidence/H-21-orientation.json`; calibración v1 compatible. Codex, 2026-10-07. Física sigue en H-07/H-08. |
 | H-22 | DONE | H-03, H-04 | P0 | Gangnam Style MIT + humanoide Quaternius CC0 locales, 65 huesos, 14318 triángulos y ciclo de 7.273 s. Botones PC reposo/baile, selección recuperada al abrir visor, GLB/clip reales probados y negro 5 puntos por captura. Licencias/hash/script en ficha; reporte H-20…22. Codex, 2026-10-07. |
 | H-23 | DONE | H-03, H-10 | P0 | Codex, 2026-10-08: selector GPT/Ollama con catálogo local validado, contexto/cache nuevos y configuración OpenAI conservada. 23 pruebas y build correctos; UI GPT→Qwen→GPT y cancelación verificados. Respuesta real de qwen2.5:32b en 58.1 s; captura/reporte H-23. Selección hasta reinicio; GPT real sigue pendiente H-20. |
+| H-24 | DONE | H-03, H-04 | P0 | Codex, 2026-10-08: GLB Cortana aportado adaptado a PBR monocromático, 18,948 triángulos/79 joints; variante estática opcional control/visor, original y avatar/baile previos conservados. 24 pruebas/build y revisión frontal PC 1280×720; captura/reporte H-24. Animación/retargeting y móvil/caja no verificados. |
 | H-18 | DEFERRED | H-17 | P3 | Avatar final, labios, wake word, app instalada y otras mejoras con nuevo alcance. |
 
 P0 primero. H-09 puede preparar proveedor mientras se consigue el visor, pero no debe quitar prioridad a H-02…H-08. P1 también necesario para A+B; P2/P3 no se ejecutan para cumplir la entrega de mañana.
@@ -67,6 +70,7 @@ Q-06/Q-08 pendientes: dispositivo/hora/caja. Q-07: GPT solicitado como principal
 
 | Fecha | Tarea | Avance | Pendiente |
 |---|---|---|---|
+| 2026-10-08 | H-24 | GLB aportado evaluado/adaptado y render frontal PC comprobado; opciones Cortana importada / Humanoide + Gangnam. 24 pruebas y build; reporte/captura H-24. | Pose estática; animación propia/retargeting pendientes de nuevo alcance. Siguiente H-19/H-20 según recursos; pruebas físicas siguen pendientes. |
 | 2026-10-08 | H-23 | Selector GPT/Qwen implementado; Ollama real descubrió qwen2.5:32b y llama3.1:latest. Respuesta UI real 58.1 s, cancelación y vuelta a GPT comprobadas. 23 pruebas, build y captura. Reporte: `docs/reports/2026-10-08-H-23-selector-qwen.md`. | Sin clave GPT en este entorno; H-20 y tareas físicas conservan sus pendientes. Siguiente disponible: configurar clave H-20 o aportar dispositivo/caja H-19; H-08 depende de H-07. |
 | 2026-10-07 | H-00 | Plan detallado, guía API y alcance vigente. Verificados 7 documentos, 60 IDs únicos, 19 tareas H sin ciclos, 18 tarjetas de producto, 9 pruebas QA, referencias concretas y un solo AGENTS. Evidencia: `docs/reports/2026-10-07-H-00-plan-holograma.md`. | Implementación H-01…H-14 pendiente; no hay modelo descargado, app ni prueba física/API. Dispositivo/hora/coste por confirmar. |
 | 2026-10-07 | H-01…H-12 | Visor/ajustes/chat local implementados, build exitoso y 11 pruebas; negro digital normal/error, LAN 200/403, respuestas reales/contexto/cancelación. Evidencia: `docs/reports/2026-10-07-H-01-12-visor-llm.md`. | Carga/rangos/UI completa por probar; bloqueo de automatización registrado. Celular/caja/FPS/ensayos pendientes. A+B todavía sin aceptación física. |

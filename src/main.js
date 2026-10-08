@@ -3,19 +3,22 @@ import { createViewer } from './viewer.js';
 
 const app = document.querySelector('#app');
 const hologram = location.pathname === '/hologram';
+const avatarId = new URLSearchParams(location.search).get('avatar') === 'cortana' ? 'cortana' : 'dancer';
+const importedAvatar = avatarId === 'cortana';
+const viewerPath = `/hologram${importedAvatar ? '?avatar=cortana' : ''}`;
 let viewer, pollTimer;
 
 if (hologram) {
   document.body.classList.add('projection-page');
   app.className = 'projection';
-  viewer = createViewer(app);
+  viewer = createViewer(app, { avatarId });
 } else {
   app.innerHTML = `
     <div class="dashboard">
       <header class="topbar"><a class="brand" href="/control"><span class="brand-symbol">C</span><span>CORTANA <small>HOLOGRAPHIC INTERFACE</small></span></a><span class="topbar-label">PROTOTIPO / 01</span></header>
-      <div class="intro"><div><span class="eyebrow">PEPPER’S GHOST · LABORATORIO LOCAL</span><h1>Una presencia.<br>Una conversación.</h1><p>Proyecta el avatar desde tu pantalla y conversa desde el PC.</p></div><a class="button" href="/hologram" target="_blank" rel="noopener">Abrir visor ↗</a></div>
+      <div class="intro"><div><span class="eyebrow">PEPPER’S GHOST · LABORATORIO LOCAL</span><h1>Una presencia.<br>Una conversación.</h1><p>Proyecta el avatar desde tu pantalla y conversa desde el PC.</p></div><a class="button" href="${viewerPath}" target="_blank" rel="noopener">Abrir visor ↗</a></div>
       <div class="workspace">
-        <section class="avatar-card card"><div class="card-heading"><span class="eyebrow">01 / AVATAR</span><span class="phase-chip" data-phase="idle">En reposo</span></div><div class="preview"></div><div class="motion-controls"><span class="eyebrow">MOVIMIENTO</span><div class="button-row"><button class="button secondary" data-animation="idle" aria-pressed="true">Reposo</button><button class="button secondary" data-animation="gangnam" aria-pressed="false">Bailar Gangnam Style</button></div><p class="small muted" id="animation-status" role="status">Controla el baile del visor desde este PC.</p></div><div class="avatar-caption"><span>QUATERNIUS</span><span>HUMANOIDE CC0 · BAILE MIT</span></div></section>
+        <section class="avatar-card card"><div class="card-heading"><span class="eyebrow">01 / AVATAR</span><span class="phase-chip" data-phase="idle">En reposo</span></div><div class="preview"></div><div class="motion-controls"><span class="eyebrow">AVATAR</span><div class="button-row"><a class="button secondary" href="/control">Humanoide + Gangnam</a><a class="button secondary" href="/control?avatar=cortana">Cortana importada</a></div><p class="small muted">${importedAvatar ? 'Vista de prueba estática · modelo aportado por ti.' : 'Prueba también el GLB Cortana desde la otra opción.'}</p><span class="eyebrow">MOVIMIENTO</span><div class="button-row"><button class="button secondary" data-animation="idle" aria-pressed="true">Reposo</button><button class="button secondary" data-animation="gangnam" aria-pressed="false">Bailar Gangnam Style</button></div><p class="small muted" id="animation-status" role="status">Controla el baile del visor desde este PC.</p></div><div class="avatar-caption"><span>${importedAvatar ? 'CORTANA / SKETCHFAB' : 'QUATERNIUS'}</span><span>${importedAvatar ? 'JAMESLUCINO117 · CC BY-NC 4.0 DECLARADA' : 'HUMANOIDE CC0 · BAILE MIT'}</span></div></section>
         <section class="conversation-card card"><div class="card-heading"><span class="eyebrow">02 / CONVERSACIÓN</span><button class="text-button" id="reset-chat">Nueva conversación</button></div><div class="provider-line"><span class="status-dot"></span><span id="provider-status">Comprobando proveedor…</span></div>
           <form id="provider-form" class="provider-controls">
             <label for="provider-select">Proveedor<select id="provider-select" disabled><option value="openai">GPT / OpenAI</option><option value="ollama">Local / Ollama (Qwen)</option></select></label>
@@ -26,18 +29,22 @@ if (hologram) {
           <div class="messages" aria-label="Conversación" role="log" aria-live="polite"><div class="empty-chat"><span class="empty-symbol">✧</span><h2>Inicia el contacto.</h2><p>Pregúntame algo o cuéntame qué estás construyendo.</p><div class="suggestions"><button>¿Qué es Pepper’s Ghost?</button><button>Preséntate como Cortana</button></div></div></div>
           <p id="chat-status" class="chat-status" role="status"></p><form id="chat-form"><label class="sr-only" for="message">Mensaje para Cortana</label><textarea id="message" placeholder="Escribe un mensaje…" maxlength="2000" rows="2" required></textarea><div class="composer-footer"><span class="small muted">Texto por ahora · voz en la siguiente etapa</span><button class="button" id="send" type="submit">Enviar ↗</button><button class="button secondary" id="cancel" type="button" hidden>Cancelar</button></div></form>
         </section>
-        <section class="connection-card card"><div class="card-heading"><span class="eyebrow">03 / PANTALLA EXTERNA</span><span class="small muted">MISMA RED WI-FI</span></div><h2>Lleva el avatar a tu celular.</h2><p>Abre esta dirección en su navegador. Toca la esquina superior izquierda del visor para ajustar espejo, posición y tamaño.</p><div id="viewer-links" class="viewer-links"><a href="/hologram">Abrir visor local</a></div><p class="small muted">Una figura sobre negro puro. Ajusta brillo y bloqueo de pantalla en tu dispositivo.</p></section>
+        <section class="connection-card card"><div class="card-heading"><span class="eyebrow">03 / PANTALLA EXTERNA</span><span class="small muted">MISMA RED WI-FI</span></div><h2>Lleva el avatar a tu celular.</h2><p>Abre esta dirección en su navegador. Toca la esquina superior izquierda del visor para ajustar espejo, posición y tamaño.</p><div id="viewer-links" class="viewer-links"><a href="${viewerPath}">Abrir visor local</a></div><p class="small muted">Una figura sobre negro puro. Ajusta brillo y bloqueo de pantalla en tu dispositivo.</p></section>
         <section class="adjustment-card card"><div class="card-heading"><span class="eyebrow">04 / CALIBRACIÓN</span><span class="small muted">GUARDADO LOCAL</span></div><div id="desktop-settings"></div></section>
       </div><footer><span>DEMO LOCAL · VISOR + IA</span><a href="/models/README.md" target="_blank" rel="noopener">Modelo y baile / fuentes y licencias ↗</a></footer>
     </div>`;
   const preview = app.querySelector('.preview');
-  viewer = createViewer(preview, { compact: true });
+  viewer = createViewer(preview, { compact: true, avatarId });
   // El mismo componente ofrece ajustes en su panel, trasladado al bloque del PC.
   app.querySelector('#desktop-settings').append(preview.querySelector('.calibration-panel'));
   const messages = app.querySelector('.messages'), status = app.querySelector('#chat-status');
   const input = app.querySelector('#message'), send = app.querySelector('#send'), cancel = app.querySelector('#cancel');
   const animationStatus = app.querySelector('#animation-status');
   const motionButtons = [...app.querySelectorAll('button[data-animation]')];
+  if (importedAvatar) {
+    motionButtons.forEach(button => { button.disabled = true; });
+    animationStatus.textContent = 'Pose estática. Para Gangnam Style elige Humanoide + Gangnam.';
+  }
   motionButtons.forEach(button => button.addEventListener('click', async () => {
     motionButtons.forEach(item => { item.disabled = true; });
     try {
@@ -179,7 +186,8 @@ if (hologram) {
     else if (!info.health.ready) status.textContent = info.health.detail;
     if (info.localControl) await refreshModels();
     const links = app.querySelector('#viewer-links');
-    for (const url of info.viewerUrls) {
+    for (const address of info.viewerUrls) {
+      const url = address + (importedAvatar ? '?avatar=cortana' : '');
       const row = document.createElement('div'), link = document.createElement('a'), copy = document.createElement('button');
       link.href = url; link.textContent = url; copy.textContent = 'Copiar'; copy.className = 'text-button';
       copy.addEventListener('click', async () => { try { await navigator.clipboard.writeText(url); copy.textContent = 'Copiado'; } catch { copy.textContent = 'Selecciona la dirección'; } });
@@ -195,7 +203,7 @@ async function poll() {
     const state = await response.json();
     viewer.setPhase(state.phase);
     viewer.setAnimation(state.animation);
-    app.querySelectorAll('button[data-animation]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.animation === state.animation)));
+    app.querySelectorAll('button[data-animation]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.animation === (importedAvatar ? 'idle' : state.animation))));
     const chip = app.querySelector('.phase-chip');
     if (chip) { chip.dataset.phase = state.phase; chip.textContent = { idle: 'En reposo', processing: 'Procesando', responded: 'Respuesta lista', error: 'Proveedor sin respuesta' }[state.phase] || 'En reposo'; }
   } catch { viewer.setPhase('idle'); }

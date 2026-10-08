@@ -32,3 +32,12 @@ Personaje provisional; no es el modelo oficial de Cortana/Halo. Las licencias de
 - Presentación anterior: materiales/texturas sustituidos por blanco/gris y clip incorporado lento, sin logo. El visor activo ya no carga este archivo.
 
 El intento inicial del pack Quaternius no produjo un binario utilizable; CesiumMan permitió verificar la primera versión. La nueva solicitud de baile se integra con el humanoide compatible descargado posteriormente de ProgramAsWeights. Se conserva el archivo anterior y su atribución para no perder contexto ni condiciones de redistribución.
+
+## Cortana aportada por el propietario — vista de prueba H-24
+
+- Original: `/home/arturo/Downloads/charactershalo_4cortana.glb`, 4,868,160 bytes; SHA-256 `e1e716f77e805998e84df73903e4e4d16f2454c147617c76f1f7a327a5ea98f5`. El original no se modifica.
+- Metadatos incorporados: **Characters>Halo 4>Cortana**, autor **jameslucino117** ([perfil](https://sketchfab.com/jameslucino117)), [origen declarado](https://sketchfab.com/3d-models/charactershalo-4cortana-ae7434fc1c3c4707b3a6474095d0c4be), licencia declarada [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). Atribución extraída del archivo; la página de origen devolvió 403 al verificarla. No se verificó una autorización adicional del titular de Halo/Microsoft. No se presenta como CC0 ni como recurso apto para explotación comercial.
+- Copia adaptada `cortana.glb`: 4,866,236 bytes; SHA-256 `e01de34f745b7c2dcc39749f93ffeb129e6a868a4b7c82488d670a1d147fbb76`. **18,948 triángulos**, cuatro meshes, un skin de **79 joints**, una animación **Twerking** (195 canales), ocho imágenes incorporadas en el original. Sin URIs externas.
+- Adaptación: materiales antiguos `KHR_materials_pbrSpecularGlossiness` sustituidos por materiales PBR monocromáticos, sin referencias a texturas. La extensión no está soportada por el GLTFLoader actual. Geometría, skin, canales de animación y binario sin modificar; imágenes originales permanecen como bytes sin uso en el buffer. No se afirma conversión fiel de materiales ni se intenta copiar colores del original.
+- Regenerar: `node tools/prepare-cortana.mjs /ruta/charactershalo_4cortana.glb`. El visor además centra/escala y gira el modelo 180° para mostrar el frente.
+- Seleccionar **Cortana importada** en control o abrir `/hologram?avatar=cortana`. Es una vista estática de prueba: conserva animación en el GLB, pero no la reproduce ni aplica Gangnam Style del otro esqueleto. El avatar predeterminado y baile original siguen disponibles.

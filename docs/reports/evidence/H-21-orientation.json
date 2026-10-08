@@ -1,0 +1,63 @@
+{
+  "cases": [
+    {
+      "height": 844,
+      "mode": "auto",
+      "rotation": "0",
+      "width": 390
+    },
+    {
+      "height": 390,
+      "mode": "auto",
+      "rotation": "0",
+      "width": 844
+    },
+    {
+      "height": 844,
+      "mode": "portrait",
+      "rotation": "0",
+      "width": 390
+    },
+    {
+      "height": 390,
+      "mode": "portrait",
+      "rotation": "90",
+      "width": 844
+    },
+    {
+      "height": 844,
+      "mode": "landscape",
+      "rotation": "90",
+      "width": 390
+    },
+    {
+      "height": 390,
+      "mode": "landscape",
+      "rotation": "0",
+      "width": 844
+    }
+  ],
+  "reloads": [
+    {
+      "animation": "gangnam",
+      "orientation": "portrait",
+      "phase": "idle",
+      "rotation": "0",
+      "status": "ready"
+    },
+    {
+      "animation": "gangnam",
+      "orientation": "portrait",
+      "phase": "idle",
+      "rotation": "0",
+      "status": "ready"
+    },
+    {
+      "animation": "gangnam",
+      "orientation": "portrait",
+      "phase": "idle",
+      "rotation": "0",
+      "status": "ready"
+    }
+  ]
+}

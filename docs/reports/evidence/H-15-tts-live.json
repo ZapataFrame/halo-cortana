@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-08",
+  "voice": "es_AR-daniela-high",
+  "runs": [
+    {
+      "message": "Explica en una sola frase corta qué es Pepper’s Ghost.",
+      "requestId": "tts-real-1791502638484-0",
+      "reply": "Es una técnica de ilusión óptica que usa vidrio y espejos para crear imágenes fantasmales y transparentes.",
+      "provider": "ollama-cloud",
+      "model": "gemma4:31b",
+      "chatMs": 557,
+      "synthesisMs": 5695,
+      "bytes": 218156,
+      "path": "docs/reports/evidence/H-15-response-1.wav",
+      "sampleRate": 22050,
+      "channels": 1,
+      "durationSeconds": 4.946,
+      "rms": 4271.53,
+      "peak": 32767
+    },
+    {
+      "message": "Di en una sola frase cómo calibrar la imagen de una caja Pepper’s Ghost.",
+      "requestId": "tts-real-1791502644815-1",
+      "reply": "Ajusta el ángulo del vidrio a 45 grados y alinea la pantalla para centrar la reflexión.",
+      "provider": "ollama-cloud",
+      "model": "gemma4:31b",
+      "chatMs": 526,
+      "synthesisMs": 4842,
+      "bytes": 209964,
+      "path": "docs/reports/evidence/H-15-response-2.wav",
+      "sampleRate": 22050,
+      "channels": 1,
+      "durationSeconds": 4.76,
+      "rms": 5887.13,
+      "peak": 32767
+    },
+    {
+      "message": "En una sola frase corta, ¿para qué sirve el botón de detener voz?",
+      "requestId": "tts-real-1791502650205-2",
+      "reply": "Sirve para silenciar inmediatamente la reproducción del audio del asistente.",
+      "provider": "ollama-cloud",
+      "model": "gemma4:31b",
+      "chatMs": 594,
+      "synthesisMs": 3911,
+      "bytes": 158764,
+      "path": "docs/reports/evidence/H-15-response-3.wav",
+      "sampleRate": 22050,
+      "channels": 1,
+      "durationSeconds": 3.599,
+      "rms": 5559.89,
+      "peak": 32767
+    }
+  ],
+  "limitation": "WAV reales generados por API; reproducción browser se registra por separado. Audición humana y caja no certificadas."
+}

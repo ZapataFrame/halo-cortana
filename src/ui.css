@@ -16,6 +16,7 @@ h1 { font-size: clamp(34px, 3.2vw, 48px); font-weight: 400; line-height: 1.1; le
 .card-heading { display: flex; justify-content: space-between; align-items: center; padding: 22px 24px; gap: 10px; }
 .phase-chip { font-size: 10px; color: #b5b5bc; padding: 5px 9px; border: 1px solid #323238; border-radius: 20px; white-space: nowrap; }
 .phase-chip[data-phase=processing] { color: #fff; border-color: #b6b6bb; }
+.phase-chip[data-phase=speaking] { color: #fff; border-color: #b6b6bb; }
 .preview { height: 360px; position: relative; background: #000; }
 .avatar-card { display: flex; flex-direction: column; }
 .avatar-caption { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 20px 24px; margin-top: auto; font-size: 8px; color: #73737d; letter-spacing: 1px; }
@@ -79,3 +80,11 @@ footer { display: flex; justify-content: space-between; padding: 26px 0 35px; co
 .provider-controls .button-row, .provider-controls p { grid-column: 1 / -1; margin: 0; flex-wrap: wrap; }
 .provider-controls .button-row { align-items: center; gap: 16px; }
 @media(max-width: 450px) { .provider-controls { grid-template-columns: 1fr; } }
+.voice-controls { padding: 15px 24px; border-bottom: 1px solid #242429; }
+.voice-heading, .voice-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.voice-toggle { display: flex; align-items: center; gap: 8px; margin: 12px 0; font-size: 11px; color: #b5b5bc; }
+.voice-actions > label { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #a2a2ae; }
+.voice-actions input[type=range] { width: 90px; }
+.voice-actions output { min-width: 32px; }
+.voice-controls p { margin-bottom: 0; }
+.listen-response { display: block; margin-top: 8px; }

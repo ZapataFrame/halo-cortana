@@ -27,6 +27,7 @@ export function createViewer(container, { compact = false, avatarId = 'dancer' }
     <section class="calibration-panel" ${compact ? '' : 'hidden'} aria-label="Calibración del visor">
       <div class="panel-heading"><span class="eyebrow">AJUSTE DE REFLEXIÓN</span>${compact ? '' : '<button class="icon-button" data-action="hide" aria-label="Ocultar calibración">×</button>'}</div>
       <p class="viewer-diagnostics" aria-live="polite">Cargando modelo…</p>
+      <p class="viewer-connection small" role="status">Conectando con el PC…</p>
       <label class="select-row">Orientación<select aria-label="Orientación" data-setting="orientation"><option value="auto">Automática</option><option value="portrait">Vertical</option><option value="landscape">Horizontal</option></select></label>
       <p class="small muted">El modo adapta la imagen al montaje. Gira también el dispositivo; usa la rotación para afinar la reflexión.</p>
       ${numericControls}
@@ -47,6 +48,7 @@ export function createViewer(container, { compact = false, avatarId = 'dancer' }
   const panel = container.querySelector('.calibration-panel');
   const diagnostics = container.querySelector('.viewer-diagnostics');
   const notice = container.querySelector('.viewer-notice');
+  const connection = container.querySelector('.viewer-connection');
   let settings = loadCalibration(localStorage), renderer, mixer, avatar, modelWidth = 1.2, animation = 'idle';
   const actions = new Map();
   const baseEmissive = new WeakMap();
@@ -236,10 +238,11 @@ export function createViewer(container, { compact = false, avatarId = 'dancer' }
       if (document.hidden) return;
       mixer?.update(delta);
       if (currentAction) surface.dataset.animationTime = currentAction.time.toFixed(2);
-      // Pulso visual solo al procesar texto; no simula habla sin TTS.
+      // Habla señalada por reproducción real en el PC, sin animación labial ficticia.
       if (avatar) avatar.traverse(item => {
         if (item.isMesh) for (const material of [].concat(item.material)) {
-          material.emissiveIntensity = (baseEmissive.get(material) ?? 0.4) * (phase === 'processing' ? 2 + Math.sin(now / 250) * 0.3 : 1);
+          material.emissiveIntensity = (baseEmissive.get(material) ?? 0.4) * (phase === 'processing' ? 2 + Math.sin(now / 250) * 0.3
+            : phase === 'speaking' ? 1.6 + Math.sin(now / 150) * 0.2 : 1);
         }
       });
       if (!isPattern) renderer.render(scene, camera);
@@ -269,6 +272,10 @@ export function createViewer(container, { compact = false, avatarId = 'dancer' }
   return {
     setAnimation: playAnimation,
     setPhase(value) { phase = value; surface.dataset.phase = value; },
+    setConnection(connected) {
+      surface.dataset.connection = connected ? 'connected' : 'offline';
+      connection.textContent = connected ? 'Conexión con el PC activa.' : 'PC sin conexión. Reintentando; el avatar permanece visible.';
+    },
     destroy() {
       destroyed = true; cancelAnimationFrame(animationId); observer.disconnect();
       document.removeEventListener('visibilitychange', visibility); wakeLock?.release();

@@ -1,0 +1,144 @@
+{
+  "firstAutomatic": {
+    "reply": "Hola, soy Cortana. Soy tu asistente holográfica para esta demostración. ¿En qué puedo ayudarte hoy?",
+    "startMs": 5935,
+    "synthesisMs": 5896,
+    "ended": true
+  },
+  "otherAutomatic": [
+    {
+      "audio": [
+        {
+          "duration": 5.781769,
+          "muted": false,
+          "paused": false,
+          "time": 0.053026
+        }
+      ],
+      "avatar": {
+        "animation": "idle",
+        "avatar": "cortana",
+        "connection": "connected",
+        "fps": "2",
+        "orientation": "auto",
+        "phase": "responded",
+        "rotation": "0",
+        "status": "ready",
+        "texturedMaterials": "4",
+        "viewportHeight": "380",
+        "viewportWidth": "735"
+      },
+      "detail": "Cortana está hablando. Inicio en 5.2 s.",
+      "reply": [
+        "Es una técnica de ilusión óptica que utiliza un vidrio inclinado para reflejar una imagen, creando un efecto holográfico."
+      ],
+      "voice": {
+        "startMs": "5189",
+        "state": "playing",
+        "synthesisMs": "5163"
+      }
+    },
+    {
+      "audio": [
+        {
+          "duration": 5.514739,
+          "muted": false,
+          "paused": false,
+          "time": 0.002307
+        }
+      ],
+      "avatar": {
+        "animation": "idle",
+        "avatar": "cortana",
+        "connection": "connected",
+        "fps": "3",
+        "orientation": "auto",
+        "phase": "responded",
+        "rotation": "0",
+        "status": "ready",
+        "texturedMaterials": "4",
+        "viewportHeight": "380",
+        "viewportWidth": "735"
+      },
+      "detail": "Cortana está hablando. Inicio en 6.7 s.",
+      "reply": [
+        "Hola, soy Cortana, tu asistente holográfica para esta demostración. Estoy aquí para conversar contigo."
+      ],
+      "voice": {
+        "startMs": "6714",
+        "state": "playing",
+        "synthesisMs": "6678"
+      }
+    }
+  ],
+  "manualPlaying": {
+    "audio": [
+      {
+        "duration": 5.29415,
+        "muted": false,
+        "paused": false,
+        "time": 0.008458
+      }
+    ],
+    "avatar": {
+      "animation": "idle",
+      "avatar": "cortana",
+      "connection": "connected",
+      "fps": "2",
+      "orientation": "auto",
+      "phase": "responded",
+      "rotation": "0",
+      "status": "ready",
+      "texturedMaterials": "4",
+      "viewportHeight": "380",
+      "viewportWidth": "735"
+    },
+    "detail": "Cortana está hablando. Inicio en 5.8 s.",
+    "phase": "Respuesta lista",
+    "voice": {
+      "startMs": "5849",
+      "state": "playing",
+      "synthesisMs": "5816"
+    }
+  },
+  "avatarSpeaking": {
+    "audio": [
+      {
+        "duration": 5.30576,
+        "muted": false,
+        "paused": false,
+        "time": 0.945886
+      }
+    ],
+    "avatar": {
+      "animation": "idle",
+      "avatar": "cortana",
+      "connection": "connected",
+      "fps": "2",
+      "orientation": "auto",
+      "phase": "speaking",
+      "rotation": "0",
+      "status": "ready",
+      "texturedMaterials": "4",
+      "viewportHeight": "380",
+      "viewportWidth": "735"
+    },
+    "detail": "Cortana está hablando. Inicio en 4.6 s.",
+    "phase": "Hablando",
+    "voice": {
+      "startMs": "4630",
+      "state": "playing",
+      "synthesisMs": "4604"
+    }
+  },
+  "cancelledPreparation": {
+    "audioCount": 0,
+    "detail": "Voz detenida. El texto sigue disponible.",
+    "voice": {
+      "startMs": "4630",
+      "state": "stopped",
+      "synthesisMs": "4604"
+    }
+  },
+  "limitation": "Reproducción digital PC comprobada, no audición humana ni montaje. Captura fullPage repite mosaicos y no se usa como validación de todo el documento."
+}

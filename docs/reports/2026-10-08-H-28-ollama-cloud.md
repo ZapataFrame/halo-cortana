@@ -2,6 +2,8 @@
 
 Fecha: 2026-10-08. Responsable: Codex. Rama: `codex/cortana-gemma4-cloud`. Estado: BLOCKED únicamente para aceptación de conversación real.
 
+Actualización posterior: el propietario configuró la clave y se verificaron respuestas, contexto y cancelación reales. H-28 ahora está DONE; ver [validación real](2026-10-08-H-28-validacion-cloud-real.md). Este reporte conserva la evidencia de preparación anterior.
+
 Objetivo: probar Gemma en Cloud por petición del propietario, conservar GPT/Qwen y no descargar un modelo grande en la laptop.
 
 Cambios: adaptador `ollama-cloud`, destino fijo HTTPS y Bearer privado, modelo `gemma4:31b`, respuesta no streaming/pensamiento desactivado y 256 tokens. Selector incluye los tres proveedores. Mantiene seis pares, timeout 60 s, cancelación e IDs; cambiar proveedor vacía contexto/cache sin alterar calibración/movimiento. Errores de autenticación, acceso, créditos, modelo y cuota tienen mensajes de Ollama. No compra créditos, no activa planes ni cambia silenciosamente a otro proveedor.

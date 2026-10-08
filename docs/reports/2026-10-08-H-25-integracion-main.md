@@ -11,3 +11,5 @@ Verificación: 25 pruebas aprobadas, cero fallidas; `npm run build` correcto, JS
 ## Publicación al cierre
 
 El merge quedó guardado localmente como `c0aef7b`. Después se crearon `9dc254b` (texturas), `26bc2c7` (guía) y `426f08f` (Cloud en rama separada). `git fetch origin` no encontró cambios nuevos. La revisión automática rechazó tanto `git push origin main` (rama compartida sin aprobación explícita de publicación) como `git push -u origin codex/cortana-gemma4-cloud` (remoto no verificado y autorización exacta pendiente). Se solicitaron ambas autorizaciones; no se reintentó ni se cambió el remoto para eludir los rechazos. Los commits existen, pero no están publicados y no hay PR creado.
+
+Actualización confirmada en esta continuación: el propietario publicó e integró la rama. `git fetch origin` verificó `origin/main=09ad91b`, merge del PR #1 que incluye `1e67b15`. Main local actualizado por fast-forward; nueva rama `codex/verificacion-demo-holograma`. Los rechazos anteriores describen el estado histórico, ya resuelto por el propietario.

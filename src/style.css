@@ -30,5 +30,5 @@ select { background: #1b1b20; color: #fff; border: 1px solid #45454c; border-rad
 .check-grid label { display: flex; align-items: center; }
 .viewer-diagnostics { font-size: 11px; color: #93939c; }
 .viewer-notice:empty { display: none; }
-.button-row { display: flex; gap: 8px; }
+.button-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .button-row .button { font-size: 11px; padding: 9px 12px; }

@@ -1,6 +1,6 @@
 # OpenAI API para el MVP holográfico
 
-Verificado: 2026-10-07. **GPT es ahora principal por petición del propietario**, con `gpt-4.1-mini` y Responses en `server/providers.js`. Configuración privada preparada; falta `OPENAI_API_KEY`. No se ha creado clave, activado facturación ni realizado una llamada real. Pruebas del contrato con respuestas controladas no cuentan como integración real.
+Verificado: 2026-10-08. **GPT disponible en el selector; prueba vigente Gemma Cloud**, con `gpt-4.1-mini` y Responses en `server/providers.js`. El GET autenticado inicial a /v1/models/gpt-4.1-mini devolvió 401; después del reinicio para H-29 la clave está ausente. Requiere clave válida. No se creó clave, activó facturación ni solicitó generación GPT. Pruebas del contrato con respuestas controladas no cuentan como integración real.
 
 ## Suscripción y coste
 
@@ -37,6 +37,7 @@ Si cambias `OPENAI_MODEL`, verificar que soporte los parámetros usados. El ejem
 
 ## Comprobaciones propias del proyecto
 
+- **Probar conexión** en el control consulta mediante GET el modelo configurado, con clave solo en backend. No genera texto ni vacía historial. Detecta clave ausente, 401/403/404/429, timeout y red; modelo disponible no acredita cuota de generación. [Referencia oficial del modelo](https://developers.openai.com/api/reference/resources/models/methods/retrieve).
 - La aplicación sirve el visor incluso sin `OPENAI_API_KEY`; el control indica proveedor no configurado.
 - H-09 requiere respuesta real. H-10 limita entrada, historial y salida; un timeout no provoca reintentos automáticos que puedan facturarse.
 - No usar variables públicas como `VITE_OPENAI_API_KEY`: podrían incorporarse al bundle. Ejemplos contienen solo nombres y valores ficticios; archivo privado fuera de versionado.
@@ -50,8 +51,8 @@ La guía no usa credenciales de sesión de ChatGPT/Codex ni las convierte en una
 
 Sin clave: visor y baile funcionan, el control indica configuración pendiente y el chat devuelve 503 `NOT_CONFIGURED`. OpenAI 401 → clave rechazada; 403 → acceso al modelo; 429 → cuota/límite. No se devuelve el cuerpo privado del error. Timeout 504; cancelación descarta respuestas tardías. Sin fallback ni reintento automático.
 
-Alternativa explícita `LLM_PROVIDER=ollama`, `OLLAMA_URL=http://127.0.0.1:11434`, `OLLAMA_MODEL=phi4-mini:latest`: produjo respuestas reales en este PC. Las mediciones históricas están en el [reporte inicial](reports/2026-10-07-H-01-12-visor-llm.md); ejecución CPU, salida 48 tokens. API GPT pendiente de clave y validación real en H-20.
+Alternativa explícita `LLM_PROVIDER=ollama`, `OLLAMA_URL=http://127.0.0.1:11434`, `OLLAMA_MODEL=phi4-mini:latest`: produjo respuestas reales en este PC. Las mediciones históricas están en el [reporte inicial](reports/2026-10-07-H-01-12-visor-llm.md); ejecución CPU, salida 48 tokens. API GPT pendiente de clave válida y generación real en H-20. Comprobación de autenticación: reports/evidence/H-20-auth-check.json.
 
 ## Cambio desde el panel (2026-10-08)
 
-Puedes alternar sin reiniciar entre **GPT / OpenAI** y **Local / Ollama (Qwen)** en `/control`, con **Cambiar modelo**. El selector local utiliza los modelos ya instalados, incluido `qwen2.5:32b` en este PC. Conserva la configuración y clave GPT del servidor; cambiar inicia un contexto nuevo y no modifica `.env`. Al reiniciar se recupera `LLM_PROVIDER`. No hay fallback automático. Detalles en [README](../README.md).
+Puedes alternar sin reiniciar entre **GPT / OpenAI**, **Ollama Cloud / Gemma 4** y **Local / Ollama (Qwen)** en `/control`, con **Cambiar modelo**. El selector local utiliza los modelos instalados: Qwen estuvo presente en la prueba H-23; el catálogo actual muestra `phi4-mini:latest` y `llama3.1:latest`. Conserva la configuración GPT del servidor; cambiar inicia un contexto nuevo y no modifica `.env`. Al reiniciar se recupera `LLM_PROVIDER`. No hay fallback automático. Detalles en [README](../README.md).

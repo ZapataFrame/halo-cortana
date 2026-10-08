@@ -10,7 +10,8 @@
     "start": "node --env-file-if-exists=.env server/index.js",
     "demo": "npm run build && npm start",
     "test": "node --test tests/*.test.js",
-    "qa:visual": "node tools/serve-visual-qa.mjs"
+    "qa:visual": "node tools/serve-visual-qa.mjs",
+    "setup:voice": "node tools/setup-voice.mjs"
   },
   "dependencies": { "three": "0.186.1" },
   "devDependencies": { "vite": "8.3.3" }

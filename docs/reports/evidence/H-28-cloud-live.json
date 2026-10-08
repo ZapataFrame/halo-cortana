@@ -1,0 +1,62 @@
+{
+  "checkedAt": "2026-10-08T22:56:19.264Z",
+  "provider": "ollama-cloud",
+  "model": "gemma4:31b",
+  "transport": "backend real /api/chat",
+  "questions": [
+    {
+      "message": "Preséntate como Cortana en una frase.",
+      "httpStatus": 200,
+      "reply": "Hola, soy Cortana, tu asistente holográfica. Estoy aquí para conversar contigo en esta demostración. ¿En qué puedo ayudarte?",
+      "elapsedMs": 833,
+      "roundTripMs": 840,
+      "model": "gemma4:31b",
+      "truncated": false
+    },
+    {
+      "message": "Explica Pepper’s Ghost en dos frases breves.",
+      "httpStatus": 200,
+      "reply": "Es una técnica óptica que usa un vidrio inclinado para reflejar una imagen oculta. Crea la ilusión de un holograma tangible.",
+      "elapsedMs": 588,
+      "roundTripMs": 599,
+      "model": "gemma4:31b",
+      "truncated": false
+    },
+    {
+      "message": "En esta prueba ficticia, mi nombre es Ana. Recuerda ese nombre.",
+      "httpStatus": 200,
+      "reply": "Entendido, Ana. He guardado tu nombre en mi memoria. ¿Deseas saber algo más sobre esta demo?",
+      "elapsedMs": 484,
+      "roundTripMs": 491,
+      "model": "gemma4:31b",
+      "truncated": false
+    },
+    {
+      "message": "¿Cuál es mi nombre en esta prueba?",
+      "httpStatus": 200,
+      "reply": "Tu nombre en esta prueba es Ana. ¿Necesitas alguna otra información?",
+      "elapsedMs": 657,
+      "roundTripMs": 664,
+      "model": "gemma4:31b",
+      "truncated": false
+    }
+  ],
+  "generationVerified": true,
+  "contextVerified": true,
+  "cancellation": {
+    "observedPhase": "processing",
+    "cancelHttpStatus": 200,
+    "cancelPhase": "idle",
+    "chatHttpStatus": 499,
+    "chatCode": "CANCELLED",
+    "phaseAfter": "idle",
+    "verified": true
+  },
+  "recovery": {
+    "httpStatus": 200,
+    "reply": "Tu nombre sigue siendo Ana. ¿En qué más puedo ayudarte?",
+    "elapsedMs": 540,
+    "model": "gemma4:31b",
+    "contextUnchanged": true
+  }
+}

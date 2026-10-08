@@ -2,14 +2,17 @@
 
 ## Propósito y documentos
 
-Prioridad vigente desde 2026-10-07: MVP holográfico para mañana, 2026-10-08. Primero humanoide de internet sobre negro puro en celular/pantalla y calibración de caja; después LLM por texto; voz en etapa posterior. El simulador táctico queda diferido por instrucción del propietario.
+Prioridad inicial desde 2026-10-07: MVP holográfico para 2026-10-08. Visor/calibración y LLM por texto implementados parcialmente; D-32 (2026-10-08) adelanta voz PC mientras queda pendiente validación física. El simulador táctico permanece diferido.
 
 - `SPECIFICACTIONS.MD`: alcance, requisitos, decisiones, contratos y criterios de aceptación. El nombre se conserva como lo solicitó el propietario.
 - `ROADMAP.MD`: tareas ordenadas, dependencias, estados y evidencia de avance.
-- `Cortana.md`: diseño actual del avatar/visor negro, calibración, conversación por texto y voz posterior. Detalla la especificación sin confirmar un stack tecnológico.
+- `Cortana.md`: diseño actual del avatar/visor negro, calibración, conversación y voz PC. `docs/VOZ_PC.md` documenta instalación, contrato y atribución de H-15.
 - `docs/plans/2026-10-07-mvp-holograma.md`: tarjetas detalladas H-00…H-19, pruebas y contingencias del MVP activo. H-19 identifica dispositivo/caja/hora sin dar por probadas las tareas físicas.
 - Ampliación vigente H-20…H-22: GPT principal solicitado por el propietario, orientación automática/vertical/horizontal y baile libre. Ollama es alternativa explícita; sin fallback automático. Credencial privada pendiente no bloquea funciones visuales independientes.
 - Ampliación 2026-10-08 H-25…H-28: merge de calibración en main, texturas originales de Cortana, guía de rig/múltiples clips y prueba temporal Ollama Cloud/Gemma 4. `docs/GUIA_RIG_ANIMACIONES.md` y `docs/API_OLLAMA_CLOUD.md` registran preparación y límites. Credencial cloud no bloquea visor; no declarar generación sin cuenta real.
+- H-29: diagnóstico explícito sin generación desde PC. Catálogo Cloud no valida clave/cuota; conservar presentación/contexto y descartar resultados si cambia proveedor o comienza un chat. Evidencia real H-28 separada del diagnóstico.
+- H-30 prepara recuperación PC de H-12: estado público validado, sesión/revisión y ciclo de vida sin duplicar consultas; avisos solo fuera de proyección. No sustituye pruebas de H-11 manual ni H-07/H-12 móvil.
+- Q-11 resuelta/D-32: propietario autorizó adelantar voz PC. Ejecutar H-15 (TTS) tras H-10/H-26/H-28; después H-16 (STT) y H-17. Conservar aceptación física pendiente en H-07/H-08/H-12/H-14.
 - `docs/API_OPENAI.md`: alta/configuración API y distinción de costes; no implica gasto autorizado ni cuenta verificada.
 - `docs/archive/`: definiciones anteriores del simulador; no ejecutar su orden de tareas durante el MVP holográfico.
 - `docs/reports/`: reportes cuando un avance, experimento o bloqueo lo justifique.

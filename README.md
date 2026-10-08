@@ -1,6 +1,6 @@
 # Cortana · Holograma
 
-Humanoide sobre **negro puro** para una caja Pepper’s Ghost, modos vertical/horizontal y **Gangnam Style** activable desde PC. Conversación por texto con selector **Gemma 4 en Ollama Cloud, GPT o Qwen local**. Los proveedores cloud requieren su propia clave API. El celular presenta el avatar; voz y simulador táctico quedan para después.
+Humanoide sobre **negro puro** para una caja Pepper’s Ghost, modos vertical/horizontal y **Gangnam Style** activable desde PC. Conversación con **Gemma 4 en Ollama Cloud, GPT o Qwen local** y respuesta hablada en español. Cloud requiere su propia clave API; voz local en PC mediante Piper. El celular presenta el avatar; micrófono y simulador táctico quedan pendientes.
 
 ## Abrir la demo
 
@@ -29,6 +29,8 @@ Si el celular no conecta: comprueba IP, servidor, misma Wi-Fi y aislamiento de c
 
 Los ajustes se guardan en cada navegador/origen; los del PC no calibran remotamente el celular. **Restablecer** vuelve a automático y valores iniciales. HTTP LAN puede limitar fullscreen/wake lock; usa ajustes del dispositivo si hace falta. **Contornos** muestra malla triangular. Sin piso ni texto de chat en la proyección.
 
+Si se corta la conexión con el PC, el avatar ya cargado conserva su figura, movimiento y ajustes. El control y la calibración avisan **PC sin conexión**; el visor con ajustes cerrados sigue mostrando solo la figura. Al restaurar el servidor se recupera su sesión automáticamente. Reiniciar el servidor vacía el contexto de conversación; la reconexión no reenvía mensajes.
+
 ## Baile
 
 En el control pulsa **Bailar Gangnam Style**; los visores conectados cambian de movimiento. **Reposo** lo detiene. Al abrir un visor nuevo recupera la selección actual. Funciona sin API; no incluye música. Reiniciar chat conserva el baile; reiniciar servidor vuelve a reposo.
@@ -53,7 +55,7 @@ OLLAMA_CLOUD_MODEL=gemma4:31b
 OLLAMA_API_KEY=tu_clave_privada
 ```
 
-Reinicia `npm start` para cargar la clave. [Guía completa y prueba de aceptación](docs/API_OLLAMA_CLOUD.md). La integración está preparada; falta la clave para comprobar respuestas reales. El plan Free tiene créditos/modelos iniciales limitados; el acceso gratuito a Gemma 31B de tu cuenta está sin verificar. No se activan pagos. [Condiciones actuales de Ollama](https://ollama.com/pricing).
+Reinicia `npm start` para cargar la clave. [Guía completa y prueba de aceptación](docs/API_OLLAMA_CLOUD.md). Gemma respondió realmente en este equipo: 0.48–0.83 s, contexto y cancelación comprobados. En otro PC debes configurar tu propia clave. El plan Free tiene créditos/modelos iniciales limitados; el acceso gratuito a Gemma 31B de tu cuenta está sin verificar. No se activan pagos. [Condiciones actuales de Ollama](https://ollama.com/pricing).
 
 ## Configurar GPT
 
@@ -71,12 +73,14 @@ Conversación desde `localhost` en PC: Enter envía, Shift+Enter agrega línea. 
 
 ## Usar tu Qwen local y alternar con GPT
 
-1. Mantén [Ollama](https://ollama.com/) activo en este PC. `ollama list` debe mostrar tu modelo (en este equipo: **`qwen2.5:32b`**).
-2. En `/control`, sección **Conversación**, selecciona **Local / Ollama (Qwen)** y elige `qwen2.5:32b` en **Modelo**.
+1. Mantén [Ollama](https://ollama.com/) activo en este PC. `ollama list` debe mostrar tu modelo. Qwen se probó en H-23; el catálogo actual muestra **`phi4-mini:latest` y `llama3.1:latest`**.
+2. En `/control`, sección **Conversación**, selecciona **Local / Ollama (Qwen)** y elige uno de los modelos disponibles. Para Qwen, debe aparecer instalado en la lista.
 3. Pulsa **Cambiar modelo** y envía un mensaje. **Actualizar modelos** renueva la lista si instalaste otro modelo o encendiste Ollama después.
 4. Para volver, selecciona **GPT / OpenAI** y pulsa **Cambiar modelo**. Conserva la clave y configuración OpenAI existentes; no necesitas reiniciar para alternar.
 
 Cada cambio empieza una conversación nueva. La selección se comparte entre las pestañas de control y dura hasta reiniciar el servidor; entonces vuelve al proveedor de `.env` (GPT si no se indica otro). Cancela o termina la respuesta antes de cambiar. El proveedor activo aparece sobre el selector; las opciones editadas se aplican al pulsar el botón.
+
+**Probar conexión** comprueba el proveedor aplicado sin generar texto. Informa falta de clave, servicio caído, modelo ausente y errores de acceso. Para Cloud confirma el catálogo; la clave/cuota se comprueban al enviar un mensaje. Para GPT confirma clave/modelo, con cuota de generación todavía pendiente. No borra el chat ni cambia el avatar. Aplica primero cualquier selección nueva con **Cambiar modelo**.
 
 Para arrancar siempre en Qwen, edita solo estas líneas de tu `.env`, conservando las de OpenAI, y reinicia:
 
@@ -86,11 +90,23 @@ OLLAMA_URL=http://127.0.0.1:11434
 OLLAMA_MODEL=qwen2.5:32b
 ```
 
-Usa el nombre exacto que muestra `ollama list` si tu modelo es otro. No se descarga ningún modelo automáticamente. El backend se conecta a Ollama en loopback; el celular sigue mostrando el avatar. Si Ollama no responde, revisa su servicio y pulsa **Actualizar modelos**. Salida local de 48 tokens, timeout 60 s; un modelo grande puede superar ese tiempo. Sin coste por llamada; rendimiento sujeto al equipo. **Todavía no hay micrófono ni audio.**
+Usa el nombre exacto que muestra `ollama list` si tu modelo es otro. No se descarga ningún LLM automáticamente. El backend se conecta a Ollama en loopback; el celular sigue mostrando el avatar. Si Ollama no responde, revisa su servicio y pulsa **Actualizar modelos**. Salida local de 48 tokens, timeout 60 s; un modelo grande puede superar ese tiempo. Sin coste por llamada; rendimiento sujeto al equipo.
+
+## Respuesta hablada en PC
+
+Instala [uv](https://docs.astral.sh/uv/getting-started/installation/) y [hf](https://huggingface.co/docs/huggingface_hub/en/guides/cli), después ejecuta:
+
+```bash
+npm run setup:voice
+```
+
+Prepara Python 3.13/Piper y descarga la voz Daniela (114 MB), con versiones y hashes fijados. Después la voz funciona localmente en CPU, sin clave ni coste por llamada. Reinicia la demo y pulsa **Probar voz** en `/control`; no consulta al LLM.
+
+**Escuchar respuesta** lee cada respuesta recibida. Activa **Leer respuestas automáticamente** para respuestas nuevas; **Volumen** regula audio y **Detener voz** cancela preparación/reproducción sin borrar texto. Nueva pregunta/conversación, cambio de proveedor o salida del control detienen voz. El celular solo muestra el avatar y su estado **Hablando**, sin duplicar audio. Todavía no captura micrófono. [Instalación, licencia y recuperación](docs/VOZ_PC.md).
 
 ## Verificación
 
-29 pruebas aprobadas tras integrar los controles numéricos, negro de carga/normal/error y patrón con el selector GPT/Qwen y la variante Cortana aportada. Evidencia previa de respuestas Qwen, cancelación y recargas en los reportes. **Cloud real pendiente de OLLAMA_API_KEY; GPT todavía sin llamada real verificada. Celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
+55 pruebas aprobadas: controles, proyección, texturas, proveedores, cancelación, recuperación y TTS con salida única. Build e instalador de voz correctos. Tres respuestas reales Gemma convertidas a WAV en 3.9–5.7 s; reproducción automática/manual y estado hablando comprobados en navegador PC. Audición humana y preferencia de voz pendientes. **Cloud real verificado; GPT requiere clave válida (401 inicial; ahora ausente), sin generación GPT comprobada. Celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
 
 ```bash
 npm test

@@ -1,12 +1,14 @@
 import './style.css';
 import { createViewer } from './viewer.js';
+import { createPresentationSync } from './presentation-sync.js';
+import { createSpeechPlayer } from './speech-player.js';
 
 const app = document.querySelector('#app');
 const hologram = location.pathname === '/hologram';
 const avatarId = new URLSearchParams(location.search).get('avatar') === 'cortana' ? 'cortana' : 'dancer';
 const importedAvatar = avatarId === 'cortana';
 const viewerPath = `/hologram${importedAvatar ? '?avatar=cortana' : ''}`;
-let viewer, pollTimer;
+let viewer, voicePlayer, disposed = false, presentationSession;
 
 if (hologram) {
   document.body.classList.add('projection-page');
@@ -23,13 +25,19 @@ if (hologram) {
           <form id="provider-form" class="provider-controls">
             <label for="provider-select">Proveedor<select id="provider-select" disabled><option value="openai">GPT / OpenAI</option><option value="ollama-cloud">Ollama Cloud / Gemma 4</option><option value="ollama">Local / Ollama (Qwen)</option></select></label>
             <label for="model-select">Modelo<select id="model-select" disabled></select></label>
-            <div class="button-row"><button class="button secondary" id="apply-provider" disabled>Cambiar modelo</button><button class="text-button" id="refresh-models" type="button" disabled>Actualizar modelos</button></div>
+            <div class="button-row"><button class="button secondary" id="apply-provider" disabled>Cambiar modelo</button><button class="text-button" id="refresh-models" type="button" disabled>Actualizar modelos</button><button class="text-button" id="check-provider" type="button" disabled>Probar conexión</button></div>
             <p class="small muted" id="provider-help" role="status">Cambiar inicia una conversación nueva. La selección dura hasta reiniciar el servidor.</p>
           </form>
+          <section class="voice-controls" aria-label="Voz de Cortana">
+            <div class="voice-heading"><span class="eyebrow">VOZ / ESPAÑOL</span><span class="small muted">AUDIO EN ESTE PC</span></div>
+            <label class="voice-toggle"><input type="checkbox" id="auto-speak" disabled> Leer respuestas automáticamente</label>
+            <div class="voice-actions"><button type="button" class="text-button" id="test-voice" disabled>Probar voz</button><button type="button" class="text-button" id="stop-voice" disabled>Detener voz</button><label for="voice-volume">Volumen <input id="voice-volume" type="range" min="0" max="100" value="80"><output id="volume-label" for="voice-volume">80 %</output></label></div>
+            <p id="voice-status" class="small muted" role="status" data-state="idle">Comprobando voz local…</p>
+          </section>
           <div class="messages" aria-label="Conversación" role="log" aria-live="polite"><div class="empty-chat"><span class="empty-symbol">✧</span><h2>Inicia el contacto.</h2><p>Pregúntame algo o cuéntame qué estás construyendo.</p><div class="suggestions"><button>¿Qué es Pepper’s Ghost?</button><button>Preséntate como Cortana</button></div></div></div>
-          <p id="chat-status" class="chat-status" role="status"></p><form id="chat-form"><label class="sr-only" for="message">Mensaje para Cortana</label><textarea id="message" placeholder="Escribe un mensaje…" maxlength="2000" rows="2" required></textarea><div class="composer-footer"><span class="small muted">Texto por ahora · voz en la siguiente etapa</span><button class="button" id="send" type="submit">Enviar ↗</button><button class="button secondary" id="cancel" type="button" hidden>Cancelar</button></div></form>
+          <p id="chat-status" class="chat-status" role="status"></p><form id="chat-form"><label class="sr-only" for="message">Mensaje para Cortana</label><textarea id="message" placeholder="Escribe un mensaje…" maxlength="2000" rows="2" required></textarea><div class="composer-footer"><span class="small muted">Texto + respuesta hablada · micrófono próximamente</span><button class="button" id="send" type="submit">Enviar ↗</button><button class="button secondary" id="cancel" type="button" hidden>Cancelar</button></div></form>
         </section>
-        <section class="connection-card card"><div class="card-heading"><span class="eyebrow">03 / PANTALLA EXTERNA</span><span class="small muted">MISMA RED WI-FI</span></div><h2>Lleva el avatar a tu celular.</h2><p>Abre esta dirección en su navegador. Toca la esquina superior izquierda del visor para ajustar espejo, posición y tamaño.</p><div id="viewer-links" class="viewer-links"><a href="${viewerPath}">Abrir visor local</a></div><p class="small muted">Una figura sobre negro puro. Ajusta brillo y bloqueo de pantalla en tu dispositivo.</p></section>
+        <section class="connection-card card"><div class="card-heading"><span class="eyebrow">03 / PANTALLA EXTERNA</span><span class="small muted">MISMA RED WI-FI</span></div><h2>Lleva el avatar a tu celular.</h2><p>Abre esta dirección en su navegador. Toca la esquina superior izquierda del visor para ajustar espejo, posición y tamaño.</p><div id="viewer-links" class="viewer-links"><a href="${viewerPath}">Abrir visor local</a></div><p class="small muted" id="server-connection" role="status">Conectando con el PC…</p><p class="small muted">Una figura sobre negro puro. Ajusta brillo y bloqueo de pantalla en tu dispositivo.</p></section>
         <section class="adjustment-card card"><div class="card-heading"><span class="eyebrow">04 / CALIBRACIÓN</span><span class="small muted">GUARDADO LOCAL</span></div><div id="desktop-settings"></div></section>
       </div><footer><span>DEMO LOCAL · VISOR + IA</span><a href="/models/README.md" target="_blank" rel="noopener">Modelo y baile / fuentes y licencias ↗</a></footer>
     </div>`;
@@ -57,9 +65,28 @@ if (hologram) {
     } catch (error) { animationStatus.textContent = error.message || 'No se pudo cambiar la animación.'; }
     finally { motionButtons.forEach(item => { item.disabled = false; }); }
   }));
-  let active = null, retry = null, changingProvider = false, localControl = false, catalog = null;
+  let active = null, retry = null, changingProvider = false, localControl = false, catalog = null, voiceReady = false, voiceBusy = false;
+  const autoSpeak = app.querySelector('#auto-speak'), voiceStatus = app.querySelector('#voice-status');
+  const testVoice = app.querySelector('#test-voice'), stopVoice = app.querySelector('#stop-voice');
+  voicePlayer = createSpeechPlayer({
+    createAudio() { const audio = document.createElement('audio'); audio.hidden = true; audio.setAttribute('aria-label', 'Respuesta hablada de Cortana'); app.append(audio); return audio; },
+    onState(state) {
+      voiceBusy = ['preparing', 'playing'].includes(state.phase);
+      voiceStatus.dataset.state = state.phase;
+      if (state.startMs !== undefined) { voiceStatus.dataset.startMs = String(state.startMs); voiceStatus.dataset.synthesisMs = String(state.synthesisMs); }
+      voiceStatus.textContent = state.detail + (state.startMs !== undefined ? ` Inicio en ${(state.startMs / 1000).toFixed(1)} s.` : '');
+      updateControls();
+    },
+  });
+  testVoice.addEventListener('click', () => voicePlayer.play('voice-test'));
+  stopVoice.addEventListener('click', () => voicePlayer.stop());
+  autoSpeak.addEventListener('change', () => { if (!autoSpeak.checked) voicePlayer.stop(); });
+  app.querySelector('#voice-volume').addEventListener('input', event => {
+    voicePlayer.setVolume(Number(event.target.value) / 100); app.querySelector('#volume-label').textContent = `${event.target.value} %`;
+  });
   const providerSelect = app.querySelector('#provider-select'), modelSelect = app.querySelector('#model-select');
   const providerHelp = app.querySelector('#provider-help');
+  const checkProvider = app.querySelector('#check-provider');
   function fillModels() {
     const cloud = providerSelect.value === 'ollama-cloud';
     const names = providerSelect.value === 'openai' ? [catalog?.openaiModel].filter(Boolean)
@@ -82,18 +109,33 @@ if (hologram) {
     modelSelect.disabled = locked || !modelSelect.value;
     app.querySelector('#apply-provider').disabled = locked || !modelSelect.value;
     app.querySelector('#refresh-models').disabled = locked;
+    const unapplied = providerSelect.value !== catalog?.provider || modelSelect.value !== catalog?.model;
+    checkProvider.disabled = locked || !catalog || unapplied;
+    checkProvider.title = unapplied ? 'Pulsa Cambiar modelo para aplicar la selección antes de probarla.' : 'Comprueba el proveedor activo sin generar texto.';
     input.disabled = locked; send.disabled = locked;
     app.querySelector('#reset-chat').disabled = locked;
+    autoSpeak.disabled = !localControl || !voiceReady;
+    testVoice.disabled = locked || !voiceReady || voiceBusy;
+    stopVoice.disabled = !voiceBusy;
+    app.querySelectorAll('.listen-response').forEach(button => { button.disabled = locked || !voiceReady || voiceBusy; });
+  }
+  function showProviderHealth(info) {
+    app.querySelector('#provider-status').textContent = `${info.provider.toUpperCase()} / ${info.model} · ${info.health.detail}`;
+    app.querySelector('.status-dot').classList.toggle('ready', info.health.ready && info.health.verified);
   }
   async function refreshInfo() {
     const response = await fetch('/api/info');
     if (!response.ok) throw new Error('No se pudo consultar el proveedor.');
     const info = await response.json();
     localControl = info.localControl;
-    app.querySelector('#provider-status').textContent = `${info.provider.toUpperCase()} / ${info.model} · ${info.health.detail}`;
-    app.querySelector('.status-dot').classList.toggle('ready', info.health.ready);
+    showProviderHealth(info);
     updateControls();
     return info;
+  }
+  async function refreshVoice() {
+    const response = await fetch('/api/tts'); const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'No se pudo consultar la voz.');
+    voiceReady = data.ready; voiceStatus.textContent = data.detail; updateControls();
   }
   async function refreshModels() {
     const response = await fetch('/api/providers');
@@ -103,6 +145,20 @@ if (hologram) {
   }
   providerSelect.addEventListener('change', fillModels);
   modelSelect.addEventListener('change', updateControls);
+  checkProvider.addEventListener('click', async () => {
+    if (checkProvider.disabled) return;
+    changingProvider = true; updateControls();
+    providerHelp.textContent = 'Comprobando conexión sin generar texto…';
+    try {
+      const response = await fetch('/api/provider/check', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: '{}', signal: AbortSignal.timeout(10000) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'No se pudo comprobar la conexión.');
+      showProviderHealth(data);
+      providerHelp.textContent = `Prueba completada en ${(data.elapsedMs / 1000).toFixed(1)} s, sin generar texto.`;
+    } catch (error) { providerHelp.textContent = error.name === 'TimeoutError' ? 'La conexión tardó demasiado. Intenta de nuevo.' : error.message; }
+    finally { changingProvider = false; updateControls(); }
+  });
   app.querySelector('#refresh-models').addEventListener('click', async () => {
     changingProvider = true; updateControls();
     try { await refreshModels(); await refreshInfo(); }
@@ -114,6 +170,7 @@ if (hologram) {
     if (active || changingProvider || !localControl) return;
     changingProvider = true; updateControls();
     try {
+      await voicePlayer.stop(false);
       const response = await fetch('/api/provider', { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider: providerSelect.value, model: modelSelect.value }) });
       const data = await response.json();
@@ -126,13 +183,17 @@ if (hologram) {
     } catch (error) { providerHelp.textContent = error.message; }
     finally { changingProvider = false; updateControls(); }
   });
-  function addMessage(role, text, meta = '') {
+  function addMessage(role, text, meta = '', requestId) {
     messages.querySelector('.empty-chat')?.remove();
     const article = document.createElement('article'); article.className = `message ${role}`;
     const label = document.createElement('span'); label.className = 'message-label'; label.textContent = role === 'user' ? 'TÚ' : 'CORTANA';
     const content = document.createElement('p'); content.textContent = text;
     article.append(label, content);
     if (meta) { const detail = document.createElement('span'); detail.className = 'small muted'; detail.textContent = meta; article.append(detail); }
+    if (role === 'assistant' && requestId) {
+      const listen = document.createElement('button'); listen.type = 'button'; listen.className = 'text-button listen-response'; listen.textContent = 'Escuchar respuesta';
+      listen.addEventListener('click', () => voicePlayer.play(requestId)); article.append(listen);
+    }
     messages.append(article); messages.scrollTop = messages.scrollHeight;
   }
   function busy(value) { send.hidden = value; cancel.hidden = !value; updateControls(); }
@@ -141,6 +202,8 @@ if (hologram) {
     const requestId = reused?.requestId || crypto.randomUUID();
     const controller = new AbortController();
     const current = { requestId, message, controller }; active = current; busy(true);
+    await voicePlayer.stop(false);
+    if (active !== current || controller.signal.aborted) return;
     if (!reused) addMessage('user', message);
     status.textContent = 'Cortana está procesando tu mensaje…'; viewer.setPhase('processing');
     try {
@@ -148,8 +211,9 @@ if (hologram) {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'No se pudo completar la solicitud.');
       if (active !== current || controller.signal.aborted) return;
-      addMessage('assistant', data.reply, `${data.model} · ${(data.elapsedMs / 1000).toFixed(1)} s${data.truncated ? ' · respuesta limitada' : ''}`);
+      addMessage('assistant', data.reply, `${data.model} · ${(data.elapsedMs / 1000).toFixed(1)} s${data.truncated ? ' · respuesta limitada' : ''}`, requestId);
       status.textContent = 'Respuesta recibida.'; input.value = ''; retry = null;
+      if (autoSpeak.checked && voiceReady) voicePlayer.play(requestId);
     } catch (error) {
       if (active !== current || controller.signal.aborted) return;
       retry = { requestId, message };
@@ -180,6 +244,7 @@ if (hologram) {
   });
   app.querySelector('#reset-chat').addEventListener('click', async () => {
     try {
+      await voicePlayer.stop(false);
       const response = await fetch('/api/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
       if (!response.ok) throw new Error();
       messages.replaceChildren(); retry = null; status.textContent = 'Nueva conversación lista.'; input.focus();
@@ -189,7 +254,10 @@ if (hologram) {
   refreshInfo().then(async info => {
     if (!info.localControl) { input.disabled = true; send.disabled = true; motionButtons.forEach(item => { item.disabled = true; }); status.textContent = 'Abre http://localhost:3000/control en el PC para conversar.'; }
     else if (!info.health.ready) status.textContent = info.health.detail;
-    if (info.localControl) await refreshModels();
+    if (info.localControl) {
+      await refreshModels();
+      refreshVoice().catch(error => { voiceStatus.textContent = error.message; });
+    } else voiceStatus.textContent = 'La voz se controla desde localhost en el PC.';
     const links = app.querySelector('#viewer-links');
     for (const address of info.viewerUrls) {
       const url = address + (importedAvatar ? '?avatar=cortana' : '');
@@ -201,20 +269,39 @@ if (hologram) {
   }).catch(() => { app.querySelector('#provider-status').textContent = 'Servidor no disponible. Inicia npm run demo.'; });
 }
 
-async function poll() {
-  try {
-    const response = await fetch('/api/presentation', { signal: AbortSignal.timeout(2500), cache: 'no-store' });
-    if (!response.ok) throw new Error();
-    const state = await response.json();
+const presentationSync = createPresentationSync({
+  interval: () => document.hidden ? 3000 : 1000,
+  onState(state) {
+    voicePlayer?.onPresentation(state, Boolean(presentationSession && presentationSession !== state.sessionId));
+    presentationSession = state.sessionId;
     viewer.setPhase(state.phase);
     viewer.setAnimation(state.animation);
+    app.dataset.sessionId = state.sessionId; app.dataset.revision = String(state.revision);
     app.querySelectorAll('button[data-animation]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.animation === (importedAvatar ? 'idle' : state.animation))));
     const chip = app.querySelector('.phase-chip');
-    if (chip) { chip.dataset.phase = state.phase; chip.textContent = { idle: 'En reposo', processing: 'Procesando', responded: 'Respuesta lista', error: 'Proveedor sin respuesta' }[state.phase] || 'En reposo'; }
-  } catch { viewer.setPhase('idle'); }
-  pollTimer = setTimeout(poll, document.hidden ? 3000 : 1000);
-}
-poll();
+    if (chip) { chip.dataset.phase = state.phase; chip.textContent = { idle: 'En reposo', processing: 'Procesando', responded: 'Respuesta lista', speaking: 'Hablando', error: 'Proveedor sin respuesta' }[state.phase] || 'En reposo'; }
+  },
+  onConnection(connected) {
+    viewer.setConnection(connected); app.dataset.connection = connected ? 'connected' : 'offline';
+    const connection = app.querySelector('#server-connection');
+    if (connection) connection.textContent = connected ? 'Conexión con el PC activa.' : 'PC sin conexión. Reintentando…';
+    if (!connected) {
+      voicePlayer?.stop();
+      viewer.setPhase('idle');
+      const chip = app.querySelector('.phase-chip');
+      if (chip) { chip.dataset.phase = 'offline'; chip.textContent = 'PC sin conexión'; }
+    }
+  },
+});
+presentationSync.start();
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && !disposed) { presentationSync.stop(); presentationSync.start(); }
+});
 window.addEventListener('pagehide', event => {
-  if (!event.persisted) { clearTimeout(pollTimer); viewer.destroy(); }
+  voicePlayer?.stop(false);
+  presentationSync.stop();
+  if (!event.persisted) { disposed = true; viewer.destroy(); }
+});
+window.addEventListener('pageshow', event => {
+  if (event.persisted && !disposed) presentationSync.start();
 });

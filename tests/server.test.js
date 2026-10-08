@@ -263,3 +263,84 @@ test('Cloud informa autenticación/cuota sin alterar historial ni movimiento', a
   assert.deepEqual(seen, []);
   assert.equal((await (await fetch(base + '/api/presentation')).json()).animation, 'gangnam');
 });
+
+test('diagnóstico solo acepta origen/Host de control y cuerpo vacío sin invocar el proveedor', async t => {
+  let calls = 0;
+  const { base, post } = await fixture(t, { check: async () => { calls++; return { ready: true, verified: true }; } });
+  for (const body of [null, [], '"texto"', { model: 'otro' }, { url: 'https://example.com' }, { key: 'private' }, { provider: 'openai' }]) {
+    assert.equal((await post('/api/provider/check', body)).status, 400);
+  }
+  assert.equal((await post('/api/provider/check', {}, { Origin: 'https://unrelated.example' })).status, 403);
+  const hostStatus = await new Promise((resolve, reject) => {
+    const req = request(base + '/api/provider/check', { method: 'POST', headers: { Host: 'unrelated.example', 'Content-Type': 'application/json' } }, response => { response.resume(); resolve(response.statusCode); });
+    req.on('error', reject); req.end('{}');
+  });
+  assert.equal(hostStatus, 403); assert.equal(calls, 0);
+  assert.equal((await fetch(base + '/api/provider/check')).status, 404);
+});
+
+test('diagnóstico conserva estado, baile, historial y respuesta idempotente', async t => {
+  let calls = 0, seenHistory;
+  const { base, post } = await fixture(t, { config: selectable.openai,
+    check: async selected => {
+      assert.equal(selected.key, 'test-private-key');
+      return { ready: false, verified: false, code: 'AUTH_ERROR', detail: 'Clave rechazada.', key: 'no-publicar' };
+    },
+    reply: async (_selected, history) => { calls++; seenHistory = history; return { text: 'respuesta' }; },
+  });
+  const message = { message: 'primero', requestId: 'request-before-check' };
+  await post('/api/chat', message);
+  await post('/api/animation', { animation: 'gangnam' });
+  const before = await (await fetch(base + '/api/presentation')).json();
+  const response = await post('/api/provider/check', {});
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.equal(result.model, 'gpt-4.1-mini'); assert.equal(result.health.code, 'AUTH_ERROR');
+  assert.ok(!JSON.stringify(result).includes('no-publicar')); assert.ok(!JSON.stringify(result).includes('test-private-key'));
+  assert.deepEqual(await (await fetch(base + '/api/presentation')).json(), before);
+  const retry = await (await post('/api/chat', message)).json();
+  assert.equal(retry.cached, true); assert.equal(calls, 1);
+  await post('/api/chat', { message: 'seguimiento', requestId: 'request-after-check' });
+  assert.deepEqual(seenHistory, [{ role: 'user', content: 'primero' }, { role: 'assistant', content: 'respuesta' }]);
+});
+
+test('diagnóstico descarta un resultado si cambia proveedor o se completa un chat durante la espera', async t => {
+  let release;
+  const { post } = await fixture(t, { config: selectable.openai, configs: selectable, models: async () => ['phi4-mini:latest'],
+    check: async () => new Promise(resolve => { release = () => resolve({ ready: true, verified: true }); }),
+    reply: async () => ({ text: 'respuesta' }),
+  });
+  const switching = post('/api/provider/check', {});
+  while (!release) await new Promise(resolve => setTimeout(resolve, 5));
+  await post('/api/provider', { provider: 'ollama', model: 'phi4-mini:latest' });
+  release(); assert.equal((await switching).status, 409);
+  release = null;
+  const concurrent = post('/api/provider/check', {});
+  while (!release) await new Promise(resolve => setTimeout(resolve, 5));
+  assert.equal((await post('/api/chat', { message: 'completa durante GET', requestId: 'request-during-check' })).status, 200);
+  release(); assert.equal((await concurrent).status, 409);
+});
+
+test('diagnóstico no empieza durante chat y recupera timeout/error sin exponer secretos', async t => {
+  let releaseReply, checks = 0;
+  const { post, base } = await fixture(t, { checkTimeoutMs: 15,
+    reply: async () => new Promise(resolve => { releaseReply = () => resolve({ text: 'respuesta' }); }),
+    check: async (_selected, signal) => {
+      if (++checks === 1) return new Promise((_resolve, reject) => signal.addEventListener('abort', () => reject(new Error('detalle-privado')), { once: true }));
+      if (checks === 2) throw new Error('clave-privada');
+      return { ready: true, verified: true, code: 'MODEL_AVAILABLE', detail: 'Disponible.' };
+    },
+  });
+  const pending = post('/api/chat', { message: 'demorada', requestId: 'request-check-busy' });
+  while (!releaseReply) await new Promise(resolve => setTimeout(resolve, 5));
+  assert.equal((await post('/api/provider/check', {})).status, 409); assert.equal(checks, 0);
+  releaseReply(); await pending;
+  const before = await (await fetch(base + '/api/presentation')).json();
+  const timedOut = await (await post('/api/provider/check', {})).json();
+  assert.equal(timedOut.health.code, 'TIMEOUT');
+  const unavailable = await (await post('/api/provider/check', {})).json();
+  assert.equal(unavailable.health.code, 'UNAVAILABLE'); assert.ok(!JSON.stringify(unavailable).includes('clave-privada'));
+  const recovered = await (await post('/api/provider/check', {})).json();
+  assert.equal(recovered.health.verified, true);
+  assert.deepEqual(await (await fetch(base + '/api/presentation')).json(), before);
+});

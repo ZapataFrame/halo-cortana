@@ -2,6 +2,8 @@
 
 Fecha: 2026-10-08. Responsable: Codex. Rama: `codex/verificacion-demo-holograma`. Estado: DONE. Entorno: Linux, Node 22.22.2/npm 10.9.7; servidor real en puerto 3000.
 
+Entrega Git: `e6d2714` registra H-28 real y `7f0aebe` implementa H-29. Ambos publicados en `origin/codex/verificacion-demo-holograma`, remoto verificado `ZapataFrame/halo-cortana`. La publicación no equivale a PR ni merge de estos avances en main.
+
 Objetivo: distinguir configuración, disponibilidad y errores del proveedor antes de enviar una pregunta. Incremento independiente de la preparación móvil/caja; tarjeta del plan registrada antes de implementar. H-28 quedó guardado en `e6d2714` con conversación Cloud real.
 
 Cambios: botón **Probar conexión**, adaptador de diagnóstico y `POST /api/provider/check`. Usa exclusivamente el proveedor activo del servidor, cuerpo `{}`, timeout 8 s y control privado loopback/Host/Origin. GPT consulta su modelo mediante GET autenticado; local consulta catálogo; Cloud consulta catálogo público sin enviar la clave. No genera texto. Indicador exige `ready && verified`; una clave presente no activa comprobación. La selección pendiente se aplica antes de probar.

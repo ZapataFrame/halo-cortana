@@ -1,0 +1,7 @@
+node_modules/
+tools/vendor/avatar/.bake-runtime/
+dist/
+.env
+.env.*
+!.env.example
+*.log

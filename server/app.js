@@ -29,7 +29,7 @@ async function readJson(req) {
   try { return JSON.parse(text); } catch { throw new Error('JSON inválido.'); }
 }
 
-export function createApp({ config, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, timeoutMs = 60000 } = {}) {
+export function createApp({ config, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, timeoutMs = 60000, readAsset = readFile } = {}) {
   const sessionId = randomUUID();
   let revision = 0, phase = 'idle', animation = 'idle', active = null, history = [];
   const completed = new Map();
@@ -124,8 +124,10 @@ export function createApp({ config, root = resolve('dist'), port = 3000, reply =
       const target = resolve(root, ['/', '/control', '/hologram'].includes(pathname) ? 'index.html' : `.${pathname}`);
       if (!target.startsWith(root + sep)) { json(res, 403, { error: 'Ruta no permitida.' }); return; }
       if (!(await stat(target)).isFile()) throw new Error('NOT_FOUND');
+      // Leer antes de enviar 200: un fallo de disco debe cerrar la respuesta con error.
+      const content = req.method === 'HEAD' ? undefined : await readAsset(target);
       res.writeHead(200, { 'Content-Type': MIME[extname(target)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
-      res.end(req.method === 'HEAD' ? undefined : await readFile(target));
+      res.end(content);
     } catch (error) {
       if (res.headersSent || res.destroyed) return;
       const clientError = pathname.startsWith('/api/');

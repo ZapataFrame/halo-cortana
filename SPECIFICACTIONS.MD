@@ -85,6 +85,8 @@ Orientación guardada en calibración v1: `auto`, `portrait`, `landscape`; datos
 
 La [referencia física](https://wisnuwisdantio.com/category/experiments/peppers-ghost-holographic-projection/) documenta un reflector y distintas posiciones de pantalla. Punto de partida 45°; la caja real determina espejo/rotación/distancias. No prometer altura proyectada sin medidas. Patrón asimétrico temporal prueba lateralidad y se retira en presentación.
 
+Verificación digital reproducible: `npm run qa:visual -- loading|error` sirve el visor y assets reales en loopback 3001. `loading` retiene el GLB hasta pulsar Enter; `error` provoca fallo de lectura. No carga `.env` ni llama a un LLM. El servidor lee los recursos antes de enviar HTTP 200 para responder con un error completo si falla la lectura. Negro de carga/normal/error comprobado en H-05; esto no valida pantalla ni reflector físicos.
+
 ## 7. LLM, credenciales y costes
 
 La tarifa de uso con clave API es distinta de la suscripción ChatGPT/Codex. No considerar una suscripción como saldo API; verificar cuenta propia. Consultar [planes](https://learn.chatgpt.com/docs/pricing), [tarifas API](https://developers.openai.com/api/docs/pricing) y la guía `docs/API_OPENAI.md`.

@@ -9,7 +9,7 @@ Leer `AGENTS.md`, `SPECIFICACTIONS.MD`, `Cortana.md` y `docs/plans/2026-10-07-mv
 **Planificación completada:** H-00 `DONE`, responsable Codex, con verificación documental registrada.
 **Ampliación actual:** H-20…H-22 por petición del propietario. GPT principal preparado; validación real `BLOCKED` por clave. Orientación y baile con evidencia técnica, sin cerrar móvil/caja.
 
-**Base implementada:** visor negro, calibración y conversación local histórica; GPT sustituye a Ollama como proveedor principal. **Siguiente:** clave privada para H-20; H-19 identifica celular/caja/hora. El bloqueo previo del seguimiento de chat no se presenta como resuelto por las pruebas nuevas de orientación/baile.
+**Base implementada:** visor negro en carga/normal/error, calibración numérica y patrón verificados; conversación local histórica y GPT como proveedor principal. Trabajo previo guardado en `main`; continuación en `feat/validacion-calibracion-holograma`. **Siguiente:** H-19 identifica celular/caja/hora para H-07/H-08; clave privada para H-20. El bloqueo previo del seguimiento de chat no se presenta como resuelto por las pruebas visuales.
 
 ## Etapas y métricas de salida
 
@@ -34,7 +34,7 @@ A visual es el primer hito. Para cumplir la solicitud completa de mañana se req
 | H-03 | DONE | H-01 | P0 | Servidor Node/Three/Vite compilado, mismo origen, URL LAN GET 200 y chat LAN 403 desde PC. Lockfile y `.env.example`; rutas privadas rechazadas. Acceso celular: H-19. Codex, 2026-10-07. |
 | H-04 | DONE | H-02, H-03 | P0 | Humanoide cargado y completo en capturas PC 1280×720 y vertical efectiva 749×844. Pose normalizada/resize; no se presenta captura PC como celular. Ver reporte. Codex, 2026-10-07. |
 | H-05 | DONE | H-04 | P0 | Codex, 2026-10-07. Carga retenida del GLB real, carga completada y fallo provocado: estado DOM verificado, panel oculto y 5 muestras RGB 0/0/0 en cada captura 792×954. Ensayo loopback reproducible y recuperación HTTP probada. Reporte H-05 y `evidence/H-05-black.json`. Física: H-08. |
-| H-06 | BLOCKED | H-05 | P0 | Controles/persistencia/patrón/reset implementados; espejos/rotación recuperados en 3 recargas y lógica validada. Falta comprobar escala/X/Y y patrón digital manualmente; automatización de rangos sin cambio y navegador bloqueado. Física: H-08. |
+| H-06 | DONE | H-05 | P0 | Codex, 2026-10-07. Valores numéricos de tamaño/X/Y/giro, límites y reset verificados; todos los ajustes recuperados en 3 recargas. Patrón SVG reparado, visible con panel oculto; escala 0.75 y traslación −45.6/+67.52 px medidas en 380×844. Capturas/DOM en reporte H-06. Arrastre táctil/óptica: H-07/H-08. |
 | H-07 | BLOCKED | H-06, H-19 | P0 | Código de presentación/fullscreen/resize disponible. Falta dispositivo físico para acceso, orientación/retorno, 5 min y mediana FPS real; desbloquea H-19. |
 | H-08 | TODO | H-07 | P0 | Prueba óptica: dos montajes y evidencia de figura real en caja. |
 | H-09 | DONE | H-01 | P1 | Ollama/phi4-mini:latest real en CPU: primera llamada 23.75 s; backend 47.091/5.353/19.1/6.923 s. Contexto conservado; sin coste API/clave. Reporte. Codex, 2026-10-07. |
@@ -68,6 +68,7 @@ Q-06/Q-08 pendientes: dispositivo/hora/caja. Q-07: GPT solicitado como principal
 | 2026-10-07 | H-01…H-12 | Visor/ajustes/chat local implementados, build exitoso y 11 pruebas; negro digital normal/error, LAN 200/403, respuestas reales/contexto/cancelación. Evidencia: `docs/reports/2026-10-07-H-01-12-visor-llm.md`. | Carga/rangos/UI completa por probar; bloqueo de automatización registrado. Celular/caja/FPS/ensayos pendientes. A+B todavía sin aceptación física. |
 | 2026-10-07 | H-20…H-22 | GPT principal preparado; orientación y baile verificados. 19 pruebas pasan, build correcto, 6 casos de orientación y 3 recargas, esqueleto/baile real y negro muestreado. Evidencia: `docs/reports/2026-10-07-H-20-22-gpt-orientacion-baile.md`. | H-20 BLOCKED por clave; aún sin respuesta ni latencia GPT. Teléfono/caja/ensayo y pendientes previos siguen abiertos. No se crearon commits: Git no funcional en el entorno. |
 | 2026-10-07 | Git / H-05 | `.git` vacío inicializado por petición explícita. Base guardada en `main`: `b90baa9` documentación, `f789637` aplicación y `6c93a8c` evidencia. Trabajo nuevo en `feat/validacion-calibracion-holograma`. Negro carga/normal/error ahora comprobado; reporte `docs/reports/2026-10-07-H-05-negro-y-descargas.md`. | Continuar H-06. La evidencia física y GPT real siguen pendientes; el chat anteriormente rechazado no se reintentó. |
+| 2026-10-07 | H-06 | Calibración precisa y patrón asimétrico reparado, verificaciones de UI/recargas/medidas y 20 pruebas aprobadas. H-05 guardado como `ac4636f`. Reporte: `docs/reports/2026-10-07-H-06-calibracion-precisa.md`. | H-07/H-08 requieren dispositivo/caja reales (H-19). H-20 requiere clave privada. Arrastre de rangos no cambió valores en automatización; controles numéricos sí comprobados. |
 
 ## Backlog anterior conservado
 

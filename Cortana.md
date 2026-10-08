@@ -58,6 +58,8 @@ Implementado: un envío activo, descarte de respuestas tardías, timeout 60 s tr
 
 Un reflector principal, una imagen frontal. No duplicar la figura en cuatro cuadrantes. Confirmar posición de pantalla, reflexiones y ángulo con el patrón; la caja puede necesitar espejo o rotación según montaje.
 
+Los valores numéricos permiten repetir el montaje: tamaño 25–200 %, desplazamiento X/Y −45…45 % y giro del cuerpo en pasos de 5°. Cambios válidos se aplican al escribir; Enter confirma y acota límites. Espejos y rotación de pantalla siguen independientes. Cerrar el panel conserva el patrón si está activo; para presentar al humanoide desactiva «Patrón de prueba» o pulsa Restablecer. La recarga recupera ajustes y muestra siempre el modelo.
+
 La caja y pantalla reales determinan tamaño y contraste; no asumir OLED ni dimensiones. Un píxel RGB 0/0/0 no garantiza negro físico de la pantalla. H-08 registra luz, punto de observación, material, defectos y evidencia real. El modelo debe seguir dentro del reflector sin UI visible.
 
 ## 7. Etapas posteriores

@@ -81,6 +81,8 @@ Una sola figura, material blanco/gris luminoso sobre negro. Reposo neutro y recr
 
 Orientación guardada en calibración v1: `auto`, `portrait`, `landscape`; datos anteriores usan `auto`. Si la postura del viewport no coincide con el modo elegido, añadir 90° en sentido horario a la rotación de calibración, módulo 360. El patrón usa exactamente ese giro. El modo transforma la imagen; no promete bloquear la orientación física del SO. Espejos siguen en ejes de pantalla.
 
+Calibración precisa: campos numéricos junto a los rangos. Tamaño 25–200 %, X/Y −45…45 % del viewport (derecha/abajo positivos), giro del cuerpo −180…180° en pasos de 5°. Porcentajes enteros; internamente tamaño y X/Y conservan el contrato fraccionario v1. Valores válidos se aplican al escribir sin truncar dígitos; Enter confirma y acota a límites. Entradas vacías o con paso inválido conservan el último ajuste válido. El patrón F/punto permanece visible al ocultar ajustes, se apaga con su checkbox o Restablecer y nunca se activa automáticamente al recargar.
+
 `POST /api/animation {"animation":"idle"|"gangnam"}` es privado al PC y valida catálogo cerrado. `GET /api/presentation` añade `animation` a `sessionId`, `revision`, `phase`; no publica texto ni claves. Los visores consultan cada segundo, recuperan el movimiento actual al abrirse y lo conservan si falla la red. No se exige sincronización exacta de frames entre pantallas. Reiniciar servidor devuelve reposo; reiniciar chat no cambia baile/calibración.
 
 La [referencia física](https://wisnuwisdantio.com/category/experiments/peppers-ghost-holographic-projection/) documenta un reflector y distintas posiciones de pantalla. Punto de partida 45°; la caja real determina espejo/rotación/distancias. No prometer altura proyectada sin medidas. Patrón asimétrico temporal prueba lateralidad y se retira en presentación.
@@ -113,6 +115,7 @@ IDs nuevos conservan separación respecto a D-01…D-12 del plan histórico.
 | D-22 | CONFIRMADA | 2026-10-07 | Petición del propietario: GPT principal. Selección técnica gpt-4.1-mini/Responses, clave solo backend; Ollama opcional explícito. Sin activar pagos; llamada real pendiente de clave. |
 | D-23 | CONFIRMADA | 2026-10-07 | Petición del propietario: modos automático/vertical/horizontal. Adaptación de imagen según viewport más rotación adicional, persistencia compatible v1; sin depender del bloqueo de orientación del navegador. |
 | D-24 | CONFIRMADA | 2026-10-07 | Petición de baile libre: recreación Gangnam Style MIT + humanoide Quaternius CC0 compatible. Curvas horneadas a keyframes, control compartido desde PC y recursos locales sin música. No es un asset oficial de Fortnite. |
+| D-25 | CONFIRMADA | 2026-10-07 | Elección de implementación en H-06: calibración numérica en porcentajes/grados junto a rangos, mismo contrato v1. Patrón visible sin panel para ajustar reflexión; corregir atributo hidden del SVG. Mediciones/UI verificadas; óptica real pendiente. |
 
 D-08 (voz primero) queda reemplazada para el corte actual por D-13/D-16. Decisiones del juego siguen conservadas en archivo histórico; no ejecutar su roadmap mientras este objetivo esté activo.
 

@@ -23,8 +23,9 @@ Si el celular no conecta: comprueba IP, servidor, misma Wi-Fi y aislamiento de c
 1. Abre `/hologram` en el celular: una figura sobre negro.
 2. Toca la **esquina superior izquierda** para calibrar. En **Orientación** elige **Automática**, **Vertical** o **Horizontal** según el montaje.
 3. Gira también el dispositivo. El modo adapta la imagen si la postura del viewport no coincide; **Rotación de pantalla** añade 0/90/180/270°. No garantiza bloquear la orientación física del SO.
-4. Ajusta tamaño, X/Y, vista del cuerpo y espejos. El **Patrón de prueba** con F y punto comprueba lateralidad; comienza con reflector a unos 45° y calibra la caja real.
-5. Desactiva patrón, pulsa **Pantalla completa** si está disponible y **×** para ocultar controles. Ajusta brillo y bloqueo automático desde el dispositivo.
+4. Ajusta tamaño, X/Y, vista del cuerpo y espejos. Puedes escribir porcentajes exactos junto a los deslizadores: tamaño 25–200 %, X/Y −45…45 %, y giro en pasos de 5°. Los valores válidos se aplican al escribir; Enter confirma y ajusta los límites. X/Y positivos mueven a la derecha/abajo.
+5. El **Patrón de prueba** con F y punto comprueba lateralidad; puedes cerrar el panel y conservarlo visible. Comienza con reflector a unos 45° y calibra la caja real.
+6. Desactiva patrón, pulsa **Pantalla completa** si está disponible y **×** para ocultar controles. Ajusta brillo y bloqueo automático desde el dispositivo.
 
 Los ajustes se guardan en cada navegador/origen; los del PC no calibran remotamente el celular. **Restablecer** vuelve a automático y valores iniciales. HTTP LAN puede limitar fullscreen/wake lock; usa ajustes del dispositivo si hace falta. **Contornos** muestra malla triangular. Sin piso ni texto de chat en la proyección.
 
@@ -52,13 +53,15 @@ Alternativa sin coste por llamada: elegir explícitamente `LLM_PROVIDER=ollama` 
 
 ## Verificación
 
-19 pruebas automatizadas y build correctos. Baile y orientación inspeccionados en navegador PC. **GPT real pendiente de clave; celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
+20 pruebas automatizadas y build correctos. Negro de carga/normal/error, calibración numérica, tres recargas, patrón, baile y orientación inspeccionados en navegador PC. **GPT real pendiente de clave; celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
 
 ```bash
 npm test
 npm run build
 ```
 
-[Roadmap](ROADMAP.MD) · [Especificación](SPECIFICACTIONS.MD) · [Plan](docs/plans/2026-10-07-mvp-holograma.md) · [Reporte actual](docs/reports/2026-10-07-H-20-22-gpt-orientacion-baile.md).
+Ensayo digital de negro: con la demo compilada, ejecuta `npm run qa:visual -- loading` y abre `http://127.0.0.1:3001/hologram`. Enter en terminal libera el GLB real. `npm run qa:visual -- error` provoca fallo del recurso. Detén un ensayo antes de iniciar el otro. El visor conserva negro y el diagnóstico aparece al abrir calibración; no se carga la clave API en estos ensayos.
+
+[Roadmap](ROADMAP.MD) · [Especificación](SPECIFICACTIONS.MD) · [Plan](docs/plans/2026-10-07-mvp-holograma.md) · [Reporte de calibración](docs/reports/2026-10-07-H-06-calibracion-precisa.md) · [GPT/orientación/baile](docs/reports/2026-10-07-H-20-22-gpt-orientacion-baile.md).
 
 Avatar provisional de Quaternius; no es el modelo oficial de Cortana/Halo. El CesiumMan anterior permanece con su atribución y licencia como recurso histórico.

@@ -115,8 +115,10 @@ Los estados actuales están en la roadmap. H-00 representa este plan documental;
 **H-06 — Controles de calibración y guardado (30–45 min). Depende de H-05.**
 
 - Escala configurable inicial 0.25–2.0; desplazamiento X/Y en fracciones de viewport; rotación 0/90/180/270; espejo horizontal y vertical independientes; restaurar valores.
+- Implementación H-06: valores numéricos en porcentajes junto a rangos (tamaño 25–200, X/Y −45…45), giro del cuerpo en grados/pasos de 5. La ruta numérica permite calibración precisa; comprobar arrastre táctil en H-07.
 - Aplicar transformaciones de presentación sin deformar el rig. Mantener conversión consistente tras rotación/resize; se permite ajustar límites después de probar la caja.
 - Patrón temporal asimétrico con letra F, indicación arriba y lados; apagarlo completamente al presentar modelo.
+- El SVG usa el atributo `hidden`, no una propiedad que no se refleje en SVG. Ocultar el panel conserva el patrón para ensayar reflexión sin UI; Restablecer/checkbox lo apagan. Recargar no recupera patrón activo.
 - Guardar calibración local versionada; datos corruptos recuperan predeterminados. Mostrar controles solo en modo ajustes y ofrecer gesto/botón para entrar/salir; jamás dejarlos reflejados durante la demo.
 - Entregable técnico: calibración recuperable y patrón asimétrico funcional. Captura del patrón en reflector real corresponde a H-08.
 - Aceptación: espejo cambia lateralidad, rotación cambia orientación, escala/desplazamiento son independientes y configuración se recupera tras 3 recargas. El patrón cambia lateralidad digital; lectura mediante reflector real se valida en H-08.

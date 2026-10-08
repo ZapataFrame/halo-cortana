@@ -74,6 +74,7 @@ Q-06/Q-08 pendientes: dispositivo/hora/caja. Q-07: GPT disponible, configuració
 
 | Fecha | Tarea | Avance | Pendiente |
 |---|---|---|---|
+| 2026-10-08 | Entrega Git | Merge local `c0aef7b`, texturas `9dc254b`, guía `26bc2c7` y Cloud `426f08f` guardados. main local contiene visual/guía; Cloud en `codex/cortana-gemma4-cloud`. | Push main y rama rechazados por revisión automática: publicación de rama compartida/remoto sin autorización explícita. Preguntas de autorización pendientes. origin/main continúa en `5524e19`; no afirmar publicación ni PR. |
 | 2026-10-08 | H-26/H-27 | Texturas originales recuperadas, render negro y calibración comprobados; guía de rig/múltiples clips con datos del GLB y fuentes oficiales. Commits `9dc254b` y `26bc2c7`. Reporte H-26 y guía. | Pose estática; animaciones nuevas son propuesta. Móvil/reflector requieren H-19/H-07/H-08. |
 | 2026-10-08 | H-28 | Cloud/Gemma directo preparado en rama `codex/cortana-gemma4-cloud`; 29 pruebas/build, catálogo público real y cambio de proveedor en UI. Error de clave ausente real; reporte y guía Cloud. | Q-10: clave y acceso/cuota; generación no verificada. Siguiente trabajo con recurso disponible: H-28 (clave), H-20 (GPT real) o H-19 (pantalla/caja). |
 | 2026-10-08 | H-25 | Integración de `9c5614c` sobre `5524e19`, ambos descendientes de `6c93a8c`. Cuatro conflictos resueltos combinando funciones; 25 pruebas, build y ausencia de marcadores verificados. `docs/reports/2026-10-08-H-25-integracion-main.md`. | Texturas H-26, guía H-27 y proveedor cloud H-28 por implementar. |

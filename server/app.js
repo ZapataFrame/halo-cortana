@@ -4,6 +4,7 @@ import { resolve, extname, sep } from 'node:path';
 import { networkInterfaces } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { generateReply, providerHealth, localModels, checkProviderConnection } from './providers.js';
+import { createPiper, speechText } from './tts.js';
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.glb': 'model/gltf-binary', '.json': 'application/json', '.md': 'text/plain; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml' };
 const LOCAL = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
@@ -29,11 +30,20 @@ async function readJson(req) {
   try { return JSON.parse(text); } catch { throw new Error('JSON inválido.'); }
 }
 
-export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile } = {}) {
+export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile, tts = createPiper(), ttsTimeoutMs = 20000, speechLeaseMs = 15000 } = {}) {
   const sessionId = randomUUID();
   let revision = 0, chatGeneration = 0, phase = 'idle', animation = 'idle', active = null, history = [];
   const completed = new Map();
-  const state = () => ({ sessionId, revision, phase, animation });
+  let speech;
+  function stopSpeech() {
+    if (!speech) return;
+    speech.controller.abort(); clearTimeout(speech.timer); speech = undefined; revision++;
+  }
+  function renewSpeech() {
+    clearTimeout(speech.timer);
+    speech.timer = setTimeout(stopSpeech, speechLeaseMs); speech.timer.unref();
+  }
+  const state = () => ({ sessionId, revision, phase: speech?.playing ? 'speaking' : phase, animation });
   const setPhase = value => { phase = value; revision++; };
   const localWrite = (req, res) => {
     if (!LOCAL.has(req.socket.remoteAddress)) { json(res, 403, { error: 'El chat se controla desde el PC en localhost.' }); return false; }
@@ -46,12 +56,16 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
   const server = createServer(async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'no-referrer');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
     let pathname;
     try { pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname); }
     catch { json(res, 400, { error: 'Ruta inválida.' }); return; }
     try {
       if (req.method === 'GET' && pathname === '/api/presentation') { json(res, 200, state()); return; }
+      if (req.method === 'GET' && pathname === '/api/tts') {
+        if (!localWrite(req, res)) return;
+        json(res, 200, await tts.health()); return;
+      }
       if (req.method === 'GET' && pathname === '/api/providers') {
         if (!localWrite(req, res)) return;
         let installed = [], detail = '';
@@ -68,6 +82,51 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
       if (req.method === 'POST' && pathname.startsWith('/api/')) {
         if (!localWrite(req, res)) return;
         const body = await readJson(req);
+        if (pathname === '/api/tts' || pathname === '/api/tts/playback') {
+          const playback = pathname.endsWith('/playback');
+          if (!body || Array.isArray(body) || typeof body.speechId !== 'string' || !/^[a-zA-Z0-9-]{8,80}$/.test(body.speechId)
+            || Object.keys(body).sort().join(',') !== (playback ? 'playing,speechId' : 'requestId,speechId')
+            || (playback ? typeof body.playing !== 'boolean' : typeof body.requestId !== 'string')) {
+            json(res, 400, { error: 'Solicitud de voz inválida.' }); return;
+          }
+          if (playback) {
+            if (!body.playing) {
+              if (speech?.id === body.speechId) stopSpeech();
+              json(res, 200, state()); return;
+            }
+            if (active || speech?.id !== body.speechId || !speech?.prepared) {
+              json(res, 409, { error: 'La voz ya no está disponible. Pulsa Escuchar de nuevo.' }); return;
+            }
+            if (!speech.playing) { speech.playing = true; revision++; }
+            renewSpeech(); json(res, 200, state()); return;
+          }
+          if (active || speech) { json(res, 409, { error: 'Hay otra voz o respuesta en curso. Deténla antes de escuchar.' }); return; }
+          const text = body.requestId === 'voice-test'
+            ? 'Hola, soy Cortana. Esta es una prueba de voz en español.' : completed.get(body.requestId)?.result.reply;
+          if (!text || !speechText(text)) { json(res, 404, { error: 'Esta respuesta ya no está en la conversación. Envía un mensaje nuevo.' }); return; }
+          const token = { id: body.speechId, controller: new AbortController(), playing: false, prepared: false };
+          speech = token;
+          const started = performance.now(); let timedOut = false;
+          const timer = setTimeout(() => { timedOut = true; token.controller.abort(); }, ttsTimeoutMs);
+          const disconnected = () => { if (!res.writableEnded && speech === token) stopSpeech(); };
+          res.on('close', disconnected);
+          try {
+            const audio = await tts.synthesize(speechText(text), token.controller.signal);
+            if (token.controller.signal.aborted || speech !== token) throw new Error('TTS_CANCELLED');
+            token.prepared = true; renewSpeech();
+            res.writeHead(200, { 'Content-Type': 'audio/wav', 'Cache-Control': 'no-store',
+              'X-Synthesis-Ms': String(Math.round(performance.now() - started)) });
+            res.end(audio);
+          } catch (error) {
+            const cancelled = token.controller.signal.aborted;
+            if (speech === token) stopSpeech();
+            const missing = error.message === 'TTS_NOT_CONFIGURED';
+            if (!res.destroyed) json(res, timedOut ? 504 : cancelled ? 499 : missing ? 503 : 502,
+              { error: timedOut ? 'La voz tardó demasiado. El texto sigue disponible.' : missing
+                ? 'Falta instalar la voz local. Ejecuta npm run setup:voice en el PC.' : 'No se pudo generar la voz. El texto sigue disponible.' });
+          } finally { clearTimeout(timer); res.off('close', disconnected); }
+          return;
+        }
         if (pathname === '/api/provider/check') {
           if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).length) {
             json(res, 400, { error: 'La comprobación usa el proveedor activo del PC. Envía un objeto vacío.' }); return;
@@ -107,6 +166,7 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
           // La consulta del catálogo puede coincidir con un envío de otra pestaña.
           if (active) { json(res, 409, { error: 'Hay una respuesta en curso. Espera o cancélala.' }); return; }
           config = { ...selected, model: body.model };
+          stopSpeech();
           history = []; completed.clear(); setPhase('idle');
           json(res, 200, { provider: config.provider, model: config.model, ...state() }); return;
         }
@@ -121,7 +181,7 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
         }
         if (pathname === '/api/reset') {
           if (active) { json(res, 409, { error: 'Cancela la respuesta antes de reiniciar.' }); return; }
-          history = []; completed.clear(); setPhase('idle'); json(res, 200, state()); return;
+          stopSpeech(); history = []; completed.clear(); setPhase('idle'); json(res, 200, state()); return;
         }
         if (pathname !== '/api/chat') { json(res, 404, { error: 'Ruta no disponible.' }); return; }
         const { message, requestId } = validateChat(body);
@@ -131,6 +191,7 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
           json(res, 200, { ...cached.result, cached: true }); return;
         }
         if (active) { json(res, 409, { error: 'Hay una respuesta en curso. Espera o cancélala.' }); return; }
+        stopSpeech();
         const controller = new AbortController();
         const requestConfig = config;
         const token = { requestId, controller };
@@ -194,6 +255,6 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
       json(res, clientError ? 400 : 404, { error: clientError ? error.message : 'Archivo no disponible.' });
     }
   });
-  server.on('close', () => active?.controller.abort());
+  server.on('close', () => { active?.controller.abort(); stopSpeech(); });
   return server;
 }

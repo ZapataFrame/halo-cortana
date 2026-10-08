@@ -1,0 +1,21 @@
+{
+  "repo": "rhasspy/piper-voices",
+  "revision": "c10ece1aade47bb51c153c893d14e5bf8e5b7117",
+  "files": [
+    {
+      "name": "es_AR-daniela-high.onnx",
+      "bytes": 114199011,
+      "sha256": "7ceb1fc0dab349418c5b54a639ae9ee595212d7c9ea422220d8419163d5cc985"
+    },
+    {
+      "name": "es_AR-daniela-high.onnx.json",
+      "bytes": 7248,
+      "sha256": "aedbf69647e1d754c62ecf8e0366ca5f16af3e768e3c6b5329af6eb6bde3852b"
+    },
+    {
+      "name": "MODEL_CARD",
+      "bytes": 353,
+      "sha256": "39fda44bb85009b0bd7aabb455b113e50abf1f2a2013f3264c482691105e4e3b"
+    }
+  ]
+}

@@ -24,7 +24,7 @@ Leer `AGENTS.md`, `SPECIFICACTIONS.MD`, `Cortana.md` y `docs/plans/2026-10-07-mv
 | 2 Caja | Calibración y óptica | Ajustes persistentes, 5 min estable, meta 30 FPS, dos montajes físicos con evidencia. |
 | 3 LLM por texto | Conversación real PC/móvil | Tres preguntas + seguimiento; figura no desaparece ante fallo de proveedor. |
 | 4 Entrega | Ensayo y paquete | Dos recorridos, 10 min integrado y reinicio desde README. |
-| 5 Voz posterior | TTS, STT y flujo hablado | Audio real, corrección/cancelación y cinco conversaciones; no entra en corte de mañana. |
+| 5 Voz PC adelantada | TTS → STT → flujo hablado | D-32 autoriza continuar antes de aceptación física. Audio real, corrección/cancelación y cinco conversaciones; móvil/caja siguen pendientes. |
 
 A visual es el primer hito. Para cumplir la solicitud completa de mañana se requieren A+B (LLM real por texto). Si se entrega solo A, declararlo parcial. Las métricas móviles/físicas siguen pendientes. Mediciones PC/LLM y límites del navegador están en el reporte; no prueban A físico.
 
@@ -47,9 +47,9 @@ A visual es el primer hito. Para cumplir la solicitud completa de mañana se req
 | H-12 | TODO | H-11, H-07 | P1 | Polling/estado mínimo y pulso implementados; recuperación PC preparada/verificada en H-30. Falta comprobar ≤2 s y reconexión PC/móvil físico sin duplicar chat. No cerrar por ensayo PC. |
 | H-13 | TODO | H-08, H-12 | P1 | Dos ensayos A+B, recuperación y 10 min integrados. |
 | H-14 | TODO | H-13 | P1 | README, `.env.example`, lockfile, modelo/licencias, `dist/` y reporte preparados; pendiente aceptación tras ensayo/reinicio/montaje real. |
-| H-15 | TODO | H-14 | P2 | TTS real, una salida y audio interrumpible. Posterior a mañana. |
-| H-16 | TODO | H-15 | P2 | STT pulsar para hablar y corrección, meta 8/10 frases acordadas. Posterior. |
-| H-17 | TODO | H-16 | P2 | Cinco conversaciones de voz y dos interrupciones con recuperación. Posterior. |
+| H-15 | DONE | H-10, H-26, H-28 | P1 | Codex, 2026-10-08: Piper/Daniela instalado con versiones/revisión/hash; 55 pruebas/build e instalador correctos. Tres WAV Gemma reales (3.9–5.7 s) y tres respuestas UI reproducidas automáticamente (inicio 5.2–6.7 s), lectura manual, fin, interrupción de preparación/habla y avatar speaking/4 texturas comprobados. Reporte H-15; reproducción digital PC, audición humana/calidad y física no certificadas. |
+| H-16 | TODO | H-15 | P1 | Siguiente tarea de software: STT pulsar para hablar en PC, transcripción editable/envío explícito y meta 8/10 frases. D-32 la adelanta; no micrófono implementado ni permiso de captura probado todavía. |
+| H-17 | TODO | H-16 | P1 | Cinco conversaciones de voz y dos interrupciones con recuperación, tras STT. |
 | H-19 | BLOCKED | H-00 | P0 | Faltan celular/OS/navegador, caja y hora. Pregunta enviada; abrir URL en ese dispositivo. No bloquea base PC; sí móvil/caja. |
 | H-20 | BLOCKED | H-03, H-10 | P0 | Codex, 2026-10-08: GET real /v1/models/gpt-4.1-mini devolvió 401/AUTH_ERROR en 279 ms. Tras último reinicio clave ausente, diagnóstico NOT_CONFIGURED. Sin generación solicitada; falta clave válida y 3 respuestas+seguimiento. Evidence H-20-auth-check.json y H-29-control.json; no activar pagos ni fallback. |
 | H-21 | DONE | H-03, H-04 | P0 | Tres modos verificados a 390×844/844×390, giros 0/90 correctos, tres recargas y geometría/espejos probados. Capturas + `docs/reports/evidence/H-21-orientation.json`; calibración v1 compatible. Codex, 2026-10-07. Física sigue en H-07/H-08. |
@@ -64,7 +64,7 @@ A visual es el primer hito. Para cumplir la solicitud completa de mañana se req
 | H-30 | DONE | H-10, H-26, H-29 | P0 | Codex, 2026-10-08: sincronización validada, revisión antigua/duplicada descartada y nueva sesión reconocida; timeout/ciclo de vida sin consultas superpuestas. 44 pruebas/build; dos cortes y reinicios reales en visor/control secuenciales, figura ready/cuatro materiales/tamaño 101 % conservados. Negro 5 puntos en 3 capturas. Reporte H-30. H-12 móvil y H-11 manual siguen pendientes. |
 | H-18 | DEFERRED | H-17 | P3 | Avatar final, labios, wake word, app instalada y otras mejoras con nuevo alcance. |
 
-P0 primero. H-09 puede preparar proveedor mientras se consigue el visor, pero no debe quitar prioridad a H-02…H-08. P1 también necesario para A+B; P2/P3 no se ejecutan para cumplir la entrega de mañana.
+H-19/H-07/H-08 mantienen prioridad física cuando estén disponibles pantalla/caja. D-32 autoriza avanzar H-15→H-16→H-17 en PC mientras esas pruebas quedan pendientes; no cerrar A+B por completar voz. El simulador y H-18 siguen diferidos.
 
 ## Tiempos, contingencias y datos pendientes
 
@@ -76,6 +76,7 @@ Q-06/Q-08 pendientes: dispositivo/hora/caja. Q-07: GPT rechazó la clave con 401
 
 | Fecha | Tarea | Avance | Pendiente |
 |---|---|---|---|
+| 2026-10-08 | H-15 | Voz PC adelantada por el propietario: Piper local/Daniela, instalación reproducible, lectura de respuestas guardadas, audio único, volumen, parada y fase speaking ligada a reproducción. 55 pruebas/build; tres WAV y tres respuestas reales reproducidas en UI, parada de preparación/habla y cancelación del proceso real en 106 ms. Reporte docs/reports/2026-10-08-H-15-voz-pc.md. | H-16 reconocimiento PC es siguiente tarea; cinco conversaciones completas siguen H-17. Audición/calidad de voz y pruebas físicas no certificadas. No cerrar H-11 completo por usar botones de sugerencias. |
 | 2026-10-08 | Entrega Git | Propietario confirmó push/merge. Fetch verificó origin/main 09ad91b (Merge PR #1) incluyendo 1e67b15. Main local actualizado por fast-forward. Rama nueva codex/verificacion-demo-holograma publicada en origin: e6d2714 (Cloud real) y 7f0aebe (diagnóstico H-29). | Rechazos de publicación anteriores resueltos por el merge del propietario. La nueva rama está publicada; su integración en main y creación de PR siguen pendientes. |
 | 2026-10-08 | H-26/H-27 | Texturas originales recuperadas, render negro y calibración comprobados; guía de rig/múltiples clips con datos del GLB y fuentes oficiales. Commits `9dc254b` y `26bc2c7`. Reporte H-26 y guía. | Pose estática; animaciones nuevas son propuesta. Móvil/reflector requieren H-19/H-07/H-08. |
 | 2026-10-08 | H-28 real | Clave guardada por el propietario y servidor reiniciado. Cinco respuestas reales, seguimiento Ana y cancelación de Bruno descartada. 0.484–0.833 s por respuesta. Reporte de validación real y JSON. | Plan/saldo no inspeccionados; no afirmar uso gratuito ilimitado. Física y UI completa previa conservan su aceptación pendiente. |

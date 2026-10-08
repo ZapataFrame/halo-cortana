@@ -8,7 +8,7 @@ Fecha: 2026-10-07. Entrega solicitada: 2026-10-08, hora pendiente. Estado: imple
 
 **Entrega B, después:** desde control PC se envía texto a un LLM real y el modelo continúa visible. La petición más reciente selecciona GPT como principal; el adaptador está preparado y falta su clave privada. Ollama queda como alternativa explícita. Sin reconocimiento de voz ni animación de boca obligatorios.
 
-**Etapa posterior:** TTS, reconocimiento por voz y asociación de habla/animaciones. Editor y juego de estrategia quedan diferidos.
+**Voz PC adelantada por D-32 (2026-10-08):** TTS, reconocimiento por voz y asociación de habla/animaciones. Pruebas físicas conservan su aceptación independiente. Editor/juego siguen diferidos.
 
 A es el primer hito de trabajo. La solicitud completa A+B solo se declara lista cuando exista una respuesta real del proveedor; texto pregrabado o un mock no cumple B. Si B queda bloqueada por credenciales/modelo, entregar A y registrar que es únicamente el MVP visual.
 
@@ -194,11 +194,15 @@ Los estados actuales están en la roadmap. H-00 representa este plan documental;
 - Entregable: README probado siguiendo instrucciones y reporte final con limitaciones.
 - Aceptación: reiniciar servidor, abrir ruta móvil y repetir montaje sin recordar pasos ocultos; otra persona, si está disponible, sigue el guion. Solo marcar aceptación del propietario tras recibirla.
 
-### Etapa 5 — Después de la demo: voz
+### Etapa 5 — Voz PC adelantada por D-32 (2026-10-08)
 
-**H-15 — Respuesta hablada (TTS). Depende de H-14.**
+**H-15 — Respuesta hablada (TTS). Depende de H-10/H-26/H-28. H-14 físico queda pendiente.**
 
 - Elegir voz en español y una sola salida activa; emitir voz desde respuesta real, cancelar audio y sincronizar avatar con reproducción. No clonación ni lip-sync fino requerido.
+- Archivos: adaptador TTS backend, worker Piper aislado, instalación reproducible/modelo con ficha, controlador de audio separado del chat, controles PC y contrato público de fase. No audio ni texto privado en visor móvil.
+- Voz neuronal local Piper/Daniela en CPU, sin cuenta ni coste por llamada; verificar ficha/licencias/versiones antes de instalación. No depender de voces del navegador en Linux ni usar API pagada.
+- Audio generado únicamente desde respuesta guardada por requestId; botón de prueba usa frase fija claramente identificada. Una reserva de salida compartida por PC; timeout de generación, cancelación al cerrar/nuevo mensaje/cambiar proveedor/reset y expiración si desaparece el control. Reproducción automática opcional; bloqueo de autoplay informa y deja reproducción manual.
+- Verificación: contratos/origen/salida única/cancelación/timeout/estado obsoleto, WAV real no silencioso de tres respuestas Gemma, eventos de reproducción/fin/interrupción y recuperación de errores; build y render. Registrar separadamente reproducción digital y audición humana por altavoces.
 - Éxito: 3 respuestas se oyen, pueden interrumpirse y no duplican audio. Texto sigue disponible al fallar TTS. Medir latencia hasta inicio de audio.
 
 **H-16 — Pulsar para hablar y reconocimiento (STT). Depende de H-15.**

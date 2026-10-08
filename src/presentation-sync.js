@@ -1,4 +1,4 @@
-const PHASES = new Set(['idle', 'processing', 'responded', 'error']);
+const PHASES = new Set(['idle', 'processing', 'responded', 'error', 'speaking']);
 const ANIMATIONS = new Set(['idle', 'gangnam']);
 
 export function validatePresentation(value) {

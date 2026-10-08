@@ -238,10 +238,11 @@ export function createViewer(container, { compact = false, avatarId = 'dancer' }
       if (document.hidden) return;
       mixer?.update(delta);
       if (currentAction) surface.dataset.animationTime = currentAction.time.toFixed(2);
-      // Pulso visual solo al procesar texto; no simula habla sin TTS.
+      // Habla señalada por reproducción real en el PC, sin animación labial ficticia.
       if (avatar) avatar.traverse(item => {
         if (item.isMesh) for (const material of [].concat(item.material)) {
-          material.emissiveIntensity = (baseEmissive.get(material) ?? 0.4) * (phase === 'processing' ? 2 + Math.sin(now / 250) * 0.3 : 1);
+          material.emissiveIntensity = (baseEmissive.get(material) ?? 0.4) * (phase === 'processing' ? 2 + Math.sin(now / 250) * 0.3
+            : phase === 'speaking' ? 1.6 + Math.sin(now / 150) * 0.2 : 1);
         }
       });
       if (!isPattern) renderer.render(scene, camera);

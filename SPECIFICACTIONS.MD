@@ -11,7 +11,7 @@ Fuente de trabajo: esta especificación, `Cortana.md`, `ROADMAP.MD` y `docs/plan
 - HC-03: visualizarlo en un celular u otro dispositivo con pantalla sobre fondo completamente negro.
 - HC-04: calibrarlo para una caja de reflexión como las imágenes/referencia del propietario, con un reflector principal.
 - HC-05: integrar un LLM real o API, empezando por texto después de lograr la visualización.
-- HC-06: reconocimiento de voz y flujo hablado en etapas posteriores.
+- HC-06: reconocimiento de voz y flujo hablado, adelantados en PC por HC-16/D-32.
 - HC-07: comenzar con un plan de implementación muy específico, dividido en etapas/tareas individuales y métricas.
 - HC-08: dejar de lado por ahora editor, batalla y comandos de estrategia.
 - HC-09: GPT disponible mediante API; petición posterior HC-15 prueba temporal con Ollama Cloud.
@@ -22,6 +22,7 @@ Fuente de trabajo: esta especificación, `Cortana.md`, `ROADMAP.MD` y `docs/plan
 - HC-13: recuperar texturas originales de Cortana desde Descargas.
 - HC-14: documentar rig y preparación de varios movimientos.
 - HC-15: probar Ollama Cloud con Gemma 4 31B; conservar GPT/Qwen y no activar pagos.
+- HC-16: adelantar voz en PC por instrucción «Continua con esta tarea»: primero TTS, después STT y flujo completo; validar celular/caja por separado.
 
 Se conservan Linux como PC principal, poca experiencia y preferencia por recursos sencillos. La petición vigente añade Cloud/Gemma: clave cargada y respuestas/cancelación reales comprobadas en H-28. GPT sigue disponible; la comprobación inicial devolvió 401 y, después del último reinicio, su clave está ausente. Sin generación GPT verificada. No activar pagos, contratar servicios ni reutilizar credenciales de sesión. La alternativa local conserva un recorrido sin coste por llamada. No asumir Android/iOS ni que exista ya reflector fabricado.
 
@@ -31,7 +32,7 @@ Se conservan Linux como PC principal, poca experiencia y preferencia por recurso
 |---|---|---|
 | A: visual primero | Modelo local, visor móvil negro, encuadre, calibración y caja física. | Cuerpo visible mediante reflector real con evidencia de montaje. |
 | B: texto + LLM | Control PC, proveedor real, respuesta textual, estado básico reflejado en presentación. | 3 respuestas nuevas y un seguimiento con proveedor/modelo registrados. |
-| C: posterior | TTS, STT mediante botón, avatar asociado a audio. | Audio real, transcripción y conversación de voz verificadas. |
+| C: voz PC adelantada | TTS, STT mediante botón, avatar asociado a audio. | D-32: progresar antes del ensayo físico; audio real, transcripción y conversación de voz verificadas. |
 
 La solicitud completa para mañana es A+B. A constituye una entrega parcial útil si B está bloqueada; declararlo explícitamente. No considerar mocks, videos de respaldo o JSON generado como integración real. No introducir juego, RAG dedicado, escucha continua, clonación de voz, avatar final ni lip-sync fino en este corte.
 
@@ -59,7 +60,7 @@ El móvil renderiza el modelo; no es un stream de escritorio ni una segunda simu
 | HRF-10 | Chat PC | 3 preguntas y seguimiento contextual, cancelación y reintento manual sin respuestas tardías. | H-11 |
 | HRF-11 | Estado móvil | Recupera sesión/revisión sin duplicar solicitudes; conserva figura ante corte de red/proveedor. | H-12 |
 | HRF-12 | Entrega repetible | Dos ensayos, instrucciones, recursos locales/licencia y reporte de limitaciones. | H-13, H-14 |
-| HRF-13 | TTS posterior | Una salida de voz y avatar ligado a reproducción real, con interrupción. | H-15 |
+| HRF-13 | TTS PC | Voz en español, volumen, lectura automática opcional/manual, interrupción y avatar ligado a reproducción real. Texto disponible ante fallo. | H-15 |
 | HRF-14 | STT posterior | Pulsar para hablar, transcripción editable; no enviar comandos del juego. | H-16, H-17 |
 | HRF-15 | GPT principal | Backend Responses con clave privada, 3 respuestas reales y seguimiento; errores de clave/cuota no activan Ollama. | H-20 |
 | HRF-16 | Modos de orientación | Automático/vertical/horizontal persistentes; adaptación al resize y giro adicional compatible con espejos, sin deformación. | H-21 |
@@ -91,7 +92,7 @@ Calibración precisa: campos numéricos junto a los rangos. Tamaño 25–200 %, 
 
 `POST /api/animation {"animation":"idle"|"gangnam"}` es privado al PC y valida catálogo cerrado. `GET /api/presentation` añade `animation` a `sessionId`, `revision`, `phase`; no publica texto ni claves. Los visores consultan cada segundo, recuperan el movimiento actual al abrirse y lo conservan si falla la red. No se exige sincronización exacta de frames entre pantallas. Reiniciar servidor devuelve reposo; reiniciar chat no cambia baile/calibración.
 
-H-30 prepara recuperación PC para H-12: contrato cerrado, sesión de 8–80 caracteres alfanuméricos/guiones, revisión entera segura no negativa, cuatro fases y dos movimientos. Se ignoran revisiones antiguas/duplicadas de una misma sesión; una sesión nueva permite volver a revisión cero. Revisión idéntica con contenido distinto se considera inválida. Datos inválidos no se aplican.
+H-30 prepara recuperación PC para H-12: contrato cerrado, sesión de 8–80 caracteres alfanuméricos/guiones, revisión entera segura no negativa y dos movimientos. H-15 agrega `speaking` a las cuatro fases previas. Se ignoran revisiones antiguas/duplicadas de una misma sesión; una sesión nueva permite volver a revisión cero. Revisión idéntica con contenido distinto se considera inválida. Datos inválidos no se aplican.
 
 Una consulta activa con timeout 2.5 s, siguiente consulta 1 s después de terminar (3 s en segundo plano). Al volver a primer plano se inicia una lectura actual; salir suspende/aborta el ciclo, y volver de caché de navegación lo reanuda sin aceptar respuestas antiguas. Conectividad separada de fase: durante corte se conserva figura/animación/calibración y se apaga el pulso de procesamiento. El aviso aparece únicamente en control/calibración, oculto en la proyección. Reconectar solo lee estado, nunca reenvía chat. Cortes/reinicios PC comprobados en H-30; latencia ≤2 s y recuperación móvil física siguen en H-12.
 
@@ -112,6 +113,8 @@ Verificación digital reproducible: `npm run qa:visual -- loading|error` sirve e
 La tarifa de uso con clave API es distinta de la suscripción ChatGPT/Codex. No considerar una suscripción como saldo API; verificar cuenta propia. Consultar [planes](https://learn.chatgpt.com/docs/pricing), [tarifas API](https://developers.openai.com/api/docs/pricing) y la guía `docs/API_OPENAI.md`.
 
 Primera interacción por texto, contexto breve de Cortana, sin herramientas de mundo. Respuesta real visible en control PC. El estado cambia `idle → processing → responded`; cancelación vuelve a `idle`, fallo a `error`; no anunciar habla si no hay audio. OpenAI Responses y proveedor local tienen adaptadores distintos, no una promesa de compatibilidad universal de URL.
+
+H-15: adaptador Piper local en CPU, voz Daniela en español, instalación aislada con versiones/revisión/hashes fijados. Control privado genera WAV de una respuesta guardada por requestId, sin consultar de nuevo al LLM; prueba fija diferenciada. Volumen, lectura automática opcional/manual y parada durante síntesis/audio. Una reserva de salida compartida; generación máxima 20 s, 12 MiB y renovación de reproducción cada 5 s con expiración a los 15 s. `speaking` deriva del evento de reproducción confirmado, vuelve a fase anterior al terminar y no publica texto/audio en LAN. Cancelación, reset, cambio de proveedor y mensaje nuevo invalidan voz anterior. Texto/figura conservados al fallar. Contrato, fuentes y atribución: `docs/VOZ_PC.md`; STT sigue H-16.
 
 Mantener claves fuera del navegador, bundle, URL, assets y logs. No copiar credenciales de sesión de ChatGPT/Codex. No activar facturación por iniciativa del agente. Ollama respondió realmente con `phi4-mini:latest` (3.8B Q4_K_M), en CPU; sus mediciones previas se conservan como históricas. GPT permanece disponible; la configuración de ejemplo arranca temporalmente en Cloud por D-29. Se escogió [gpt-4.1-mini](https://developers.openai.com/api/docs/models/gpt-4.1-mini) para conversación breve por su perfil de baja latencia sin etapa de razonamiento; no se ha medido aún en este equipo. En esta continuación, GET autenticado /v1/models/gpt-4.1-mini devolvió 401; la clave configurada es rechazada. No se solicitó generación GPT. Ausencia de configuración devuelve 503; 401/403/429 del proveedor tienen mensajes controlados. Sin reintento automático ni cambio silencioso al modelo local.
 
@@ -164,8 +167,10 @@ IDs nuevos conservan separación respecto a D-01…D-12 del plan histórico.
 | D-29 | CONFIRMADA | 2026-10-08 | Petición vigente: prueba temporal de Ollama Cloud con Gemma 4 31B. Adaptador directo y arranque cloud; conservar GPT y local en selector, sin fallback ni pagos. Clave y generación real verificadas en H-28; plan gratuito/saldo/cuota no inspeccionados. |
 | D-30 | CONFIRMADA | 2026-10-08 | Incremento técnico de recuperación H-29 en la continuación autorizada: diagnóstico explícito sin generar texto, usando APIs documentadas; catálogo Cloud no valida credencial. Indicador exige comprobación, configuración privada y descarte de resultados concurrentes. Motivo: distinguir fallos de configuración antes del ensayo sin alterar la conversación. |
 | D-31 | CONFIRMADA | 2026-10-08 | Preparar H-12 con recuperación PC independiente H-30, manteniendo su aceptación física pendiente. Validar sesión/revisión y ciclo de consultas; avisos de desconexión solo fuera de proyección. Motivo: evitar estados antiguos y mostrar recuperación del servidor sin perder el avatar ni generar solicitudes LLM. |
+| D-32 | CONFIRMADA | 2026-10-08 | El propietario pide continuar el bloque de voz descrito: adelantar H-15 en PC tras H-10/H-26/H-28, luego H-16 y H-17. H-07/H-08/H-11/H-12/H-14 mantienen sus pruebas pendientes; no declarar aceptación física por implementar audio. |
+| D-33 | CONFIRMADA | 2026-10-08 | Implementación H-15: Piper 1.4.1 local CPU, voz Daniela es_AR high fijada por revisión/hash. Motivo: salida en español sin API pagada ni depender de voces disponibles en navegador Linux. Instalación aislada/reproducible; una reserva de audio compartida, lectura de respuestas guardadas y speaking solo tras evento de reproducción. Voz/atribución y contrato en docs/VOZ_PC.md. |
 
-D-08 (voz primero) queda reemplazada para el corte actual por D-13/D-16. Decisiones del juego siguen conservadas en archivo histórico; no ejecutar su roadmap mientras este objetivo esté activo.
+D-08 (voz primero) queda reemplazada para el corte inicial por D-13/D-16; D-32 adelanta ahora voz PC manteniendo aceptación física independiente. Decisiones del juego siguen en archivo histórico; no ejecutar su roadmap durante este objetivo.
 
 ## 9. Preguntas activas y aceptación
 
@@ -176,7 +181,7 @@ D-08 (voz primero) queda reemplazada para el corte actual por D-13/D-16. Decisio
 | Q-08 | Pantalla útil, reflector/material/medidas, posición pantalla y caja ya fabricada. | H-06/H-08. |
 | Q-10 | OLLAMA_API_KEY y acceso/cuota a gemma4:31b de la cuenta. | H-28 DONE: propietario guardó clave; Gemma respondió y recuperó contexto tras cancelación. Detalle de plan/saldo/cuota no inspeccionado. |
 | Q-09 | Confirmar que se presentará con este PC; datos de otro equipo si cambia. | Equipo actual verificado: CachyOS, 15 GiB RAM, Node 22.22.2, Ollama en CPU. Compatibilidad de otro equipo sin comprobar. |
-| Q-11 | ¿Adelantar voz en PC mientras se valida dispositivo/caja? | Consulta enviada tras pedir continuar tareas. H-15/H-16 conservan su orden tras H-14 hasta recibir cambio de prioridad; no se supone aprobación por falta de respuesta. |
+| Q-11 | ¿Adelantar voz en PC mientras se valida dispositivo/caja? | RESUELTA 2026-10-08: «Continua con esta tarea» después de explicar TTS→STT→flujo completo. D-32 adelanta H-15 en PC; las pruebas físicas siguen pendientes. |
 
 Q-06/Q-08 y configuración privada Q-07/Q-10 enviadas al propietario. GPT rechazó la clave (401); Cloud tiene acceso real verificado después de la configuración del propietario. Los datos físicos siguen pendientes. Los faltantes no impiden implementar funciones independientes; sí impiden declarar éxito físico o una respuesta real de GPT.
 

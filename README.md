@@ -1,6 +1,6 @@
 # Cortana · Holograma
 
-Humanoide sobre **negro puro** para una caja Pepper’s Ghost, modos vertical/horizontal y **Gangnam Style** activable desde PC. Conversación por texto con selector **Gemma 4 en Ollama Cloud, GPT o Qwen local**. Los proveedores cloud requieren su propia clave API. El celular presenta el avatar; voz y simulador táctico quedan para después.
+Humanoide sobre **negro puro** para una caja Pepper’s Ghost, modos vertical/horizontal y **Gangnam Style** activable desde PC. Conversación con **Gemma 4 en Ollama Cloud, GPT o Qwen local** y respuesta hablada en español. Cloud requiere su propia clave API; voz local en PC mediante Piper. El celular presenta el avatar; micrófono y simulador táctico quedan pendientes.
 
 ## Abrir la demo
 
@@ -90,11 +90,23 @@ OLLAMA_URL=http://127.0.0.1:11434
 OLLAMA_MODEL=qwen2.5:32b
 ```
 
-Usa el nombre exacto que muestra `ollama list` si tu modelo es otro. No se descarga ningún modelo automáticamente. El backend se conecta a Ollama en loopback; el celular sigue mostrando el avatar. Si Ollama no responde, revisa su servicio y pulsa **Actualizar modelos**. Salida local de 48 tokens, timeout 60 s; un modelo grande puede superar ese tiempo. Sin coste por llamada; rendimiento sujeto al equipo. **Todavía no hay micrófono ni audio.**
+Usa el nombre exacto que muestra `ollama list` si tu modelo es otro. No se descarga ningún LLM automáticamente. El backend se conecta a Ollama en loopback; el celular sigue mostrando el avatar. Si Ollama no responde, revisa su servicio y pulsa **Actualizar modelos**. Salida local de 48 tokens, timeout 60 s; un modelo grande puede superar ese tiempo. Sin coste por llamada; rendimiento sujeto al equipo.
+
+## Respuesta hablada en PC
+
+Instala [uv](https://docs.astral.sh/uv/getting-started/installation/) y [hf](https://huggingface.co/docs/huggingface_hub/en/guides/cli), después ejecuta:
+
+```bash
+npm run setup:voice
+```
+
+Prepara Python 3.13/Piper y descarga la voz Daniela (114 MB), con versiones y hashes fijados. Después la voz funciona localmente en CPU, sin clave ni coste por llamada. Reinicia la demo y pulsa **Probar voz** en `/control`; no consulta al LLM.
+
+**Escuchar respuesta** lee cada respuesta recibida. Activa **Leer respuestas automáticamente** para respuestas nuevas; **Volumen** regula audio y **Detener voz** cancela preparación/reproducción sin borrar texto. Nueva pregunta/conversación, cambio de proveedor o salida del control detienen voz. El celular solo muestra el avatar y su estado **Hablando**, sin duplicar audio. Todavía no captura micrófono. [Instalación, licencia y recuperación](docs/VOZ_PC.md).
 
 ## Verificación
 
-44 pruebas aprobadas: controles numéricos, proyección, texturas, proveedores, cancelación, diagnóstico y recuperación de sesión sin consultas duplicadas. Build correcto; dos cortes/reinicios PC comprobados. Evidencia previa de respuestas Qwen, cancelación y recargas en los reportes. **Cloud real verificado; GPT requiere clave válida (401 inicial; ahora ausente), sin generación GPT comprobada. Celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
+55 pruebas aprobadas: controles, proyección, texturas, proveedores, cancelación, recuperación y TTS con salida única. Build e instalador de voz correctos. Tres respuestas reales Gemma convertidas a WAV en 3.9–5.7 s; reproducción automática/manual y estado hablando comprobados en navegador PC. Audición humana y preferencia de voz pendientes. **Cloud real verificado; GPT requiere clave válida (401 inicial; ahora ausente), sin generación GPT comprobada. Celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
 
 ```bash
 npm test

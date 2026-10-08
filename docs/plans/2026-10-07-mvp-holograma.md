@@ -287,6 +287,13 @@ Las tareas H-20…H-22 tienen prioridad por instrucción más reciente del propi
 - Aceptación técnica: contrato/errores, clave privada y destino fijo, cambio de proveedor validado, contextos separados y figura estable; suite/build y render reales.
 - Aceptación real: clave y acceso de cuenta, tres preguntas+seguimiento con latencias, cancelación y nueva solicitud. Plan Free limitado: no afirmar gratuidad del modelo sin cuenta verificada. Falta de autenticación mantiene BLOCKED, aunque integración técnica esté lista.
 
+**H-29 — Diagnóstico de conexión sin generación. Depende de H-10/H-23/H-26.**
+
+- Incremento de recuperación del MVP: botón Probar conexión en PC para el proveedor activo. Comprobar GPT por GET autenticado al modelo; local por catálogo instalado. Cloud solo comprueba catálogo/disponibilidad de configuración: el catálogo público no valida la clave ni cuota.
+- POST privado con cuerpo vacío, configuración del servidor, timeout 8 s y ningún mensaje generado. No aceptar modelos/URLs/claves del navegador. Rechazar prueba durante chat y descartar resultado si otra pestaña cambia proveedor o empieza chat mientras se consulta.
+- Mostrar diferencias entre configurado, comprobado y acceso pendiente; no mostrar luz verde por tener una cadena en .env. Mantener figura/calibración/chat/movimiento intactos.
+- Aceptación: key ausente, 401/403/404/429, servicio caído y catálogo/modelo ausente explicados sin cuerpo privado. Modelo correcto comprobado en fixtures; error 401 real del entorno. Pruebas HTTP de origen/campos/concurrencia sin mutar historial y build/render reales. No cerrar H-20/H-28 por esta comprobación: requieren respuestas reales.
+
 **H-18 — Mejoras posteriores. Depende de H-17. Estado DEFERRED.**
 
 - Modelo final, materiales, labios, escucha por nombre, aplicación instalada o sin PC y más proveedores. Cada mejora necesita nueva tarjeta y objetivo medible.

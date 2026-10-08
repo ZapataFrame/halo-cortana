@@ -23,7 +23,7 @@ Fuente de trabajo: esta especificación, `Cortana.md`, `ROADMAP.MD` y `docs/plan
 - HC-14: documentar rig y preparación de varios movimientos.
 - HC-15: probar Ollama Cloud con Gemma 4 31B; conservar GPT/Qwen y no activar pagos.
 
-Se conservan Linux como PC principal, poca experiencia y preferencia por recursos sencillos. La petición vigente añade Cloud/Gemma; falta OLLAMA_API_KEY. GPT sigue disponible, con configuración presente al revisar el entorno, pero sin llamada real verificada. No activar pagos, contratar servicios ni reutilizar credenciales de sesión. La alternativa local conserva un recorrido sin coste por llamada. No asumir Android/iOS ni que exista ya reflector fabricado.
+Se conservan Linux como PC principal, poca experiencia y preferencia por recursos sencillos. La petición vigente añade Cloud/Gemma: clave cargada y respuestas/cancelación reales comprobadas en H-28. GPT sigue disponible, con clave presente pero rechazada por GET autenticado (401); sin generación GPT verificada. No activar pagos, contratar servicios ni reutilizar credenciales de sesión. La alternativa local conserva un recorrido sin coste por llamada. No asumir Android/iOS ni que exista ya reflector fabricado.
 
 ## 2. Cortes de entrega
 
@@ -109,7 +109,7 @@ La tarifa de uso con clave API es distinta de la suscripción ChatGPT/Codex. No 
 
 Primera interacción por texto, contexto breve de Cortana, sin herramientas de mundo. Respuesta real visible en control PC. El estado cambia `idle → processing → responded`; cancelación vuelve a `idle`, fallo a `error`; no anunciar habla si no hay audio. OpenAI Responses y proveedor local tienen adaptadores distintos, no una promesa de compatibilidad universal de URL.
 
-Mantener claves fuera del navegador, bundle, URL, assets y logs. No copiar credenciales de sesión de ChatGPT/Codex. No activar facturación por iniciativa del agente. Ollama respondió realmente con `phi4-mini:latest` (3.8B Q4_K_M), en CPU; sus mediciones previas se conservan como históricas. GPT permanece disponible; la configuración de ejemplo arranca temporalmente en Cloud por D-29. Se escogió [gpt-4.1-mini](https://developers.openai.com/api/docs/models/gpt-4.1-mini) para conversación breve por su perfil de baja latencia sin etapa de razonamiento; no se ha medido aún en este equipo. Al cierre H-28 el entorno indica configuración GPT presente; no se inspeccionó su valor ni se ha realizado una llamada real a OpenAI. Ausencia de configuración devuelve 503; 401/403/429 del proveedor tienen mensajes controlados. Sin reintento automático ni cambio silencioso al modelo local.
+Mantener claves fuera del navegador, bundle, URL, assets y logs. No copiar credenciales de sesión de ChatGPT/Codex. No activar facturación por iniciativa del agente. Ollama respondió realmente con `phi4-mini:latest` (3.8B Q4_K_M), en CPU; sus mediciones previas se conservan como históricas. GPT permanece disponible; la configuración de ejemplo arranca temporalmente en Cloud por D-29. Se escogió [gpt-4.1-mini](https://developers.openai.com/api/docs/models/gpt-4.1-mini) para conversación breve por su perfil de baja latencia sin etapa de razonamiento; no se ha medido aún en este equipo. En esta continuación, GET autenticado /v1/models/gpt-4.1-mini devolvió 401; la clave configurada es rechazada. No se solicitó generación GPT. Ausencia de configuración devuelve 503; 401/403/429 del proveedor tienen mensajes controlados. Sin reintento automático ni cambio silencioso al modelo local.
 
 ### Selección de proveedor desde PC (H-23)
 
@@ -123,7 +123,7 @@ El propietario confirmó Ollama el 2026-10-08. Catálogo real: `qwen2.5:32b` y `
 
 Proveedor `ollama-cloud`, modelo configurado `gemma4:31b`; backend directo a `https://ollama.com/api/chat`, destino fijo y redirecciones rechazadas. `OLLAMA_API_KEY` solo en .env/backend; no se reutilizan claves OpenAI ni credenciales de sesión. No necesita descarga de pesos. `think:false`, stream:false, salida 256 tokens, historial/cancelación/timeout del contrato existente; solo contenido final, sin herramientas. Cambiar a Cloud sin clave prepara selección, pero el chat devuelve 503/NOT_CONFIGURED. 401/402/403/404/429 muestran mensajes de clave/acceso/créditos/modelo/cuota de Ollama, sin fallback.
 
-Catálogo público real HTTP 200 confirmó el nombre. Las pruebas de contrato no prueban generación; falta autenticación y tres respuestas más seguimiento. [API oficial](https://docs.ollama.com/cloud), [plan Free y límites](https://ollama.com/pricing); no prometer Gemma gratuito/ilimitado sin comprobar cuenta. Guía `docs/API_OLLAMA_CLOUD.md`; guía de rig `docs/GUIA_RIG_ANIMACIONES.md` es entregable documental, no selección automática de nuevos clips.
+Catálogo público real HTTP 200 confirmó el nombre. Después de configurar la clave, tres respuestas más seguimiento y recuperación reales devolvieron 200 (484–833 ms). Contexto Ana conservado; cancelación real 499/idle sin incorporar el mensaje cancelado. Evidence H-28-cloud-live.json y reporte de validación real; el catálogo y las pruebas de contrato se conservan como evidencia previa. [API oficial](https://docs.ollama.com/cloud), [plan Free y límites](https://ollama.com/pricing); no prometer Gemma gratuito/ilimitado sin comprobar cuenta. Guía `docs/API_OLLAMA_CLOUD.md`; guía de rig `docs/GUIA_RIG_ANIMACIONES.md` es entregable documental, no selección automática de nuevos clips.
 
 ## 8. Decisiones activas
 
@@ -156,11 +156,11 @@ D-08 (voz primero) queda reemplazada para el corte actual por D-13/D-16. Decisio
 | ID | Dato faltante | Impacto |
 |---|---|---|
 | Q-06 | Modelo/SO/navegador de celular y hora límite mañana. | H-19, H-07 y ensayo/compatibilidad reales. |
-| Q-07 | Clave API privada y acceso del proyecto al modelo GPT. | H-20; GPT disponible. Configuración presente en el entorno al cierre H-28; validez/acceso todavía sin llamada real. Pregunta enviada para guardarla en .env; no compartirla por chat. |
+| Q-07 | Clave API privada y acceso del proyecto al modelo GPT. | H-20; clave presente pero GET autenticado devolvió 401. Requiere clave válida; no generación GPT ejecutada. Pregunta enviada para guardarla en .env; no compartirla por chat. |
 | Q-08 | Pantalla útil, reflector/material/medidas, posición pantalla y caja ya fabricada. | H-06/H-08. |
-| Q-10 | OLLAMA_API_KEY y acceso/cuota a gemma4:31b de la cuenta. | H-28: adaptador listo, generación real pendiente; pregunta enviada para configurar .env privado. |
+| Q-10 | OLLAMA_API_KEY y acceso/cuota a gemma4:31b de la cuenta. | H-28 DONE: propietario guardó clave; Gemma respondió y recuperó contexto tras cancelación. Detalle de plan/saldo/cuota no inspeccionado. |
 | Q-09 | Confirmar que se presentará con este PC; datos de otro equipo si cambia. | Equipo actual verificado: CachyOS, 15 GiB RAM, Node 22.22.2, Ollama en CPU. Compatibilidad de otro equipo sin comprobar. |
 
-Q-06/Q-08 y configuración privada Q-07/Q-10 enviadas al propietario. La configuración GPT aparece presente al cierre; autenticación real de GPT y clave/acceso Cloud siguen pendientes. Los faltantes no impiden implementar funciones independientes; sí impiden declarar éxito físico o una respuesta real de GPT.
+Q-06/Q-08 y configuración privada Q-07/Q-10 enviadas al propietario. GPT rechazó la clave (401); Cloud tiene acceso real verificado después de la configuración del propietario. Los datos físicos siguen pendientes. Los faltantes no impiden implementar funciones independientes; sí impiden declarar éxito físico o una respuesta real de GPT.
 
 A+B completos cuando HRF-01…HRF-12 tienen evidencia. A sola se informa como entrega parcial. Pruebas documentales no son aceptación del holograma; revisión del propietario se registra después de una demostración real.

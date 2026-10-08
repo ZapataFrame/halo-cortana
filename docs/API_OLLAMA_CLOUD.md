@@ -1,6 +1,6 @@
 # Gemma 4 31B con Ollama Cloud
 
-Configuración H-28, verificada documentalmente el 2026-10-08. Integración preparada; conversación real pendiente de la clave de la cuenta.
+Configuración H-28, verificada documentalmente el 2026-10-08. Clave configurada por el propietario: respuestas y cancelación reales verificadas en esta cuenta.
 
 La aplicación usa la API directa de Ollama Cloud. El nombre es **`gemma4:31b`** y está presente en el catálogo público consultado. No hay que descargar sus pesos en la laptop ni instalar otro servidor. La API exige una clave, guardada únicamente en el backend. [Documentación oficial Cloud](https://docs.ollama.com/cloud).
 
@@ -42,8 +42,8 @@ Ollama ofrece un plan Free con créditos iniciales y acceso a modelos iniciales.
 | `RATE_LIMIT` | Esperar y reintentar manualmente; no iniciar varias llamadas. |
 | `TIMEOUT` | Cancelar/reintentar; el visor continúa. |
 
-## Validación pendiente con la cuenta real
+## Recorrido de validación y resultado real
 
 Enviar tres mensajes y un seguimiento: presentación, explicación breve de Pepper’s Ghost, «Me llamo Ana», «¿Cómo me llamo?». Registrar respuesta, modelo y latencia de cada llamada; comprobar contexto. Cancelar una solicitud y enviar otra, revisar que la figura permanece visible. No copiar claves ni conversación personal a los reportes.
 
-Las 29 pruebas automáticas validan contratos, estados y errores con fixtures; **no cuentan como respuestas de Gemma Cloud**. El catálogo público devolvió HTTP 200 y confirmó el nombre. El backend real devolvió 503/`NOT_CONFIGURED` ante clave ausente. Evidencia: `docs/reports/2026-10-08-H-28-ollama-cloud.md`.
+Las 29 pruebas automáticas validan contratos, estados y errores con fixtures; **no cuentan como respuestas de Gemma Cloud**. El catálogo público devolvió HTTP 200 y confirmó el nombre. Primero el backend devolvió 503/`NOT_CONFIGURED` sin clave. Después de configurarla, tres preguntas+seguimiento y recuperación devolvieron 200 (484–833 ms), y cancelar devolvió 499/idle sin contaminar contexto. Evidencia previa: `docs/reports/2026-10-08-H-28-ollama-cloud.md`; validación real: `docs/reports/2026-10-08-H-28-validacion-cloud-real.md`. Esto no comprueba plan/saldo ni gratuidad ilimitada.

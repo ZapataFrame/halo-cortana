@@ -8,7 +8,7 @@ La versión previa del agente del simulador se conserva en `docs/archive/Cortana
 
 Un humanoide sencillo adquirido de internet, visible sobre negro puro en celular/pantalla y calibrable para una caja Pepper’s Ghost. No requiere parecido exacto, lipsync, rig nuevo ni shaders complejos. Por nueva petición del propietario incluye modos vertical/horizontal y un baile libre, activable desde PC.
 
-La prueba vigente usa Ollama Cloud con Gemma 4 31B; falta OLLAMA_API_KEY para verificar respuestas reales. GPT permanece seleccionable. El usuario escribe desde PC; el móvil mantiene el avatar. Ollama queda como alternativa explícita, seleccionable desde el panel con Qwen local (H-23). Reconocimiento y respuesta hablada se agregan después de la demostración de mañana.
+La prueba vigente usa Ollama Cloud con Gemma 4 31B; clave cargada y cinco respuestas reales comprobadas, con seguimiento y cancelación (H-28). GPT permanece seleccionable. El usuario escribe desde PC; el móvil mantiene el avatar. Ollama queda como alternativa explícita, seleccionable desde el panel con Qwen local (H-23). Reconocimiento y respuesta hablada se agregan después de la demostración de mañana.
 
 ## 2. Flujo activo
 
@@ -56,11 +56,11 @@ Sin herramientas de estrategia ni acciones de mundo en este corte. No anunciar �
 
 Selector del control PC: **GPT / OpenAI**, **Ollama Cloud / Gemma 4** o **Local / Ollama (Qwen)**. Cloud usa el modelo configurado; local usa los instalados. **Actualizar modelos** vuelve a consultar Ollama; **Cambiar modelo** inicia conversación nueva, conserva baile/calibración y aplica hasta reiniciar servidor. No hay cambio automático ante errores.
 
-GPT disponible: OpenAI Responses con `gpt-4.1-mini`, seleccionado para chat breve sin razonamiento previo. Configuración GPT presente en el entorno; validez/latencia/calidad real todavía no comprobadas. Adaptador local disponible al elegir `LLM_PROVIDER=ollama`, sin fallback automático. Clave únicamente en backend PC; suscripción ChatGPT/Codex no equivale a créditos API. Ver `docs/API_OPENAI.md`.
+GPT disponible: OpenAI Responses con `gpt-4.1-mini`, seleccionado para chat breve sin razonamiento previo. Clave GPT presente pero rechazada por GET autenticado (401); sin generación ni latencia/calidad de respuesta GPT comprobadas. Adaptador local disponible al elegir `LLM_PROVIDER=ollama`, sin fallback automático. Clave únicamente en backend PC; suscripción ChatGPT/Codex no equivale a créditos API. Ver `docs/API_OPENAI.md`.
 
 Implementado: un envío activo, descarte de respuestas tardías, timeout 60 s tras un fallo real con 30 s en CPU, reintentos manuales e IDs idempotentes. Ollama local limita salida a 48 tokens; Cloud/OpenAI a 256. El contexto del servidor conserva seis pares y se reinicia desde el control. Falla de proveedor produce error en control; pantalla de proyección sigue negra con figura.
 
-Prueba Cloud H-28: API directa, clave Ollama en backend, sin descargar Gemma localmente ni activar pagos. Falta autenticación; errores no detienen figura/negro. Configuración y límites del plan gratuito en `docs/API_OLLAMA_CLOUD.md`.
+Prueba Cloud H-28: API directa, clave Ollama en backend, sin descargar Gemma localmente ni activar pagos. Autenticación y respuesta real comprobadas; cancelación no incorpora texto parcial al historial. Errores no detienen figura/negro. Configuración y límites del plan gratuito en `docs/API_OLLAMA_CLOUD.md`.
 
 ## 6. Caja y calibración
 
@@ -82,4 +82,4 @@ Modelo final, labios, escucha por nombre y app instalada son H-18 diferido. El b
 - B LLM: 3 preguntas nuevas y seguimiento, respuesta no pregrabada, errores controlados y figura estable.
 - Voz: posterior; no requisito para declarar A+B.
 
-Hay capturas y mediciones PC/LLM local en el reporte inicial; orientación y baile tienen evidencia nueva en `docs/reports/2026-10-07-H-20-22-gpt-orientacion-baile.md`. La limitación previa del seguimiento de chat no se presenta como resuelta. Próximo paso: clave Cloud para H-28, llamada GPT H-20 y datos físicos H-19; H-07/H-08 validan dispositivo/caja. No hay aprobación física ni latencia GPT medida.
+Hay capturas y mediciones PC/LLM local en el reporte inicial; orientación y baile tienen evidencia nueva en `docs/reports/2026-10-07-H-20-22-gpt-orientacion-baile.md`. La limitación previa del seguimiento de chat no se presenta como resuelta. Próximo paso: diagnóstico H-29, clave GPT válida H-20 y datos físicos H-19; H-07/H-08 validan dispositivo/caja. No hay aprobación física ni latencia GPT medida.

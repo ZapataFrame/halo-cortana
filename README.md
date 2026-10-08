@@ -53,7 +53,7 @@ OLLAMA_CLOUD_MODEL=gemma4:31b
 OLLAMA_API_KEY=tu_clave_privada
 ```
 
-Reinicia `npm start` para cargar la clave. [Guía completa y prueba de aceptación](docs/API_OLLAMA_CLOUD.md). La integración está preparada; falta la clave para comprobar respuestas reales. El plan Free tiene créditos/modelos iniciales limitados; el acceso gratuito a Gemma 31B de tu cuenta está sin verificar. No se activan pagos. [Condiciones actuales de Ollama](https://ollama.com/pricing).
+Reinicia `npm start` para cargar la clave. [Guía completa y prueba de aceptación](docs/API_OLLAMA_CLOUD.md). Gemma respondió realmente en este equipo: 0.48–0.83 s, contexto y cancelación comprobados. En otro PC debes configurar tu propia clave. El plan Free tiene créditos/modelos iniciales limitados; el acceso gratuito a Gemma 31B de tu cuenta está sin verificar. No se activan pagos. [Condiciones actuales de Ollama](https://ollama.com/pricing).
 
 ## Configurar GPT
 
@@ -90,7 +90,7 @@ Usa el nombre exacto que muestra `ollama list` si tu modelo es otro. No se desca
 
 ## Verificación
 
-29 pruebas aprobadas tras integrar los controles numéricos, negro de carga/normal/error y patrón con el selector GPT/Qwen y la variante Cortana aportada. Evidencia previa de respuestas Qwen, cancelación y recargas en los reportes. **Cloud real pendiente de OLLAMA_API_KEY; GPT todavía sin llamada real verificada. Celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
+29 pruebas aprobadas tras integrar los controles numéricos, negro de carga/normal/error y patrón con el selector GPT/Qwen y la variante Cortana aportada. Evidencia previa de respuestas Qwen, cancelación y recargas en los reportes. **Cloud real verificado; la clave GPT configurada fue rechazada (401), sin generación GPT comprobada. Celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
 
 ```bash
 npm test

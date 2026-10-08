@@ -1,0 +1,9 @@
+{
+  "checkedAt": "2026-10-08T22:52:24.779Z",
+  "provider": "openai",
+  "model": "gpt-4.1-mini",
+  "httpStatus": 401,
+  "elapsedMs": 279,
+  "generationRequested": false,
+  "failure": "AUTH_ERROR"
+}

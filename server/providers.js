@@ -16,12 +16,58 @@ export function providerConfig(env = process.env, provider = env.LLM_PROVIDER ||
   return { provider, model: env.OLLAMA_MODEL || 'phi4-mini:latest', url: url.origin };
 }
 
-export async function localModels(config, request = fetch) {
-  const response = await request(`${config.url}/api/tags`, { signal: AbortSignal.timeout(3000) });
-  if (!response.ok) throw new Error('OLLAMA_UNAVAILABLE');
-  const data = await response.json();
+function catalogNames(data) {
   if (!Array.isArray(data.models)) throw new Error('OLLAMA_INVALID_CATALOG');
   return [...new Set(data.models.map(item => item.name).filter(name => typeof name === 'string' && name.length > 0 && name.length <= 200))].sort();
+}
+
+export async function localModels(config, request = fetch) {
+  const response = await request(`${config.url}/api/tags`, { signal: AbortSignal.timeout(3000), redirect: 'error' });
+  if (!response.ok) throw new Error('OLLAMA_UNAVAILABLE');
+  return catalogNames(await response.json());
+}
+
+export async function checkProviderConnection(config, signal = AbortSignal.timeout(8000), request = fetch) {
+  const failed = (code, detail) => ({ ready: false, verified: false, code, detail });
+  const gpt = config.provider === 'openai', cloud = config.provider === 'ollama-cloud';
+  if (!config.model || ((gpt || cloud) && !config.key)) {
+    return failed('NOT_CONFIGURED', !config.model ? 'Configura el modelo en .env del PC y reinicia el servidor.'
+      : `Añade ${gpt ? 'OPENAI_API_KEY' : 'OLLAMA_API_KEY'} a .env del PC y reinicia el servidor.`);
+  }
+  try {
+    signal.throwIfAborted();
+    const url = gpt ? `https://api.openai.com/v1/models/${encodeURIComponent(config.model)}`
+      : cloud ? 'https://ollama.com/api/tags' : `${config.url}/api/tags`;
+    // El catálogo Cloud es público: consultarlo no prueba su clave y no la necesita.
+    const response = await request(url, { method: 'GET', signal, redirect: 'error',
+      headers: gpt ? { Authorization: `Bearer ${config.key}` } : {} });
+    if (!response.ok) {
+      const errors = gpt && {
+        401: ['AUTH_ERROR', 'GPT rechazó la clave. Comprueba OPENAI_API_KEY en el PC.'],
+        403: ['ACCESS_ERROR', 'La cuenta API no tiene acceso a este modelo GPT. Revisa sus permisos.'],
+        404: ['MODEL_UNAVAILABLE', 'Modelo GPT no disponible. Comprueba OPENAI_MODEL en el PC.'],
+        429: ['RATE_LIMIT', 'GPT alcanzó un límite de solicitudes. Espera y revisa los límites de tu cuenta.'],
+      };
+      return errors?.[response.status] ? failed(...errors[response.status])
+        : failed('UNAVAILABLE', 'El servicio no pudo comprobarse. Intenta más tarde; el visor sigue disponible.');
+    }
+    const data = await response.json();
+    if (gpt) {
+      if (data.id !== config.model) return failed('INVALID_RESPONSE', 'El servicio no confirmó el modelo configurado.');
+      return { ready: true, verified: true, code: 'MODEL_AVAILABLE',
+        detail: 'Clave aceptada y modelo GPT disponible. La cuota de generación se comprueba al enviar.' };
+    }
+    const installed = catalogNames(data);
+    if (!installed.includes(config.model)) return failed('MODEL_UNAVAILABLE', cloud
+      ? 'Modelo ausente del catálogo Cloud. Comprueba OLLAMA_CLOUD_MODEL en el PC.'
+      : 'Modelo local no instalado. Actualiza la lista y selecciona uno disponible.');
+    return cloud ? { ready: true, verified: false, code: 'ACCESS_UNVERIFIED',
+      detail: 'Modelo en el catálogo público y clave configurada. Acceso y cuota se comprueban al enviar.' }
+      : { ready: true, verified: true, code: 'MODEL_AVAILABLE', detail: 'Ollama responde y el modelo local está instalado.' };
+  } catch (error) {
+    if (signal.aborted) return failed('TIMEOUT', 'La conexión tardó demasiado. Intenta de nuevo; el visor sigue disponible.');
+    return failed('UNAVAILABLE', 'No se pudo comprobar la conexión o leer el catálogo. Revisa el servicio; el visor sigue disponible.');
+  }
 }
 
 export async function providerHealth(config) {

@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-10-08T23:06:48.050Z",
+  "transport": "servidor real puerto 3000",
+  "generationRequested": false,
+  "httpStatus": 200,
+  "provider": "ollama-cloud",
+  "model": "gemma4:31b",
+  "health": {
+    "ready": true,
+    "verified": false,
+    "code": "ACCESS_UNVERIFIED",
+    "detail": "Modelo en el catálogo público y clave configurada. Acceso y cuota se comprueban al enviar."
+  },
+  "elapsedMs": 164,
+  "presentationUnchanged": true,
+  "before": {
+    "sessionId": "aaa4c5fe-5c02-423b-8c0a-ee935da30f30",
+    "revision": 3,
+    "phase": "idle",
+    "animation": "idle"
+  },
+  "after": {
+    "sessionId": "aaa4c5fe-5c02-423b-8c0a-ee935da30f30",
+    "revision": 3,
+    "phase": "idle",
+    "animation": "idle"
+  },
+  "invalidFieldsHttpStatus": 400,
+  "invalidOriginHttpStatus": 403
+}

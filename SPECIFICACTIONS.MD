@@ -23,7 +23,7 @@ Fuente de trabajo: esta especificación, `Cortana.md`, `ROADMAP.MD` y `docs/plan
 - HC-14: documentar rig y preparación de varios movimientos.
 - HC-15: probar Ollama Cloud con Gemma 4 31B; conservar GPT/Qwen y no activar pagos.
 
-Se conservan Linux como PC principal, poca experiencia y preferencia por recursos sencillos. La petición vigente añade Cloud/Gemma: clave cargada y respuestas/cancelación reales comprobadas en H-28. GPT sigue disponible, con clave presente pero rechazada por GET autenticado (401); sin generación GPT verificada. No activar pagos, contratar servicios ni reutilizar credenciales de sesión. La alternativa local conserva un recorrido sin coste por llamada. No asumir Android/iOS ni que exista ya reflector fabricado.
+Se conservan Linux como PC principal, poca experiencia y preferencia por recursos sencillos. La petición vigente añade Cloud/Gemma: clave cargada y respuestas/cancelación reales comprobadas en H-28. GPT sigue disponible; la comprobación inicial devolvió 401 y, después del último reinicio, su clave está ausente. Sin generación GPT verificada. No activar pagos, contratar servicios ni reutilizar credenciales de sesión. La alternativa local conserva un recorrido sin coste por llamada. No asumir Android/iOS ni que exista ya reflector fabricado.
 
 ## 2. Cortes de entrega
 
@@ -125,6 +125,16 @@ Proveedor `ollama-cloud`, modelo configurado `gemma4:31b`; backend directo a `ht
 
 Catálogo público real HTTP 200 confirmó el nombre. Después de configurar la clave, tres respuestas más seguimiento y recuperación reales devolvieron 200 (484–833 ms). Contexto Ana conservado; cancelación real 499/idle sin incorporar el mensaje cancelado. Evidence H-28-cloud-live.json y reporte de validación real; el catálogo y las pruebas de contrato se conservan como evidencia previa. [API oficial](https://docs.ollama.com/cloud), [plan Free y límites](https://ollama.com/pricing); no prometer Gemma gratuito/ilimitado sin comprobar cuenta. Guía `docs/API_OLLAMA_CLOUD.md`; guía de rig `docs/GUIA_RIG_ANIMACIONES.md` es entregable documental, no selección automática de nuevos clips.
 
+### Diagnóstico de conexión (H-29)
+
+**Probar conexión** consulta el proveedor activo sin generar texto. La selección pendiente se aplica primero con Cambiar modelo. `POST /api/provider/check` acepta únicamente `{}` y usa las mismas restricciones loopback/Host/Origin que el chat. Timeout de consulta 8 s, espera del control 10 s. Devuelve proveedor, modelo, latencia y health con `ready`, `verified`, `code`, `detail`; ningún secreto, URL privada ni cuerpo del error del proveedor. HTTP 200 informa un diagnóstico completado, incluso si health indica un problema; argumentos/origen/concurrencia usan 400/403/409.
+
+- GPT: GET autenticado del modelo en OpenAI. Clave aceptada y modelo disponible no prueban cuota de generación. 401/403/404/429 se distinguen; no se leen cuerpos privados. [Referencia oficial](https://developers.openai.com/api/reference/resources/models/methods/retrieve).
+- Local: GET del catálogo loopback; comprueba servicio y modelo instalado, sin iniciar inferencia.
+- Cloud: GET del catálogo público sin enviar clave. Confirma modelo/configuración y mantiene `verified:false`/`ACCESS_UNVERIFIED`; solo una generación real verifica acceso/cuota en ese momento.
+
+El indicador se activa únicamente con `ready && verified`. Poseer una clave no constituye comprobación. El diagnóstico no cambia presentación, movimiento, contexto, cache ni calibración. Se rechaza durante chat y se descarta si otro control cambia proveedor o inicia/completa una generación durante la consulta. Resultado puntual; al recargar se recupera la información de configuración habitual. H-29 no sustituye H-20/H-28 ni la aceptación física.
+
 ## 8. Decisiones activas
 
 IDs nuevos conservan separación respecto a D-01…D-12 del plan histórico.
@@ -147,7 +157,8 @@ IDs nuevos conservan separación respecto a D-01…D-12 del plan histórico.
 | D-24 | CONFIRMADA | 2026-10-07 | Petición de baile libre: recreación Gangnam Style MIT + humanoide Quaternius CC0 compatible. Curvas horneadas a keyframes, control compartido desde PC y recursos locales sin música. No es un asset oficial de Fortnite. |
 | D-27 | CONFIRMADA | 2026-10-07 | Elección de implementación en H-06: calibración numérica en porcentajes/grados junto a rangos, mismo contrato v1. Patrón visible sin panel para ajustar reflexión; corregir atributo hidden del SVG. Mediciones/UI verificadas; óptica real pendiente. ID antes D-25 en rama de calibración, renumerado al integrar para conservar D-25 del selector. |
 | D-28 | CONFIRMADA | 2026-10-08 | Petición del propietario: mostrar las texturas originales de Cortana. Excepción de color para el avatar importado; conservar interfaz monocromática y negro puro. Reutilizar rig existente; no rerig ni activar clips automáticamente. |
-| D-29 | CONFIRMADA | 2026-10-08 | Petición vigente: prueba temporal de Ollama Cloud con Gemma 4 31B. Adaptador directo y arranque cloud; conservar GPT y local en selector, sin fallback ni pagos. Acceso real/free de la cuenta pendiente de clave/cuota. |
+| D-29 | CONFIRMADA | 2026-10-08 | Petición vigente: prueba temporal de Ollama Cloud con Gemma 4 31B. Adaptador directo y arranque cloud; conservar GPT y local en selector, sin fallback ni pagos. Clave y generación real verificadas en H-28; plan gratuito/saldo/cuota no inspeccionados. |
+| D-30 | CONFIRMADA | 2026-10-08 | Incremento técnico de recuperación H-29 en la continuación autorizada: diagnóstico explícito sin generar texto, usando APIs documentadas; catálogo Cloud no valida credencial. Indicador exige comprobación, configuración privada y descarte de resultados concurrentes. Motivo: distinguir fallos de configuración antes del ensayo sin alterar la conversación. |
 
 D-08 (voz primero) queda reemplazada para el corte actual por D-13/D-16. Decisiones del juego siguen conservadas en archivo histórico; no ejecutar su roadmap mientras este objetivo esté activo.
 
@@ -156,7 +167,7 @@ D-08 (voz primero) queda reemplazada para el corte actual por D-13/D-16. Decisio
 | ID | Dato faltante | Impacto |
 |---|---|---|
 | Q-06 | Modelo/SO/navegador de celular y hora límite mañana. | H-19, H-07 y ensayo/compatibilidad reales. |
-| Q-07 | Clave API privada y acceso del proyecto al modelo GPT. | H-20; clave presente pero GET autenticado devolvió 401. Requiere clave válida; no generación GPT ejecutada. Pregunta enviada para guardarla en .env; no compartirla por chat. |
+| Q-07 | Clave API privada y acceso del proyecto al modelo GPT. | H-20; GET inicial devolvió 401. Al reiniciar para H-29 la clave está ausente y el panel lo informa. Requiere clave válida; no generación GPT ejecutada. Guardarla en .env; no compartirla por chat. |
 | Q-08 | Pantalla útil, reflector/material/medidas, posición pantalla y caja ya fabricada. | H-06/H-08. |
 | Q-10 | OLLAMA_API_KEY y acceso/cuota a gemma4:31b de la cuenta. | H-28 DONE: propietario guardó clave; Gemma respondió y recuperó contexto tras cancelación. Detalle de plan/saldo/cuota no inspeccionado. |
 | Q-09 | Confirmar que se presentará con este PC; datos de otro equipo si cambia. | Equipo actual verificado: CachyOS, 15 GiB RAM, Node 22.22.2, Ollama en CPU. Compatibilidad de otro equipo sin comprobar. |

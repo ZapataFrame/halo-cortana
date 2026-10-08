@@ -1,0 +1,37 @@
+{
+  "checkedAt": "2026-10-08T23:06:48.174Z",
+  "cloud": {
+    "avatarStatus": "ready",
+    "chatEntries": 0,
+    "detail": "Prueba completada en 0.2 s, sin generar texto.",
+    "providerStatus": "OLLAMA-CLOUD / gemma4:31b · Modelo en el catálogo público y clave configurada. Acceso y cuota se comprueban al enviar.",
+    "readyIndicator": false,
+    "size": "101",
+    "texturedMaterials": "4"
+  },
+  "gpt": {
+    "avatarStatus": "ready",
+    "detail": "Prueba completada en 0.0 s, sin generar texto.",
+    "providerStatus": "OPENAI / gpt-4.1-mini · Añade OPENAI_API_KEY a .env del PC y reinicia el servidor.",
+    "readyIndicator": false,
+    "texturedMaterials": "4"
+  },
+  "local": {
+    "avatarStatus": "ready",
+    "detail": "Prueba completada en 0.0 s, sin generar texto.",
+    "providerStatus": "OLLAMA / phi4-mini:latest · Ollama responde y el modelo local está instalado.",
+    "readyIndicator": true,
+    "texturedMaterials": "4"
+  },
+  "final": {
+    "avatarStatus": "ready",
+    "chatEntries": 0,
+    "connectionButtonDisabled": false,
+    "detail": "Prueba completada en 0.2 s, sin generar texto.",
+    "providerStatus": "OLLAMA-CLOUD / gemma4:31b · Modelo en el catálogo público y clave configurada. Acceso y cuota se comprueban al enviar.",
+    "readyIndicator": false,
+    "size": "101",
+    "texturedMaterials": "4"
+  },
+  "generationRequested": false
+}

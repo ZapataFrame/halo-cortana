@@ -17,6 +17,8 @@ OLLAMA_API_KEY=tu_clave_privada
 4. Abre `http://localhost:3000/control?avatar=cortana`. En Proveedor selecciona **Ollama Cloud / Gemma 4**, comprueba `gemma4:31b` y pulsa **Cambiar modelo**.
 5. Envía una pregunta. «Configurado» solo significa que existe una clave; la primera respuesta verifica acceso al modelo y disponibilidad de cuota.
 
+**Probar conexión** consulta el catálogo público sin enviar la clave ni generar texto. Modelo presente y clave configurada mantienen el indicador sin comprobación de acceso: este botón no puede validar una credencial Cloud ni su cuota. La generación real H-28 se verificó por separado. El diagnóstico conserva conversación, figura y calibración.
+
 `ollama signin` autentica el uso cloud mediante la app/CLI local; **no llena `OLLAMA_API_KEY` para este backend directo**. Si ya iniciaste sesión en la CLI, crea igualmente la clave de API para este flujo. [Autenticación oficial](https://docs.ollama.com/api/authentication).
 
 ## Qué ejecuta la aplicación

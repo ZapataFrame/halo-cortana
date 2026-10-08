@@ -71,12 +71,14 @@ Conversación desde `localhost` en PC: Enter envía, Shift+Enter agrega línea. 
 
 ## Usar tu Qwen local y alternar con GPT
 
-1. Mantén [Ollama](https://ollama.com/) activo en este PC. `ollama list` debe mostrar tu modelo (en este equipo: **`qwen2.5:32b`**).
-2. En `/control`, sección **Conversación**, selecciona **Local / Ollama (Qwen)** y elige `qwen2.5:32b` en **Modelo**.
+1. Mantén [Ollama](https://ollama.com/) activo en este PC. `ollama list` debe mostrar tu modelo. Qwen se probó en H-23; el catálogo actual muestra **`phi4-mini:latest` y `llama3.1:latest`**.
+2. En `/control`, sección **Conversación**, selecciona **Local / Ollama (Qwen)** y elige uno de los modelos disponibles. Para Qwen, debe aparecer instalado en la lista.
 3. Pulsa **Cambiar modelo** y envía un mensaje. **Actualizar modelos** renueva la lista si instalaste otro modelo o encendiste Ollama después.
 4. Para volver, selecciona **GPT / OpenAI** y pulsa **Cambiar modelo**. Conserva la clave y configuración OpenAI existentes; no necesitas reiniciar para alternar.
 
 Cada cambio empieza una conversación nueva. La selección se comparte entre las pestañas de control y dura hasta reiniciar el servidor; entonces vuelve al proveedor de `.env` (GPT si no se indica otro). Cancela o termina la respuesta antes de cambiar. El proveedor activo aparece sobre el selector; las opciones editadas se aplican al pulsar el botón.
+
+**Probar conexión** comprueba el proveedor aplicado sin generar texto. Informa falta de clave, servicio caído, modelo ausente y errores de acceso. Para Cloud confirma el catálogo; la clave/cuota se comprueban al enviar un mensaje. Para GPT confirma clave/modelo, con cuota de generación todavía pendiente. No borra el chat ni cambia el avatar. Aplica primero cualquier selección nueva con **Cambiar modelo**.
 
 Para arrancar siempre en Qwen, edita solo estas líneas de tu `.env`, conservando las de OpenAI, y reinicia:
 
@@ -90,7 +92,7 @@ Usa el nombre exacto que muestra `ollama list` si tu modelo es otro. No se desca
 
 ## Verificación
 
-29 pruebas aprobadas tras integrar los controles numéricos, negro de carga/normal/error y patrón con el selector GPT/Qwen y la variante Cortana aportada. Evidencia previa de respuestas Qwen, cancelación y recargas en los reportes. **Cloud real verificado; la clave GPT configurada fue rechazada (401), sin generación GPT comprobada. Celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
+37 pruebas aprobadas: controles numéricos, proyección, texturas, proveedores, cancelación, diagnóstico y consultas concurrentes. Build correcto. Evidencia previa de respuestas Qwen, cancelación y recargas en los reportes. **Cloud real verificado; GPT requiere clave válida (401 inicial; ahora ausente), sin generación GPT comprobada. Celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
 
 ```bash
 npm test

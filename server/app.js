@@ -3,7 +3,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { networkInterfaces } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import { generateReply, providerHealth, localModels } from './providers.js';
+import { generateReply, providerHealth, localModels, checkProviderConnection } from './providers.js';
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.glb': 'model/gltf-binary', '.json': 'application/json', '.md': 'text/plain; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml' };
 const LOCAL = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
@@ -29,9 +29,9 @@ async function readJson(req) {
   try { return JSON.parse(text); } catch { throw new Error('JSON inválido.'); }
 }
 
-export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, timeoutMs = 60000, readAsset = readFile } = {}) {
+export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile } = {}) {
   const sessionId = randomUUID();
-  let revision = 0, phase = 'idle', animation = 'idle', active = null, history = [];
+  let revision = 0, chatGeneration = 0, phase = 'idle', animation = 'idle', active = null, history = [];
   const completed = new Map();
   const state = () => ({ sessionId, revision, phase, animation });
   const setPhase = value => { phase = value; revision++; };
@@ -68,6 +68,24 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
       if (req.method === 'POST' && pathname.startsWith('/api/')) {
         if (!localWrite(req, res)) return;
         const body = await readJson(req);
+        if (pathname === '/api/provider/check') {
+          if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).length) {
+            json(res, 400, { error: 'La comprobación usa el proveedor activo del PC. Envía un objeto vacío.' }); return;
+          }
+          if (active) { json(res, 409, { error: 'Espera o cancela la respuesta antes de comprobar la conexión.' }); return; }
+          const checkedConfig = config, generation = chatGeneration, start = performance.now();
+          const signal = AbortSignal.timeout(checkTimeoutMs);
+          let checked;
+          try { checked = await check(checkedConfig, signal); }
+          catch { checked = { ready: false, verified: false, code: signal.aborted ? 'TIMEOUT' : 'UNAVAILABLE', detail: 'No se pudo comprobar la conexión. Intenta de nuevo.' }; }
+          // Otra pestaña puede haber cambiado el proveedor o completado un chat durante el GET.
+          if (config !== checkedConfig || chatGeneration !== generation) {
+            json(res, 409, { error: 'El proveedor o la conversación cambió durante la prueba. Vuelve a comprobar.' }); return;
+          }
+          json(res, 200, { provider: checkedConfig.provider, model: checkedConfig.model,
+            health: { ready: Boolean(checked.ready), verified: Boolean(checked.verified), code: checked.code, detail: checked.detail },
+            elapsedMs: Math.round(performance.now() - start) }); return;
+        }
         if (pathname === '/api/provider') {
           if (active) { json(res, 409, { error: 'Espera o cancela la respuesta antes de cambiar de modelo.' }); return; }
           if (!body || !['openai', 'ollama', 'ollama-cloud'].includes(body.provider) || !configs[body.provider]
@@ -116,7 +134,7 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
         const controller = new AbortController();
         const requestConfig = config;
         const token = { requestId, controller };
-        active = token; setPhase('processing');
+        active = token; chatGeneration++; setPhase('processing');
         let timedOut = false;
         const timer = setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
         const disconnected = () => { if (!res.writableEnded && active === token) controller.abort(); };

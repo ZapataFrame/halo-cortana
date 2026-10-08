@@ -23,7 +23,7 @@ if (hologram) {
           <form id="provider-form" class="provider-controls">
             <label for="provider-select">Proveedor<select id="provider-select" disabled><option value="openai">GPT / OpenAI</option><option value="ollama-cloud">Ollama Cloud / Gemma 4</option><option value="ollama">Local / Ollama (Qwen)</option></select></label>
             <label for="model-select">Modelo<select id="model-select" disabled></select></label>
-            <div class="button-row"><button class="button secondary" id="apply-provider" disabled>Cambiar modelo</button><button class="text-button" id="refresh-models" type="button" disabled>Actualizar modelos</button></div>
+            <div class="button-row"><button class="button secondary" id="apply-provider" disabled>Cambiar modelo</button><button class="text-button" id="refresh-models" type="button" disabled>Actualizar modelos</button><button class="text-button" id="check-provider" type="button" disabled>Probar conexión</button></div>
             <p class="small muted" id="provider-help" role="status">Cambiar inicia una conversación nueva. La selección dura hasta reiniciar el servidor.</p>
           </form>
           <div class="messages" aria-label="Conversación" role="log" aria-live="polite"><div class="empty-chat"><span class="empty-symbol">✧</span><h2>Inicia el contacto.</h2><p>Pregúntame algo o cuéntame qué estás construyendo.</p><div class="suggestions"><button>¿Qué es Pepper’s Ghost?</button><button>Preséntate como Cortana</button></div></div></div>
@@ -60,6 +60,7 @@ if (hologram) {
   let active = null, retry = null, changingProvider = false, localControl = false, catalog = null;
   const providerSelect = app.querySelector('#provider-select'), modelSelect = app.querySelector('#model-select');
   const providerHelp = app.querySelector('#provider-help');
+  const checkProvider = app.querySelector('#check-provider');
   function fillModels() {
     const cloud = providerSelect.value === 'ollama-cloud';
     const names = providerSelect.value === 'openai' ? [catalog?.openaiModel].filter(Boolean)
@@ -82,16 +83,22 @@ if (hologram) {
     modelSelect.disabled = locked || !modelSelect.value;
     app.querySelector('#apply-provider').disabled = locked || !modelSelect.value;
     app.querySelector('#refresh-models').disabled = locked;
+    const unapplied = providerSelect.value !== catalog?.provider || modelSelect.value !== catalog?.model;
+    checkProvider.disabled = locked || !catalog || unapplied;
+    checkProvider.title = unapplied ? 'Pulsa Cambiar modelo para aplicar la selección antes de probarla.' : 'Comprueba el proveedor activo sin generar texto.';
     input.disabled = locked; send.disabled = locked;
     app.querySelector('#reset-chat').disabled = locked;
+  }
+  function showProviderHealth(info) {
+    app.querySelector('#provider-status').textContent = `${info.provider.toUpperCase()} / ${info.model} · ${info.health.detail}`;
+    app.querySelector('.status-dot').classList.toggle('ready', info.health.ready && info.health.verified);
   }
   async function refreshInfo() {
     const response = await fetch('/api/info');
     if (!response.ok) throw new Error('No se pudo consultar el proveedor.');
     const info = await response.json();
     localControl = info.localControl;
-    app.querySelector('#provider-status').textContent = `${info.provider.toUpperCase()} / ${info.model} · ${info.health.detail}`;
-    app.querySelector('.status-dot').classList.toggle('ready', info.health.ready);
+    showProviderHealth(info);
     updateControls();
     return info;
   }
@@ -103,6 +110,20 @@ if (hologram) {
   }
   providerSelect.addEventListener('change', fillModels);
   modelSelect.addEventListener('change', updateControls);
+  checkProvider.addEventListener('click', async () => {
+    if (checkProvider.disabled) return;
+    changingProvider = true; updateControls();
+    providerHelp.textContent = 'Comprobando conexión sin generar texto…';
+    try {
+      const response = await fetch('/api/provider/check', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: '{}', signal: AbortSignal.timeout(10000) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'No se pudo comprobar la conexión.');
+      showProviderHealth(data);
+      providerHelp.textContent = `Prueba completada en ${(data.elapsedMs / 1000).toFixed(1)} s, sin generar texto.`;
+    } catch (error) { providerHelp.textContent = error.name === 'TimeoutError' ? 'La conexión tardó demasiado. Intenta de nuevo.' : error.message; }
+    finally { changingProvider = false; updateControls(); }
+  });
   app.querySelector('#refresh-models').addEventListener('click', async () => {
     changingProvider = true; updateControls();
     try { await refreshModels(); await refreshInfo(); }

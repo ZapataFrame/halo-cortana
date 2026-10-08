@@ -21,7 +21,7 @@ if (hologram) {
         <section class="avatar-card card"><div class="card-heading"><span class="eyebrow">01 / AVATAR</span><span class="phase-chip" data-phase="idle">En reposo</span></div><div class="preview"></div><div class="motion-controls"><span class="eyebrow">AVATAR</span><div class="button-row"><a class="button secondary" href="/control">Humanoide + Gangnam</a><a class="button secondary" href="/control?avatar=cortana">Cortana importada</a></div><p class="small muted">${importedAvatar ? 'Vista de prueba estática · modelo aportado por ti.' : 'Prueba también el GLB Cortana desde la otra opción.'}</p><span class="eyebrow">MOVIMIENTO</span><div class="button-row"><button class="button secondary" data-animation="idle" aria-pressed="true">Reposo</button><button class="button secondary" data-animation="gangnam" aria-pressed="false">Bailar Gangnam Style</button></div><p class="small muted" id="animation-status" role="status">Controla el baile del visor desde este PC.</p></div><div class="avatar-caption"><span>${importedAvatar ? 'CORTANA / SKETCHFAB' : 'QUATERNIUS'}</span><span>${importedAvatar ? 'JAMESLUCINO117 · CC BY-NC 4.0 DECLARADA' : 'HUMANOIDE CC0 · BAILE MIT'}</span></div></section>
         <section class="conversation-card card"><div class="card-heading"><span class="eyebrow">02 / CONVERSACIÓN</span><button class="text-button" id="reset-chat">Nueva conversación</button></div><div class="provider-line"><span class="status-dot"></span><span id="provider-status">Comprobando proveedor…</span></div>
           <form id="provider-form" class="provider-controls">
-            <label for="provider-select">Proveedor<select id="provider-select" disabled><option value="openai">GPT / OpenAI</option><option value="ollama">Local / Ollama (Qwen)</option></select></label>
+            <label for="provider-select">Proveedor<select id="provider-select" disabled><option value="openai">GPT / OpenAI</option><option value="ollama-cloud">Ollama Cloud / Gemma 4</option><option value="ollama">Local / Ollama (Qwen)</option></select></label>
             <label for="model-select">Modelo<select id="model-select" disabled></select></label>
             <div class="button-row"><button class="button secondary" id="apply-provider" disabled>Cambiar modelo</button><button class="text-button" id="refresh-models" type="button" disabled>Actualizar modelos</button></div>
             <p class="small muted" id="provider-help" role="status">Cambiar inicia una conversación nueva. La selección dura hasta reiniciar el servidor.</p>
@@ -61,12 +61,17 @@ if (hologram) {
   const providerSelect = app.querySelector('#provider-select'), modelSelect = app.querySelector('#model-select');
   const providerHelp = app.querySelector('#provider-help');
   function fillModels() {
-    const names = providerSelect.value === 'openai' ? [catalog?.openaiModel].filter(Boolean) : catalog?.localModels || [];
+    const cloud = providerSelect.value === 'ollama-cloud';
+    const names = providerSelect.value === 'openai' ? [catalog?.openaiModel].filter(Boolean)
+      : cloud ? [catalog?.cloudModel].filter(Boolean) : catalog?.localModels || [];
     modelSelect.replaceChildren(...names.map(name => new Option(name, name)));
     if (providerSelect.value === catalog?.provider && names.includes(catalog.model)) modelSelect.value = catalog.model;
     else if (providerSelect.value === 'ollama') modelSelect.value = names.find(name => /qwen/i.test(name)) || names[0] || '';
     if (!names.length) modelSelect.add(new Option('Sin modelos disponibles', ''));
-    providerHelp.textContent = providerSelect.value === 'ollama' && !names.length
+    providerHelp.textContent = cloud ? (catalog?.cloudConfigured
+      ? 'Gemma se ejecuta en Ollama Cloud. Cada cambio inicia una conversación nueva.'
+      : 'Falta OLLAMA_API_KEY en .env del PC. Puedes seleccionar Cloud; para conversar debes configurarla y reiniciar.')
+      : providerSelect.value === 'ollama' && !names.length
       ? catalog?.detail || 'No hay modelos instalados en Ollama. Instala tu Qwen y actualiza la lista.'
       : 'Cambiar inicia una conversación nueva. La selección dura hasta reiniciar el servidor.';
     updateControls();
@@ -116,7 +121,7 @@ if (hologram) {
       messages.replaceChildren(); retry = null; input.value = '';
       catalog.provider = data.provider; catalog.model = data.model;
       status.textContent = `Nueva conversación con ${data.model}.`;
-      providerHelp.textContent = 'Modelo cambiado. Puedes volver a GPT o a otro modelo local cuando quieras.';
+      fillModels();
       await refreshInfo();
     } catch (error) { providerHelp.textContent = error.message; }
     finally { changingProvider = false; updateControls(); }

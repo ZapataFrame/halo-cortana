@@ -63,6 +63,7 @@ textarea::placeholder { color: #686872; }
 #desktop-settings .calibration-panel { position: static; width: 100%; padding: 0; max-height: none; border: 0; background: transparent; box-shadow: none; }
 #desktop-settings .panel-heading { display: none; }
 #desktop-settings .calibration-panel > label { margin: 9px 0; }
+#desktop-settings .calibration-field { margin: 9px 0; }
 #desktop-settings input[type=range] { margin-top: 5px; }
 #desktop-settings .check-grid { margin: 14px 0; }
 .small { font-size: 10px; line-height: 1.6; }

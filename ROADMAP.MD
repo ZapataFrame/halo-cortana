@@ -1,6 +1,6 @@
 # Halo Strategy Lab — Roadmap activa
 
-Actualizado: 2026-10-08. **Prioridad: MVP holográfico para mañana, 2026-10-08; hora pendiente.** El simulador está diferido por instrucción del propietario. El propietario autorizó iniciar implementación tras cerrar el plan.
+Actualizado: 2026-10-08. **Prioridad: MVP holográfico para hoy, 2026-10-08; hora pendiente.** El simulador está diferido por instrucción del propietario. El propietario autorizó iniciar implementación tras cerrar el plan.
 
 ## Cómo continuar
 
@@ -11,9 +11,9 @@ Leer `AGENTS.md`, `SPECIFICACTIONS.MD`, `Cortana.md` y `docs/plans/2026-10-07-mv
 
 **Ampliación H-23:** selector GPT/Ollama solicitado y confirmado con Qwen local; evidencia en `docs/reports/2026-10-08-H-23-selector-qwen.md`.
 
-**Ampliación anterior:** H-20…H-22 por petición del propietario. GPT principal preparado; validación real `BLOCKED` por clave. Orientación y baile con evidencia técnica, sin cerrar móvil/caja.
+**Ampliación anterior:** H-20…H-22 por petición del propietario. GPT preparado; llamada real aún pendiente. Prueba vigente Cloud/Gemma por H-28. Orientación y baile con evidencia técnica, sin cerrar móvil/caja.
 
-**Base implementada:** visor negro, calibración y conversación local histórica; GPT sustituye a Ollama como proveedor principal. **Siguiente:** clave privada para H-20; H-19 identifica celular/caja/hora. El bloqueo previo del seguimiento de chat no se presenta como resuelto por las pruebas nuevas de orientación/baile.
+**Base implementada:** visor negro, calibración y patrón integrados en `main` con selector GPT/Qwen y Cortana opcional. Ampliación solicitada hoy: H-26 texturas originales, H-27 guía de rig/animaciones, H-28 Ollama Cloud con Gemma 4 31B. Pruebas físicas siguen en H-19/H-07/H-08.
 
 ## Etapas y métricas de salida
 
@@ -37,8 +37,8 @@ A visual es el primer hito. Para cumplir la solicitud completa de mañana se req
 | H-02 | DONE | H-01 | P0 | CesiumMan GLB local: 438044 bytes, 4672 triángulos, clip/skin y recursos incorporados. Licencia CC BY 4.0, condiciones de marca y SHA-256 verificados: `public/models/README.md`. Codex, 2026-10-07. |
 | H-03 | DONE | H-01 | P0 | Servidor Node/Three/Vite compilado, mismo origen, URL LAN GET 200 y chat LAN 403 desde PC. Lockfile y `.env.example`; rutas privadas rechazadas. Acceso celular: H-19. Codex, 2026-10-07. |
 | H-04 | DONE | H-02, H-03 | P0 | Humanoide cargado y completo en capturas PC 1280×720 y vertical efectiva 749×844. Pose normalizada/resize; no se presenta captura PC como celular. Ver reporte. Codex, 2026-10-07. |
-| H-05 | BLOCKED | H-04 | P0 | Negro normal/error comprobado: 5 muestras RGB 0/0/0 por captura; error de GLB provocado/restaurado. Falta captura inequívoca de carga; nueva automatización bloqueada por política del navegador. Confirmar manualmente para cerrar. |
-| H-06 | BLOCKED | H-05 | P0 | Controles/persistencia/patrón/reset implementados; espejos/rotación recuperados en 3 recargas y lógica validada. Falta comprobar escala/X/Y y patrón digital manualmente; automatización de rangos sin cambio y navegador bloqueado. Física: H-08. |
+| H-05 | DONE | H-04 | P0 | Codex, 2026-10-07. Carga retenida del GLB real, carga completada y fallo provocado: estado DOM verificado, panel oculto y 5 muestras RGB 0/0/0 en cada captura 792×954. Ensayo loopback reproducible y recuperación HTTP probada. Reporte H-05 y `evidence/H-05-black.json`. Física: H-08. |
+| H-06 | DONE | H-05 | P0 | Codex, 2026-10-07. Valores numéricos de tamaño/X/Y/giro, límites y reset verificados; todos los ajustes recuperados en 3 recargas. Patrón SVG reparado, visible con panel oculto; escala 0.75 y traslación −45.6/+67.52 px medidas en 380×844. Capturas/DOM en reporte H-06. Arrastre táctil/óptica: H-07/H-08. |
 | H-07 | BLOCKED | H-06, H-19 | P0 | Código de presentación/fullscreen/resize disponible. Falta dispositivo físico para acceso, orientación/retorno, 5 min y mediana FPS real; desbloquea H-19. |
 | H-08 | TODO | H-07 | P0 | Prueba óptica: dos montajes y evidencia de figura real en caja. |
 | H-09 | DONE | H-01 | P1 | Ollama/phi4-mini:latest real en CPU: primera llamada 23.75 s; backend 47.091/5.353/19.1/6.923 s. Contexto conservado; sin coste API/clave. Reporte. Codex, 2026-10-07. |
@@ -51,11 +51,15 @@ A visual es el primer hito. Para cumplir la solicitud completa de mañana se req
 | H-16 | TODO | H-15 | P2 | STT pulsar para hablar y corrección, meta 8/10 frases acordadas. Posterior. |
 | H-17 | TODO | H-16 | P2 | Cinco conversaciones de voz y dos interrupciones con recuperación. Posterior. |
 | H-19 | BLOCKED | H-00 | P0 | Faltan celular/OS/navegador, caja y hora. Pregunta enviada; abrir URL en ese dispositivo. No bloquea base PC; sí móvil/caja. |
-| H-20 | BLOCKED | H-03, H-10 | P0 | GPT principal (`gpt-4.1-mini`/Responses) configurado, adaptador/errores probados y .env privado preparado sin clave. Falta OPENAI_API_KEY para 3 respuestas + seguimiento/latencias reales. Pregunta enviada; sin activar pagos ni fallback local. Codex, 2026-10-07. |
+| H-20 | BLOCKED | H-03, H-10 | P0 | GPT principal (`gpt-4.1-mini`/Responses) configurado, adaptador/errores probados y .env privado preparado sin clave. Entorno indica configuración GPT presente al cierre H-28; falta verificar validez/acceso y 3 respuestas + seguimiento/latencias reales. Pregunta enviada; sin activar pagos ni fallback local. Codex, 2026-10-07. |
 | H-21 | DONE | H-03, H-04 | P0 | Tres modos verificados a 390×844/844×390, giros 0/90 correctos, tres recargas y geometría/espejos probados. Capturas + `docs/reports/evidence/H-21-orientation.json`; calibración v1 compatible. Codex, 2026-10-07. Física sigue en H-07/H-08. |
 | H-22 | DONE | H-03, H-04 | P0 | Gangnam Style MIT + humanoide Quaternius CC0 locales, 65 huesos, 14318 triángulos y ciclo de 7.273 s. Botones PC reposo/baile, selección recuperada al abrir visor, GLB/clip reales probados y negro 5 puntos por captura. Licencias/hash/script en ficha; reporte H-20…22. Codex, 2026-10-07. |
 | H-23 | DONE | H-03, H-10 | P0 | Codex, 2026-10-08: selector GPT/Ollama con catálogo local validado, contexto/cache nuevos y configuración OpenAI conservada. 23 pruebas y build correctos; UI GPT→Qwen→GPT y cancelación verificados. Respuesta real de qwen2.5:32b en 58.1 s; captura/reporte H-23. Selección hasta reinicio; GPT real sigue pendiente H-20. |
 | H-24 | DONE | H-03, H-04 | P0 | Codex, 2026-10-08: GLB Cortana aportado adaptado a PBR monocromático, 18,948 triángulos/79 joints; variante estática opcional control/visor, original y avatar/baile previos conservados. 24 pruebas/build y revisión frontal PC 1280×720; captura/reporte H-24. Animación/retargeting y móvil/caja no verificados. |
+| H-25 | DONE | H-06, H-23, H-24 | P0 | Codex, 2026-10-08: integrar rama de calibración en main, preservar cambios del compañero y resolver cuatro conflictos. 25 pruebas y build aprobados; D-25 duplicado de calibración renumerado D-27. Reporte H-25. |
+| H-26 | DONE | H-25 | P0 | Codex, 2026-10-08: ocho imágenes originales y cuatro materiales PBR texturados recuperados; BIN original intacto. Rig/clip y negro conservados. 25 pruebas, build, revisión PC 1280×720, cinco muestras RGB 0/0/0 y calibración/patrón comprobados. Reporte H-26. |
+| H-27 | DONE | H-26 | P1 | Codex, 2026-10-08: docs/GUIA_RIG_ANIMACIONES.md; rig real, mapa de huesos, Mixamo/Rigify, contrato GLB multi-clip y pruebas. Fuentes oficiales consultadas, enlaces locales comprobados. Guía documental; no exportación/retargeting implementados. |
+| H-28 | BLOCKED | H-23, H-10 | P1 | Codex, 2026-10-08: adaptador Cloud/gemma4:31b, selector, errores y guía preparados. 29 pruebas/build, catálogo real 200, UI Cloud→GPT→Cloud y visor texturado ready comprobados. Backend sin clave: 503/NOT_CONFIGURED; faltan OLLAMA_API_KEY, acceso gratuito/cuota y tres respuestas+seguimiento. Reporte H-28. |
 | H-18 | DEFERRED | H-17 | P3 | Avatar final, labios, wake word, app instalada y otras mejoras con nuevo alcance. |
 
 P0 primero. H-09 puede preparar proveedor mientras se consigue el visor, pero no debe quitar prioridad a H-02…H-08. P1 también necesario para A+B; P2/P3 no se ejecutan para cumplir la entrega de mañana.
@@ -64,17 +68,23 @@ P0 primero. H-09 puede preparar proveedor mientras se consigue el visor, pero no
 
 Objetivo orientativo: 4–6 h visual, 2–3 h LLM, 1 h cierre. No incluye fabricación, descargas grandes o incompatibilidades. La hora de entrega define si cabe el recorrido; reservar al menos una hora de ensayo antes de presentar. Sin horarios inventados ni promesa de capacidad por la GPU.
 
-Q-06/Q-08 pendientes: dispositivo/hora/caja. Q-07: GPT solicitado como principal, falta clave privada; Ollama conserva evidencia histórica y alternativa explícita. Q-09: entorno medido, confirmar si se usará otro PC. Nuevo avatar Quaternius compatible con el baile adquirido en H-22; no rig nuevo ni retargeting. Si falla fullscreen, usar alternativa del dispositivo. Si falla GPT, visor/baile permanecen útiles y B con GPT sigue pendiente.
+Q-06/Q-08 pendientes: dispositivo/hora/caja. Q-07: GPT disponible, configuración presente pero validez/llamada sin verificar; Q-10: Cloud/Gemma solicitado ahora, falta clave/cuota; Ollama conserva evidencia histórica y alternativa explícita. Q-09: entorno medido, confirmar si se usará otro PC. Nuevo avatar Quaternius compatible con el baile adquirido en H-22; no rig nuevo ni retargeting. Si falla fullscreen, usar alternativa del dispositivo. Si falla GPT, visor/baile permanecen útiles y B con GPT sigue pendiente.
 
 ## Evidencia del cambio
 
 | Fecha | Tarea | Avance | Pendiente |
 |---|---|---|---|
+| 2026-10-08 | Entrega Git | Merge local `c0aef7b`, texturas `9dc254b`, guía `26bc2c7` y Cloud `426f08f` guardados. main local contiene visual/guía; Cloud en `codex/cortana-gemma4-cloud`. | Push main y rama rechazados por revisión automática: publicación de rama compartida/remoto sin autorización explícita. Preguntas de autorización pendientes. origin/main continúa en `5524e19`; no afirmar publicación ni PR. |
+| 2026-10-08 | H-26/H-27 | Texturas originales recuperadas, render negro y calibración comprobados; guía de rig/múltiples clips con datos del GLB y fuentes oficiales. Commits `9dc254b` y `26bc2c7`. Reporte H-26 y guía. | Pose estática; animaciones nuevas son propuesta. Móvil/reflector requieren H-19/H-07/H-08. |
+| 2026-10-08 | H-28 | Cloud/Gemma directo preparado en rama `codex/cortana-gemma4-cloud`; 29 pruebas/build, catálogo público real y cambio de proveedor en UI. Error de clave ausente real; reporte y guía Cloud. | Q-10: clave y acceso/cuota; generación no verificada. Siguiente trabajo con recurso disponible: H-28 (clave), H-20 (GPT real) o H-19 (pantalla/caja). |
+| 2026-10-08 | H-25 | Integración de `9c5614c` sobre `5524e19`, ambos descendientes de `6c93a8c`. Cuatro conflictos resueltos combinando funciones; 25 pruebas, build y ausencia de marcadores verificados. `docs/reports/2026-10-08-H-25-integracion-main.md`. | Texturas H-26, guía H-27 y proveedor cloud H-28 por implementar. |
 | 2026-10-08 | H-24 | GLB aportado evaluado/adaptado y render frontal PC comprobado; opciones Cortana importada / Humanoide + Gangnam. 24 pruebas y build; reporte/captura H-24. | Pose estática; animación propia/retargeting pendientes de nuevo alcance. Siguiente H-19/H-20 según recursos; pruebas físicas siguen pendientes. |
 | 2026-10-08 | H-23 | Selector GPT/Qwen implementado; Ollama real descubrió qwen2.5:32b y llama3.1:latest. Respuesta UI real 58.1 s, cancelación y vuelta a GPT comprobadas. 23 pruebas, build y captura. Reporte: `docs/reports/2026-10-08-H-23-selector-qwen.md`. | Sin clave GPT en este entorno; H-20 y tareas físicas conservan sus pendientes. Siguiente disponible: configurar clave H-20 o aportar dispositivo/caja H-19; H-08 depende de H-07. |
 | 2026-10-07 | H-00 | Plan detallado, guía API y alcance vigente. Verificados 7 documentos, 60 IDs únicos, 19 tareas H sin ciclos, 18 tarjetas de producto, 9 pruebas QA, referencias concretas y un solo AGENTS. Evidencia: `docs/reports/2026-10-07-H-00-plan-holograma.md`. | Implementación H-01…H-14 pendiente; no hay modelo descargado, app ni prueba física/API. Dispositivo/hora/coste por confirmar. |
 | 2026-10-07 | H-01…H-12 | Visor/ajustes/chat local implementados, build exitoso y 11 pruebas; negro digital normal/error, LAN 200/403, respuestas reales/contexto/cancelación. Evidencia: `docs/reports/2026-10-07-H-01-12-visor-llm.md`. | Carga/rangos/UI completa por probar; bloqueo de automatización registrado. Celular/caja/FPS/ensayos pendientes. A+B todavía sin aceptación física. |
 | 2026-10-07 | H-20…H-22 | GPT principal preparado; orientación y baile verificados. 19 pruebas pasan, build correcto, 6 casos de orientación y 3 recargas, esqueleto/baile real y negro muestreado. Evidencia: `docs/reports/2026-10-07-H-20-22-gpt-orientacion-baile.md`. | H-20 BLOCKED por clave; aún sin respuesta ni latencia GPT. Teléfono/caja/ensayo y pendientes previos siguen abiertos. No se crearon commits: Git no funcional en el entorno. |
+| 2026-10-07 | Git / H-05 | `.git` vacío inicializado por petición explícita. Base guardada en `main`: `b90baa9` documentación, `f789637` aplicación y `6c93a8c` evidencia. Trabajo nuevo en `feat/validacion-calibracion-holograma`. Negro carga/normal/error ahora comprobado; reporte `docs/reports/2026-10-07-H-05-negro-y-descargas.md`. | Continuar H-06. La evidencia física y GPT real siguen pendientes; el chat anteriormente rechazado no se reintentó. |
+| 2026-10-07 | H-06 | Calibración precisa y patrón asimétrico reparado, verificaciones de UI/recargas/medidas y 20 pruebas aprobadas. H-05 guardado como `ac4636f`. Reporte: `docs/reports/2026-10-07-H-06-calibracion-precisa.md`. | H-07/H-08 requieren dispositivo/caja reales (H-19). H-20 requiere clave privada. Arrastre de rangos no cambió valores en automatización; controles numéricos sí comprobados. |
 
 ## Backlog anterior conservado
 

@@ -115,8 +115,10 @@ Los estados actuales están en la roadmap. H-00 representa este plan documental;
 **H-06 — Controles de calibración y guardado (30–45 min). Depende de H-05.**
 
 - Escala configurable inicial 0.25–2.0; desplazamiento X/Y en fracciones de viewport; rotación 0/90/180/270; espejo horizontal y vertical independientes; restaurar valores.
+- Implementación H-06: valores numéricos en porcentajes junto a rangos (tamaño 25–200, X/Y −45…45), giro del cuerpo en grados/pasos de 5. La ruta numérica permite calibración precisa; comprobar arrastre táctil en H-07.
 - Aplicar transformaciones de presentación sin deformar el rig. Mantener conversión consistente tras rotación/resize; se permite ajustar límites después de probar la caja.
 - Patrón temporal asimétrico con letra F, indicación arriba y lados; apagarlo completamente al presentar modelo.
+- El SVG usa el atributo `hidden`, no una propiedad que no se refleje en SVG. Ocultar el panel conserva el patrón para ensayar reflexión sin UI; Restablecer/checkbox lo apagan. Recargar no recupera patrón activo.
 - Guardar calibración local versionada; datos corruptos recuperan predeterminados. Mostrar controles solo en modo ajustes y ofrecer gesto/botón para entrar/salir; jamás dejarlos reflejados durante la demo.
 - Entregable técnico: calibración recuperable y patrón asimétrico funcional. Captura del patrón en reflector real corresponde a H-08.
 - Aceptación: espejo cambia lateralidad, rotación cambia orientación, escala/desplazamiento son independientes y configuración se recupera tras 3 recargas. El patrón cambia lateralidad digital; lectura mediante reflector real se valida en H-08.
@@ -257,6 +259,34 @@ Las tareas H-20…H-22 tienen prioridad por instrucción más reciente del propi
 - Adaptar materiales no soportados a monocromático; preparar variante opcional control/visor con URL propia, conservando avatar y baile originales. No retargeting ni animación automática.
 - Aceptación: carga real sin dependencias externas, cuerpo completo/frontal sobre negro, acceso desde opción de control y URL de visor, calibración disponible, prueba de rig/animación conservados, build y reporte. Dispositivo/caja permanecen pendientes.
 
+**H-25 — Integrar validación/calibración con main. Depende de H-06/H-23/H-24.**
+
+- Comparar ramas con remoto, preservar selector y Cortana del compañero, integrar controles numéricos/patrón y errores de lectura.
+- Resolver documentos/IDs duplicados conservando decisiones y evidencia histórica.
+- Aceptación: commit de merge, pruebas y build, sin marcadores de conflicto ni credenciales versionadas. No sustituye pruebas físicas.
+
+**H-26 — Recuperar texturas originales de Cortana. Depende de H-25.**
+
+- Inspeccionar el original en Descargas: PNG, materiales, mapas, alpha, skin y clips. Conservar original y atribución.
+- Preparar GLB autosuficiente compatible con GLTFLoader, conservando texturas y BIN. No generalizar una conversión de materiales que solo es válida para este asset difuso.
+- Mantener mapas al renderizar, pulso de procesamiento sobre intensidad original, negro y controles/patrón previos. Tratar ausencia de mapas como fallo; liberar recursos al desmontar.
+- Aceptación: cuatro materiales con imágenes realmente cargadas, ocho PNG válidos, rig/clip conservados; captura frontal completa, cinco puntos de fondo RGB 0/0/0 y prueba numérica/patrón. Tests/build aprobados; móvil/caja siguen pendientes.
+
+**H-27 — Guía de rig y múltiples animaciones. Depende de H-26.**
+
+- Inspeccionar rig/nombres/clip/morphs reales y recomendar reutilización antes de rerig.
+- Explicar Mixamo, alternativa Rigify, pesos, pose base, retargeting y exportación GLB multi-clip. Citar documentación oficial actual.
+- Proponer contrato de entrega, catálogo mínimo y aceptación por clip/ciclo/transición/envolvente/móvil/caja.
+- Aceptación documental: guía existente, datos consistentes con asset, enlaces válidos y distinción entre propuesta e implementación. No necesita inventar exportación Blender ni subir archivos a terceros.
+
+**H-28 — Ollama Cloud / Gemma 4 31B. Depende de H-23/H-10.**
+
+- API directa fija ollama.com/api/chat; modelo gemma4:31b confirmado por catálogo público. Clave OLLAMA_API_KEY exclusivamente backend; no descargar pesos ni reutilizar credenciales GPT/CLI.
+- Agregar selección explícita Cloud junto a GPT y Qwen local; aplicar modelo configurado en PC, iniciar nuevo contexto/cache y preservar presentación/calibración. Sin fallback ni pagos.
+- Enviar chat no streaming con pensamiento desactivado, salida 256 tokens y límites/cancelación/timeout existentes. Explicar ausencia/clave/cuota/acceso/modelo sin filtrar respuesta privada.
+- Aceptación técnica: contrato/errores, clave privada y destino fijo, cambio de proveedor validado, contextos separados y figura estable; suite/build y render reales.
+- Aceptación real: clave y acceso de cuenta, tres preguntas+seguimiento con latencias, cancelación y nueva solicitud. Plan Free limitado: no afirmar gratuidad del modelo sin cuenta verificada. Falta de autenticación mantiene BLOCKED, aunque integración técnica esté lista.
+
 **H-18 — Mejoras posteriores. Depende de H-17. Estado DEFERRED.**
 
 - Modelo final, materiales, labios, escucha por nombre, aplicación instalada o sin PC y más proveedores. Cada mejora necesita nueva tarjeta y objetivo medible.
@@ -277,6 +307,7 @@ Las tareas H-20…H-22 tienen prioridad por instrucción más reciente del propi
 | QA-09 Ensayo | Guion completo 2 veces, 10 min con IA. | A+B reproducibles y limitaciones explícitas. | Reporte final. |
 | QA-10 Orientación | Tres modos, dos aspectos, 3 recargas y espejos. | Giro sin acumulación, figura íntegra y ajuste conservado. | Pruebas de geometría, DOM y capturas PC. |
 | QA-11 Baile | Iniciar/detener PC, abrir visor, provocar fallo GPT. | Esqueleto real, selección recuperada y negro continuo. | Clip/GLB reales, pruebas HTTP y capturas. |
+| QA-13 Cloud | Configurar clave y tres preguntas + seguimiento/cancelación. | Respuestas reales Gemma y contexto; errores no cambian proveedor ni figura. | Catálogo/contratos verificados; generación pendiente de clave. |
 | QA-12 GPT | Clave privada, 3 mensajes + seguimiento. | Respuestas reales y latencias; errores legibles sin fallback. | Registro pendiente de credencial. |
 
 ## 7. Orden, tiempos y recortes

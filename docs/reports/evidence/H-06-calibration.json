@@ -1,0 +1,1717 @@
+[
+  {
+    "label": "reset-initial",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "auto"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "100"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "1"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "0"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "",
+    "panelHidden": false,
+    "pattern": {
+      "bounds": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "hidden": true,
+      "transform": "translate(calc(-50% + 0px), calc(-50% + 0px)) scale(1, 1) rotate(0deg)"
+    },
+    "surface": {
+      "animation": "idle",
+      "animationTime": "0.18",
+      "fps": "3",
+      "orientation": "auto",
+      "phase": "idle",
+      "rotation": "0",
+      "status": "ready",
+      "viewportHeight": "844",
+      "viewportWidth": "380"
+    },
+    "viewport": [
+      380,
+      844
+    ]
+  },
+  {
+    "label": "valid-inputs-applied",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "auto"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "75"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "0.75"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "-12"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "-0.12"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "8"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0.08"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "35"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "35"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "0"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "",
+    "panelHidden": false,
+    "pattern": {
+      "bounds": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "hidden": true,
+      "transform": "translate(calc(-50% - 45.6px), calc(-50% + 67.52px)) scale(0.75, 0.75) rotate(0deg)"
+    },
+    "surface": {
+      "animation": "idle",
+      "animationTime": "0.18",
+      "fps": "3",
+      "orientation": "auto",
+      "phase": "idle",
+      "rotation": "0",
+      "status": "ready",
+      "viewportHeight": "844",
+      "viewportWidth": "380"
+    },
+    "viewport": [
+      380,
+      844
+    ]
+  },
+  {
+    "label": "configured-before-reloads",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "landscape"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "75"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "0.75"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "-12"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "-0.12"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "8"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0.08"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "35"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "35"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "90"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "",
+    "panelHidden": false,
+    "pattern": {
+      "bounds": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "hidden": true,
+      "transform": "translate(calc(-50% - 45.6px), calc(-50% + 67.52px)) scale(-0.75, -0.75) rotate(180deg)"
+    },
+    "surface": {
+      "animation": "idle",
+      "animationTime": "0.02",
+      "fps": "1",
+      "orientation": "landscape",
+      "phase": "idle",
+      "rotation": "180",
+      "status": "ready",
+      "viewportHeight": "844",
+      "viewportWidth": "380"
+    },
+    "viewport": [
+      380,
+      844
+    ]
+  },
+  {
+    "label": "reload-1",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "landscape"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "75"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "0.75"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "-12"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "-0.12"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "8"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0.08"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "35"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "35"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "90"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "",
+    "panelHidden": false,
+    "pattern": {
+      "bounds": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "hidden": true,
+      "transform": "translate(calc(-50% - 45.6px), calc(-50% + 67.52px)) scale(-0.75, -0.75) rotate(180deg)"
+    },
+    "surface": {
+      "animation": "idle",
+      "animationTime": "0.10",
+      "orientation": "landscape",
+      "phase": "idle",
+      "rotation": "180",
+      "status": "ready",
+      "viewportHeight": "844",
+      "viewportWidth": "380"
+    },
+    "viewport": [
+      380,
+      844
+    ]
+  },
+  {
+    "label": "reload-2",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "landscape"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "75"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "0.75"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "-12"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "-0.12"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "8"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0.08"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "35"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "35"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "90"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "",
+    "panelHidden": false,
+    "pattern": {
+      "bounds": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "hidden": true,
+      "transform": "translate(calc(-50% - 45.6px), calc(-50% + 67.52px)) scale(-0.75, -0.75) rotate(180deg)"
+    },
+    "surface": {
+      "animation": "idle",
+      "animationTime": "0.15",
+      "fps": "1",
+      "orientation": "landscape",
+      "phase": "idle",
+      "rotation": "180",
+      "status": "ready",
+      "viewportHeight": "844",
+      "viewportWidth": "380"
+    },
+    "viewport": [
+      380,
+      844
+    ]
+  },
+  {
+    "label": "reload-3",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "landscape"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "75"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "0.75"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "-12"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "-0.12"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "8"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0.08"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "35"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "35"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "90"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "",
+    "panelHidden": false,
+    "pattern": {
+      "bounds": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "hidden": true,
+      "transform": "translate(calc(-50% - 45.6px), calc(-50% + 67.52px)) scale(-0.75, -0.75) rotate(180deg)"
+    },
+    "surface": {
+      "animation": "idle",
+      "animationTime": "0.08",
+      "orientation": "landscape",
+      "phase": "idle",
+      "rotation": "180",
+      "status": "ready",
+      "viewportHeight": "844",
+      "viewportWidth": "380"
+    },
+    "viewport": [
+      380,
+      844
+    ]
+  },
+  {
+    "label": "empty-input-preserves-75",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "landscape"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "75"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "0.75"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "-12"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "-0.12"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "8"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0.08"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "35"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "35"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "90"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "",
+    "panelHidden": false,
+    "pattern": {
+      "bounds": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "hidden": true,
+      "transform": "translate(calc(-50% - 45.6px), calc(-50% + 67.52px)) scale(-0.75, -0.75) rotate(180deg)"
+    },
+    "surface": {
+      "animation": "idle",
+      "animationTime": "0.14",
+      "fps": "28",
+      "orientation": "landscape",
+      "phase": "idle",
+      "rotation": "180",
+      "status": "ready",
+      "viewportHeight": "844",
+      "viewportWidth": "380"
+    },
+    "viewport": [
+      380,
+      844
+    ]
+  },
+  {
+    "label": "oversized-input-clamped-to-200",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "landscape"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "200"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "2"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "-12"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "-0.12"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "8"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0.08"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "35"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "35"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "90"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "",
+    "panelHidden": false,
+    "pattern": {
+      "bounds": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "hidden": true,
+      "transform": "translate(calc(-50% - 45.6px), calc(-50% + 67.52px)) scale(-2, -2) rotate(180deg)"
+    },
+    "surface": {
+      "animation": "idle",
+      "animationTime": "0.24",
+      "fps": "28",
+      "orientation": "landscape",
+      "phase": "idle",
+      "rotation": "180",
+      "status": "ready",
+      "viewportHeight": "844",
+      "viewportWidth": "380"
+    },
+    "viewport": [
+      380,
+      844
+    ]
+  },
+  {
+    "label": "fraction-rejected-preserves-200",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "landscape"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "200"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "2"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "-12"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "-0.12"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "8"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0.08"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "35"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "35"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "90"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "Valor inválido: usa porcentajes enteros y ángulos en pasos de 5°. Se conservó el ajuste anterior.",
+    "panelHidden": false,
+    "pattern": {
+      "bounds": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "hidden": true,
+      "transform": "translate(calc(-50% - 45.6px), calc(-50% + 67.52px)) scale(-2, -2) rotate(180deg)"
+    },
+    "surface": {
+      "animation": "idle",
+      "animationTime": "0.29",
+      "fps": "28",
+      "orientation": "landscape",
+      "phase": "idle",
+      "rotation": "180",
+      "status": "ready",
+      "viewportHeight": "844",
+      "viewportWidth": "380"
+    },
+    "viewport": [
+      380,
+      844
+    ]
+  },
+  {
+    "label": "reset-clears-invalid-and-pattern",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "auto"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "100"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "1"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "0"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "",
+    "panelHidden": false,
+    "pattern": {
+      "bounds": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "hidden": true,
+      "transform": "translate(calc(-50% + 0px), calc(-50% + 0px)) scale(1, 1) rotate(0deg)"
+    },
+    "surface": {
+      "animation": "idle",
+      "animationTime": "0.86",
+      "fps": "32",
+      "orientation": "auto",
+      "phase": "idle",
+      "rotation": "0",
+      "status": "ready",
+      "viewportHeight": "844",
+      "viewportWidth": "380"
+    },
+    "viewport": [
+      380,
+      844
+    ]
+  },
+  {
+    "label": "pattern-default",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "auto"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "100"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "1"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "0"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "",
+    "panelHidden": true,
+    "pattern": {
+      "bounds": {
+        "bottom": 536,
+        "height": 228,
+        "left": 76,
+        "right": 304,
+        "top": 308,
+        "width": 228,
+        "x": 76,
+        "y": 308
+      },
+      "hidden": false,
+      "transform": "translate(calc(-50% + 0px), calc(-50% + 0px)) scale(1, 1) rotate(0deg)"
+    },
+    "surface": {
+      "animation": "idle",
+      "animationTime": "0.08",
+      "fps": "78",
+      "orientation": "auto",
+      "phase": "idle",
+      "rotation": "0",
+      "status": "ready",
+      "viewportHeight": "844",
+      "viewportWidth": "380"
+    },
+    "viewport": [
+      380,
+      844
+    ]
+  },
+  {
+    "label": "pattern-scale-and-offset",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "auto"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "75"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "0.75"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "-12"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "-0.12"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "8"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0.08"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "0"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "",
+    "panelHidden": true,
+    "pattern": {
+      "bounds": {
+        "bottom": 575.02001953125,
+        "height": 171.00003051757812,
+        "left": 58.899993896484375,
+        "right": 229.89999389648438,
+        "top": 404.0199890136719,
+        "width": 171,
+        "x": 58.899993896484375,
+        "y": 404.0199890136719
+      },
+      "hidden": false,
+      "transform": "translate(calc(-50% - 45.6px), calc(-50% + 67.52px)) scale(0.75, 0.75) rotate(0deg)"
+    },
+    "surface": {
+      "animation": "idle",
+      "animationTime": "0.08",
+      "fps": "91",
+      "orientation": "auto",
+      "phase": "idle",
+      "rotation": "0",
+      "status": "ready",
+      "viewportHeight": "844",
+      "viewportWidth": "380"
+    },
+    "viewport": [
+      380,
+      844
+    ]
+  },
+  {
+    "label": "pattern-mirror-horizontal",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "auto"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "75"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "0.75"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "-12"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "-0.12"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "8"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0.08"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "0"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "",
+    "panelHidden": true,
+    "pattern": {
+      "bounds": {
+        "bottom": 575.02001953125,
+        "height": 171.00003051757812,
+        "left": 58.899993896484375,
+        "right": 229.89999389648438,
+        "top": 404.0199890136719,
+        "width": 171,
+        "x": 58.899993896484375,
+        "y": 404.0199890136719
+      },
+      "hidden": false,
+      "transform": "translate(calc(-50% - 45.6px), calc(-50% + 67.52px)) scale(-0.75, 0.75) rotate(0deg)"
+    },
+    "surface": {
+      "animation": "idle",
+      "animationTime": "0.85",
+      "fps": "102",
+      "orientation": "auto",
+      "phase": "idle",
+      "rotation": "0",
+      "status": "ready",
+      "viewportHeight": "844",
+      "viewportWidth": "380"
+    },
+    "viewport": [
+      380,
+      844
+    ]
+  },
+  {
+    "label": "pattern-rotation-and-both-mirrors",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "auto"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "75"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "0.75"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "-12"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "-0.12"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "8"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0.08"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "90"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": true
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "",
+    "panelHidden": true,
+    "pattern": {
+      "bounds": {
+        "bottom": 575.02001953125,
+        "height": 171.00003051757812,
+        "left": 58.899993896484375,
+        "right": 229.89999389648438,
+        "top": 404.0199890136719,
+        "width": 171,
+        "x": 58.899993896484375,
+        "y": 404.0199890136719
+      },
+      "hidden": false,
+      "transform": "translate(calc(-50% - 45.6px), calc(-50% + 67.52px)) scale(-0.75, -0.75) rotate(90deg)"
+    },
+    "surface": {
+      "animation": "idle",
+      "animationTime": "0.81",
+      "fps": "111",
+      "orientation": "auto",
+      "phase": "idle",
+      "rotation": "90",
+      "status": "ready",
+      "viewportHeight": "844",
+      "viewportWidth": "380"
+    },
+    "viewport": [
+      380,
+      844
+    ]
+  },
+  {
+    "label": "range-drag",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "auto"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "100"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "1"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "0"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "",
+    "panelHidden": false,
+    "pattern": {
+      "bounds": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "hidden": true,
+      "transform": "translate(calc(-50% + 0px), calc(-50% + 0px)) scale(1, 1) rotate(0deg)"
+    },
+    "surface": {
+      "animation": "idle",
+      "animationTime": "0.02",
+      "fps": "40",
+      "orientation": "auto",
+      "phase": "idle",
+      "rotation": "0",
+      "status": "ready",
+      "viewportHeight": "844",
+      "viewportWidth": "380"
+    },
+    "viewport": [
+      380,
+      844
+    ]
+  },
+  {
+    "label": "model-offset-and-turn",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "auto"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "75"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "0.75"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "-12"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "-0.12"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "8"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0.08"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "35"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "35"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "0"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "",
+    "panelHidden": true,
+    "pattern": {
+      "bounds": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "hidden": true,
+      "transform": "translate(calc(-50% - 45.6px), calc(-50% + 67.52px)) scale(0.75, 0.75) rotate(0deg)"
+    },
+    "surface": {
+      "animation": "idle",
+      "animationTime": "0.26",
+      "fps": "35",
+      "orientation": "auto",
+      "phase": "idle",
+      "rotation": "0",
+      "status": "ready",
+      "viewportHeight": "844",
+      "viewportWidth": "380"
+    },
+    "viewport": [
+      380,
+      844
+    ]
+  },
+  {
+    "label": "compact-controls-and-original-settings-restored",
+    "fields": [
+      {
+        "key": "orientation",
+        "type": "select-one",
+        "value": "auto"
+      },
+      {
+        "key": "scale",
+        "type": "number",
+        "value": "101"
+      },
+      {
+        "key": "scale",
+        "type": "range",
+        "value": "1.01"
+      },
+      {
+        "key": "x",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "x",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "y",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "y",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "turn",
+        "type": "number",
+        "value": "0"
+      },
+      {
+        "key": "turn",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "key": "rotation",
+        "type": "select-one",
+        "value": "0"
+      },
+      {
+        "key": "mirrorX",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "mirrorY",
+        "type": "checkbox",
+        "value": false
+      },
+      {
+        "key": "wireframe",
+        "type": "checkbox",
+        "value": false
+      }
+    ],
+    "notice": "",
+    "panelHidden": false,
+    "pattern": {
+      "bounds": {
+        "bottom": 0,
+        "height": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "hidden": true,
+      "transform": "translate(calc(-50% + 0px), calc(-50% + 0px)) scale(1.01, 1.01) rotate(0deg)"
+    },
+    "surface": {
+      "animation": "gangnam",
+      "animationTime": "2.44",
+      "fps": "76",
+      "orientation": "auto",
+      "phase": "idle",
+      "rotation": "0",
+      "status": "ready",
+      "viewportHeight": "380",
+      "viewportWidth": "735"
+    },
+    "viewport": [
+      792,
+      954
+    ]
+  }
+]

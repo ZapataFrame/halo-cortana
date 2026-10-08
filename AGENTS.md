@@ -9,6 +9,7 @@ Prioridad vigente desde 2026-10-07: MVP holográfico para mañana, 2026-10-08. P
 - `Cortana.md`: diseño actual del avatar/visor negro, calibración, conversación por texto y voz posterior. Detalla la especificación sin confirmar un stack tecnológico.
 - `docs/plans/2026-10-07-mvp-holograma.md`: tarjetas detalladas H-00…H-19, pruebas y contingencias del MVP activo. H-19 identifica dispositivo/caja/hora sin dar por probadas las tareas físicas.
 - Ampliación vigente H-20…H-22: GPT principal solicitado por el propietario, orientación automática/vertical/horizontal y baile libre. Ollama es alternativa explícita; sin fallback automático. Credencial privada pendiente no bloquea funciones visuales independientes.
+- Ampliación 2026-10-08 H-25…H-28: merge de calibración en main, texturas originales de Cortana, guía de rig/múltiples clips y prueba temporal Ollama Cloud/Gemma 4. `docs/GUIA_RIG_ANIMACIONES.md` y `docs/API_OLLAMA_CLOUD.md` registran preparación y límites. Credencial cloud no bloquea visor; no declarar generación sin cuenta real.
 - `docs/API_OPENAI.md`: alta/configuración API y distinción de costes; no implica gasto autorizado ni cuenta verificada.
 - `docs/archive/`: definiciones anteriores del simulador; no ejecutar su orden de tareas durante el MVP holográfico.
 - `docs/reports/`: reportes cuando un avance, experimento o bloqueo lo justifique.

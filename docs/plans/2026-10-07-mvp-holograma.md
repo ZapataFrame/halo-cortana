@@ -208,6 +208,11 @@ Los estados actuales están en la roadmap. H-00 representa este plan documental;
 **H-16 — Pulsar para hablar y reconocimiento (STT). Depende de H-15.**
 
 - Preferencia inicial: micrófono PC, transcripción editable y envío explícito. Si el micrófono debe vivir en móvil/navegador, resolver permisos/contexto seguro y compatibilidad antes de prometerlo en LAN HTTP.
+- Implementación 2026-10-10, Codex: controlador MediaRecorder independiente, adaptador/worker Whisper base en entorno CPU separado, instalador y manifiesto fijados; UI en control PC, contratos de captura y fase listening. Estado IN_PROGRESS hasta prueba humana y revisión visual completas.
+- Pasos verificables: comprobar capacidades/contexto sin pedir permiso al cargar → detener TTS propio → reservar micrófono → permiso → iniciar grabación → mantener máximo 15 s → soltar/apagar pistas → transcribir en backend → agregar al borrador → corregir → Enviar. Cerrar/cancelar nunca entrega texto tardío.
+- Contratos: loopback/Host/Origin; acciones reserve/start/stop/cancel con captureId; audio binario ≤2 MiB y ≤16 s; transcripción ≤30 s. Sin elección de URLs/modelos desde navegador, sin logs/archivos privados ni llamada LLM automática. Otro control no inicia TTS/captura superpuestos.
+- Verificación técnica: pruebas de permisos tardíos/denegados, liberación de pistas, pulsación corta, límites, silencio, fallo, cancelación durante reserva/reconocimiento, nueva sesión y recuperación; benchmark real con diez frases sintéticas públicas, WAV/WebM/Ogg/MP4 y métricas. Registrar comparación de modelos sin confundir audio Piper con precisión humana.
+- Ensayo humano pendiente Q-12: PC/micrófono/navegador, conceder permiso, diez frases propuestas en docs/VOZ_PC.md acordadas por el propietario, corrección de una palabra, descarte durante captura y STT, permiso denegado y permiso tardío, TTS detenido antes de captar y cero envíos automáticos. Registrar sentido correcto ≥8/10 y latencia; sin guardar grabaciones privadas en Git.
 - Éxito: al menos 8 de 10 frases de prueba acordadas se transcriben con sentido suficiente; errores se corrigen y nunca ejecutan acciones directamente. Captura no reconoce el TTS de la propia asistente.
 
 **H-17 — Flujo de voz completo y gestos simples. Depende de H-16.**

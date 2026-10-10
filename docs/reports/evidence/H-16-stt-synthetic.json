@@ -1,0 +1,109 @@
+{
+  "date": "2026-10-10T18:15:20.402Z",
+  "source": "Piper/Daniela: diez frases sintéticas públicas; NO micrófono humano",
+  "model": "Whisper base / CPU int8 / español",
+  "acceptanceHuman": "PENDIENTE: acordar y medir diez frases humanas en el PC",
+  "results": [
+    {
+      "expected": "Hola Cortana, preséntate en una frase.",
+      "status": 200,
+      "text": "Hola Cortana, presente en una frase.",
+      "durationMs": 2171,
+      "elapsedMs": 2648
+    },
+    {
+      "expected": "Explícame qué es un holograma.",
+      "status": 200,
+      "text": "Explícame que es un olorama.",
+      "durationMs": 1521,
+      "elapsedMs": 2664
+    },
+    {
+      "expected": "¿Cómo puedo ajustar el brillo de la pantalla?",
+      "status": 200,
+      "text": "cómo puedo ajustar el brillo de la pantalla.",
+      "durationMs": 2171,
+      "elapsedMs": 2563
+    },
+    {
+      "expected": "Quiero conversar sobre este proyecto.",
+      "status": 200,
+      "text": "Quiero conversar sobre este proyecto.",
+      "durationMs": 1950,
+      "elapsedMs": 2450
+    },
+    {
+      "expected": "Mi nombre es Ana y estudio ingeniería.",
+      "status": 200,
+      "text": "Mi nombre es Ana y estudio en que niría.",
+      "durationMs": 2055,
+      "elapsedMs": 2479
+    },
+    {
+      "expected": "¿Puedes recordar mi nombre?",
+      "status": 200,
+      "text": "Puedes recordar mi nombre.",
+      "durationMs": 1266,
+      "elapsedMs": 2407
+    },
+    {
+      "expected": "Necesito un modelo sobre un fondo negro.",
+      "status": 200,
+      "text": "Necesito un modelo sobre un fondo nera.",
+      "durationMs": 2113,
+      "elapsedMs": 2564
+    },
+    {
+      "expected": "Ayúdame a preparar una demostración.",
+      "status": 200,
+      "text": "Ayúame a preparar una demostración.",
+      "durationMs": 2043,
+      "elapsedMs": 2672
+    },
+    {
+      "expected": "El micrófono está conectado a la computadora.",
+      "status": 200,
+      "text": "El micrófono está conectado a la computadora.",
+      "durationMs": 2368,
+      "elapsedMs": 2917
+    },
+    {
+      "expected": "Gracias Cortana, hasta luego.",
+      "status": 200,
+      "text": "Gracias Cortana, hasta luego.",
+      "durationMs": 1707,
+      "elapsedMs": 2668
+    }
+  ],
+  "formats": [
+    {
+      "type": "audio/webm",
+      "status": 200,
+      "text": "Hola Cortana, presente en una frase.",
+      "elapsedMs": 2553
+    },
+    {
+      "type": "audio/ogg",
+      "status": 200,
+      "text": "Hola Cortana, presente en una frase.",
+      "elapsedMs": 2503
+    },
+    {
+      "type": "audio/mp4",
+      "status": 200,
+      "text": "Hola Cortana, presente en una frase.",
+      "elapsedMs": 2845
+    }
+  ],
+  "silence": {
+    "status": 422,
+    "error": "No se detectó voz. Acércate al micrófono y vuelve a grabar.",
+    "code": "STT_NO_SPEECH"
+  },
+  "finalState": {
+    "sessionId": "f00d6c95-63e2-497d-8b47-0660050887c7",
+    "revision": 56,
+    "phase": "idle",
+    "animation": "idle"
+  }
+}

@@ -1,6 +1,6 @@
 # Cortana — MVP holográfico activo
 
-Actualizado: 2026-10-08. Visor y conversación textual implementados; propietario autorizó adelantar voz PC por D-32. Aceptación móvil/física pendiente.
+Actualizado: 2026-10-10. Visor, conversación, respuesta hablada y reconocimiento local PC implementados; D-32 adelanta voz. Aceptación de micrófono humano/móvil/caja pendiente.
 
 La versión previa del agente del simulador se conserva en `docs/archive/Cortana-2026-10-05.md`. Alcance actual: `SPECIFICACTIONS.MD`; tareas/estados: `ROADMAP.MD`; tarjetas y pruebas: `docs/plans/2026-10-07-mvp-holograma.md`.
 
@@ -8,7 +8,7 @@ La versión previa del agente del simulador se conserva en `docs/archive/Cortana
 
 Un humanoide sencillo adquirido de internet, visible sobre negro puro en celular/pantalla y calibrable para una caja Pepper’s Ghost. No requiere parecido exacto, lipsync, rig nuevo ni shaders complejos. Por nueva petición del propietario incluye modos vertical/horizontal y un baile libre, activable desde PC.
 
-La prueba vigente usa Ollama Cloud con Gemma 4 31B; clave cargada y cinco respuestas reales comprobadas, con seguimiento y cancelación (H-28). GPT permanece seleccionable. El usuario escribe desde PC; el móvil mantiene el avatar. Ollama queda como alternativa explícita, seleccionable desde el panel con Qwen local (H-23). H-15 añade respuesta hablada local en PC; H-16 continúa con reconocimiento.
+La prueba vigente usa Ollama Cloud con Gemma 4 31B; clave cargada y cinco respuestas reales comprobadas, con seguimiento y cancelación (H-28). GPT permanece seleccionable. El usuario escribe o dicta/revisa/envía desde PC; el móvil mantiene el avatar. Ollama queda como alternativa explícita, seleccionable desde el panel con Qwen local (H-23). H-15 añade respuesta hablada local en PC; H-16 añade reconocimiento local con aceptación humana pendiente.
 
 ## 2. Flujo activo
 
@@ -16,7 +16,10 @@ La prueba vigente usa Ollama Cloud con Gemma 4 31B; clave cargada y cinco respue
 flowchart LR
     PC["PC: servidor local y control"] --> A["Assets locales y calibración"]
     A --> V["Móvil: humanoide sobre negro"]
-    U["Usuario escribe en control PC"] --> B["Backend: proveedor LLM"]
+    U["Usuario escribe o revisa transcripción"] --> X["Enviar explícitamente desde PC"]
+    MIC["Mantener pulsado: micrófono PC"] --> STT["Whisper local: transcripción editable"]
+    STT --> U
+    X --> B["Backend: proveedor LLM"]
     B --> L["API Ollama Cloud / Gemma · GPT · Ollama local"]
     L --> R["Respuesta textual real en PC"]
     R --> T["Piper local: WAV en español"]
@@ -36,7 +39,7 @@ Visor independiente: arranca sin clave y sigue visible si falla la IA. El móvil
 - Conversación pública: `idle`, `processing`, `responded`, `error`; `speaking` durante reproducción confirmada en PC. Cancelar chat vuelve a `idle`; detener audio recupera fase anterior.
 - Conectividad: separada del estado visual. Desconexión no borra el modelo ya cargado; reconexión obtiene sesión/revisión actual.
 - Recuperación H-30: valida el contrato público e ignora revisiones viejas/duplicadas; nueva sesión tras reinicio acepta revisión cero. Una consulta activa, timeout 2.5 s, ciclo de 1 s en primer plano/3 s en segundo plano. Al salir se aborta; al volver se consulta estado actual. Aviso de desconexión en control/calibración, nunca HUD en el visor cerrado. Durante un corte se detiene el pulso y se conserva movimiento/figura; la reconexión no reenvía mensajes.
-- No usar `listening` hasta tener STT real. `speaking` añade pulso luminoso sin labios; no proyecta botones/texto.
+- H-16 usa `listening` tras inicio de captura y confirmación al backend; `processing` durante reconocimiento local. Pedir permiso aún no anuncia escucha. Micrófono apagado antes de transcribir; termina restaurando la fase previa. `speaking` añade pulso luminoso sin labios; no proyecta botones/texto.
 
 Ruta móvil `/hologram`: fondo #000000, una figura, controles ocultos. Ajustes: modo automático/vertical/horizontal, escala, desplazamiento, rotación y espejo horizontal/vertical. Patrón F temporal prueba orientación mediante caja real; desaparece al presentar. Guardar ajuste por dispositivo y poder restablecerlo. El modo añade 90° si la postura del viewport no coincide con el montaje; rotación adicional y espejos siguen independientes. No bloquea el SO del celular.
 
@@ -80,7 +83,7 @@ La caja y pantalla reales determinan tamaño y contraste; no asumir OLED ni dime
 
 H-15: Piper/Daniela en español, CPU y sin clave/coste por llamada. Probar voz, lectura automática opcional, Escuchar respuesta, Volumen y Detener voz. Lee respuesta guardada sin consultar otra vez al LLM; prueba fija diferenciada de conversación. Una salida compartida, cancelación y expiración. Guía/contrato/versión/hash/atribución: `docs/VOZ_PC.md`.
 
-H-16: pulsar para hablar en PC, transcripción editable y envío explícito. H-17: voz→LLM→TTS→avatar con pruebas de recuperación. Micrófono móvil requiere comprobar permisos/contexto seguro antes de escogerlo.
+H-16 implementado: mantener pulsado en control localhost (o Espacio/Enter con botón enfocado), soltar para transcribir mediante Whisper base CPU/español. Detiene TTS propio antes de captar; otra salida/grabación compartida bloquea el inicio. Máximo 15 s; texto añadido al borrador para corregir antes de Enviar, sin automatizar chat. Descartar grabación apaga pistas/cancela procesamiento; errores conservan texto. Entorno y pesos aparte de Piper, instalación `npm run setup:stt`. Audio solo en memoria PC, nunca en proveedor Cloud/visor ni en archivos del repositorio. Permisos reales y meta de ocho frases humanas correctas de diez pendientes; fuente sintética no sustituye ese ensayo. H-17 conserva voz→LLM→TTS→avatar con cinco conversaciones/dos interrupciones. Micrófono móvil requiere comprobar permisos/contexto seguro antes de escogerlo.
 
 Modelo final, labios, escucha por nombre y app instalada son H-18 diferido. El baile solicitado se implementa en H-22 como animación concreta; no reactiva otros gestos ni el simulador. Herramientas tácticas y análisis de batalla permanecen en archivo histórico.
 

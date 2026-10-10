@@ -7,3 +7,5 @@ dist/
 *.log
 .voice-venv/
 .voice-models/
+.stt-venv/
+.stt-models/

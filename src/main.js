@@ -2,13 +2,14 @@ import './style.css';
 import { createViewer } from './viewer.js';
 import { createPresentationSync } from './presentation-sync.js';
 import { createSpeechPlayer } from './speech-player.js';
+import { createVoiceInput, voiceCaptureSupport } from './voice-input.js';
 
 const app = document.querySelector('#app');
 const hologram = location.pathname === '/hologram';
 const avatarId = new URLSearchParams(location.search).get('avatar') === 'cortana' ? 'cortana' : 'dancer';
 const importedAvatar = avatarId === 'cortana';
 const viewerPath = `/hologram${importedAvatar ? '?avatar=cortana' : ''}`;
-let viewer, voicePlayer, disposed = false, presentationSession;
+let viewer, voicePlayer, voiceInput, disposed = false, presentationSession;
 
 if (hologram) {
   document.body.classList.add('projection-page');
@@ -33,9 +34,12 @@ if (hologram) {
             <label class="voice-toggle"><input type="checkbox" id="auto-speak" disabled> Leer respuestas automáticamente</label>
             <div class="voice-actions"><button type="button" class="text-button" id="test-voice" disabled>Probar voz</button><button type="button" class="text-button" id="stop-voice" disabled>Detener voz</button><label for="voice-volume">Volumen <input id="voice-volume" type="range" min="0" max="100" value="80"><output id="volume-label" for="voice-volume">80 %</output></label></div>
             <p id="voice-status" class="small muted" role="status" data-state="idle">Comprobando voz local…</p>
+            <div class="microphone-actions"><button type="button" class="button secondary" id="hold-microphone" aria-describedby="microphone-help" disabled>Mantén pulsado para hablar</button><button type="button" class="text-button" id="cancel-microphone" disabled>Descartar grabación</button></div>
+            <p id="microphone-help" class="small muted">Micrófono de este PC · máximo 15 s. También puedes mantener Espacio o Enter con el botón enfocado. Revisa la transcripción antes de enviarla.</p>
+            <p id="microphone-status" class="small muted" role="status" data-state="idle">Comprobando reconocimiento local…</p>
           </section>
           <div class="messages" aria-label="Conversación" role="log" aria-live="polite"><div class="empty-chat"><span class="empty-symbol">✧</span><h2>Inicia el contacto.</h2><p>Pregúntame algo o cuéntame qué estás construyendo.</p><div class="suggestions"><button>¿Qué es Pepper’s Ghost?</button><button>Preséntate como Cortana</button></div></div></div>
-          <p id="chat-status" class="chat-status" role="status"></p><form id="chat-form"><label class="sr-only" for="message">Mensaje para Cortana</label><textarea id="message" placeholder="Escribe un mensaje…" maxlength="2000" rows="2" required></textarea><div class="composer-footer"><span class="small muted">Texto + respuesta hablada · micrófono próximamente</span><button class="button" id="send" type="submit">Enviar ↗</button><button class="button secondary" id="cancel" type="button" hidden>Cancelar</button></div></form>
+          <p id="chat-status" class="chat-status" role="status"></p><form id="chat-form"><label class="sr-only" for="message">Mensaje para Cortana</label><textarea id="message" placeholder="Escribe o dicta un mensaje…" maxlength="2000" rows="2" required></textarea><div class="composer-footer"><span class="small muted">Revisa el texto · tú decides cuándo enviar</span><button class="button" id="send" type="submit">Enviar ↗</button><button class="button secondary" id="cancel" type="button" hidden>Cancelar</button></div></form>
         </section>
         <section class="connection-card card"><div class="card-heading"><span class="eyebrow">03 / PANTALLA EXTERNA</span><span class="small muted">MISMA RED WI-FI</span></div><h2>Lleva el avatar a tu celular.</h2><p>Abre esta dirección en su navegador. Toca la esquina superior izquierda del visor para ajustar espejo, posición y tamaño.</p><div id="viewer-links" class="viewer-links"><a href="${viewerPath}">Abrir visor local</a></div><p class="small muted" id="server-connection" role="status">Conectando con el PC…</p><p class="small muted">Una figura sobre negro puro. Ajusta brillo y bloqueo de pantalla en tu dispositivo.</p></section>
         <section class="adjustment-card card"><div class="card-heading"><span class="eyebrow">04 / CALIBRACIÓN</span><span class="small muted">GUARDADO LOCAL</span></div><div id="desktop-settings"></div></section>
@@ -66,6 +70,9 @@ if (hologram) {
     finally { motionButtons.forEach(item => { item.disabled = false; }); }
   }));
   let active = null, retry = null, changingProvider = false, localControl = false, catalog = null, voiceReady = false, voiceBusy = false;
+  let microphoneReady = false, microphoneBusy = false, microphonePhase = 'idle';
+  const microphone = app.querySelector('#hold-microphone'), microphoneCancel = app.querySelector('#cancel-microphone');
+  const microphoneStatus = app.querySelector('#microphone-status');
   const autoSpeak = app.querySelector('#auto-speak'), voiceStatus = app.querySelector('#voice-status');
   const testVoice = app.querySelector('#test-voice'), stopVoice = app.querySelector('#stop-voice');
   voicePlayer = createSpeechPlayer({
@@ -78,6 +85,38 @@ if (hologram) {
       updateControls();
     },
   });
+  voiceInput = createVoiceInput({
+    stopSpeech: () => voicePlayer.stop(false),
+    onState(state) {
+      microphonePhase = state.phase;
+      microphoneBusy = ['preparing', 'recording', 'transcribing'].includes(state.phase);
+      microphoneStatus.dataset.state = state.phase;
+      microphoneStatus.textContent = state.detail + (state.seconds !== undefined ? ` ${state.seconds} / 15 s.` : '')
+        + (state.elapsedMs !== undefined ? ` ${(state.elapsedMs / 1000).toFixed(1)} s.` : '');
+      microphone.setAttribute('aria-pressed', String(state.phase === 'recording'));
+      updateControls();
+      if (state.phase === 'ready') input.focus();
+    },
+    onTranscript(text) {
+      const draft = input.value.trim(); const next = draft ? `${draft}\n${text}` : text;
+      if (next.length > 2000) return false;
+      input.value = next; retry = null;
+    },
+  });
+  microphone.addEventListener('pointerdown', event => {
+    if (event.button !== 0 || microphone.disabled || microphoneBusy) return;
+    event.preventDefault(); microphone.setPointerCapture(event.pointerId); voiceInput.start();
+  });
+  microphone.addEventListener('pointerup', () => voiceInput.finish());
+  microphone.addEventListener('pointercancel', () => voiceInput.cancel());
+  microphone.addEventListener('lostpointercapture', () => { if (['preparing', 'recording'].includes(microphonePhase)) voiceInput.cancel(); });
+  microphone.addEventListener('keydown', event => {
+    if (![' ', 'Enter'].includes(event.key)) return;
+    event.preventDefault(); if (!event.repeat && !microphone.disabled && !microphoneBusy) voiceInput.start();
+  });
+  microphone.addEventListener('keyup', event => { if ([' ', 'Enter'].includes(event.key)) { event.preventDefault(); voiceInput.finish(); } });
+  microphoneCancel.addEventListener('click', () => voiceInput.cancel());
+  window.addEventListener('blur', () => { if (microphoneBusy) voiceInput.cancel(); });
   testVoice.addEventListener('click', () => voicePlayer.play('voice-test'));
   stopVoice.addEventListener('click', () => voicePlayer.stop());
   autoSpeak.addEventListener('change', () => { if (!autoSpeak.checked) voicePlayer.stop(); });
@@ -104,7 +143,7 @@ if (hologram) {
     updateControls();
   }
   function updateControls() {
-    const locked = Boolean(active || changingProvider || !localControl);
+    const locked = Boolean(active || changingProvider || microphoneBusy || !localControl);
     providerSelect.disabled = locked || !catalog;
     modelSelect.disabled = locked || !modelSelect.value;
     app.querySelector('#apply-provider').disabled = locked || !modelSelect.value;
@@ -118,6 +157,8 @@ if (hologram) {
     testVoice.disabled = locked || !voiceReady || voiceBusy;
     stopVoice.disabled = !voiceBusy;
     app.querySelectorAll('.listen-response').forEach(button => { button.disabled = locked || !voiceReady || voiceBusy; });
+    microphone.disabled = Boolean(active || changingProvider || !localControl || !microphoneReady || microphonePhase === 'transcribing');
+    microphoneCancel.disabled = !microphoneBusy;
   }
   function showProviderHealth(info) {
     app.querySelector('#provider-status').textContent = `${info.provider.toUpperCase()} / ${info.model} · ${info.health.detail}`;
@@ -136,6 +177,13 @@ if (hologram) {
     const response = await fetch('/api/tts'); const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'No se pudo consultar la voz.');
     voiceReady = data.ready; voiceStatus.textContent = data.detail; updateControls();
+  }
+  async function refreshMicrophone() {
+    const support = voiceCaptureSupport();
+    if (!support.ready) { microphoneStatus.textContent = support.detail; return; }
+    const response = await fetch('/api/stt'); const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'No se pudo consultar el reconocimiento.');
+    microphoneReady = data.ready; microphoneStatus.textContent = data.detail; updateControls();
   }
   async function refreshModels() {
     const response = await fetch('/api/providers');
@@ -167,7 +215,7 @@ if (hologram) {
   });
   app.querySelector('#provider-form').addEventListener('submit', async event => {
     event.preventDefault();
-    if (active || changingProvider || !localControl) return;
+    if (active || changingProvider || microphoneBusy || !localControl) return;
     changingProvider = true; updateControls();
     try {
       await voicePlayer.stop(false);
@@ -198,7 +246,7 @@ if (hologram) {
   }
   function busy(value) { send.hidden = value; cancel.hidden = !value; updateControls(); }
   async function submit(message, reused) {
-    if (active || changingProvider || !localControl) return;
+    if (active || changingProvider || microphoneBusy || !localControl) return;
     const requestId = reused?.requestId || crypto.randomUUID();
     const controller = new AbortController();
     const current = { requestId, message, controller }; active = current; busy(true);
@@ -257,7 +305,11 @@ if (hologram) {
     if (info.localControl) {
       await refreshModels();
       refreshVoice().catch(error => { voiceStatus.textContent = error.message; });
-    } else voiceStatus.textContent = 'La voz se controla desde localhost en el PC.';
+      refreshMicrophone().catch(error => { microphoneStatus.textContent = error.message; });
+    } else {
+      voiceStatus.textContent = 'La voz se controla desde localhost en el PC.';
+      microphoneStatus.textContent = 'El micrófono se controla desde localhost en el PC.';
+    }
     const links = app.querySelector('#viewer-links');
     for (const address of info.viewerUrls) {
       const url = address + (importedAvatar ? '?avatar=cortana' : '');
@@ -273,13 +325,14 @@ const presentationSync = createPresentationSync({
   interval: () => document.hidden ? 3000 : 1000,
   onState(state) {
     voicePlayer?.onPresentation(state, Boolean(presentationSession && presentationSession !== state.sessionId));
+    voiceInput?.onPresentation(state, Boolean(presentationSession && presentationSession !== state.sessionId));
     presentationSession = state.sessionId;
     viewer.setPhase(state.phase);
     viewer.setAnimation(state.animation);
     app.dataset.sessionId = state.sessionId; app.dataset.revision = String(state.revision);
     app.querySelectorAll('button[data-animation]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.animation === (importedAvatar ? 'idle' : state.animation))));
     const chip = app.querySelector('.phase-chip');
-    if (chip) { chip.dataset.phase = state.phase; chip.textContent = { idle: 'En reposo', processing: 'Procesando', responded: 'Respuesta lista', speaking: 'Hablando', error: 'Proveedor sin respuesta' }[state.phase] || 'En reposo'; }
+    if (chip) { chip.dataset.phase = state.phase; chip.textContent = { idle: 'En reposo', listening: 'Escuchando', processing: 'Procesando', responded: 'Respuesta lista', speaking: 'Hablando', error: 'Proveedor sin respuesta' }[state.phase] || 'En reposo'; }
   },
   onConnection(connected) {
     viewer.setConnection(connected); app.dataset.connection = connected ? 'connected' : 'offline';
@@ -287,6 +340,7 @@ const presentationSync = createPresentationSync({
     if (connection) connection.textContent = connected ? 'Conexión con el PC activa.' : 'PC sin conexión. Reintentando…';
     if (!connected) {
       voicePlayer?.stop();
+      voiceInput?.cancel();
       viewer.setPhase('idle');
       const chip = app.querySelector('.phase-chip');
       if (chip) { chip.dataset.phase = 'offline'; chip.textContent = 'PC sin conexión'; }
@@ -295,10 +349,12 @@ const presentationSync = createPresentationSync({
 });
 presentationSync.start();
 document.addEventListener('visibilitychange', () => {
+  if (document.hidden) voiceInput?.cancel(false);
   if (!document.hidden && !disposed) { presentationSync.stop(); presentationSync.start(); }
 });
 window.addEventListener('pagehide', event => {
   voicePlayer?.stop(false);
+  voiceInput?.cancel(false);
   presentationSync.stop();
   if (!event.persisted) { disposed = true; viewer.destroy(); }
 });

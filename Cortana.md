@@ -57,7 +57,7 @@ Opción **Cortana importada**: `?avatar=cortana` en control/visor. Copia local d
 
 ## 5. Conversación y proveedor
 
-Control PC separado del área reflejada: escribir, enviar, cancelar, leer respuesta y ver estado/proveedor. Personalidad aplicada mediante prompt del backend: «Eres Cortana, asistente de un prototipo holográfico. Responde en español de forma breve. Este MVP solo muestra tu modelo y admite conversación; no afirmes controlar un simulador ni dispositivos».
+Control PC separado del área reflejada: escribir, enviar, cancelar, leer respuesta y ver estado/proveedor. Prompt del backend: Cortana responde en español, máximo 25 palabras; conoce el avatar, lectura local automática/manual y dictado PC revisado antes de enviar. Distingue esas funciones de la aplicación de herramientas del LLM: no controla simulador/dispositivos ni ejecuta acciones. No afirma escucha/habla actual sin que la aplicación confirme captura/reproducción. H-11 corrige la instrucción histórica «no tienes voz», que producía una negación incorrecta de TTS.
 
 Sin herramientas de estrategia ni acciones de mundo en este corte. No anunciar «tanque creado», «escuchando» o «hablando» cuando esas funciones no existen. Historial breve y explícito; reiniciar conversación no reinicia calibración.
 
@@ -93,4 +93,4 @@ Modelo final, labios, escucha por nombre y app instalada son H-18 diferido. El b
 - B LLM: 3 preguntas nuevas y seguimiento, respuesta no pregrabada, errores controlados y figura estable.
 - Voz: adelantada en PC por el propietario; no sustituye aceptación física A+B.
 
-Hay capturas y mediciones PC/LLM local en el reporte inicial; orientación y baile tienen evidencia nueva en `docs/reports/2026-10-07-H-20-22-gpt-orientacion-baile.md`. H-28 verifica respuestas Cloud; H-29 comprueba diagnóstico; H-30 verifica recuperación PC. H-15 añade voz real y su evidencia propia. D-32/Q-11 adelantan H-15→H-16 en PC. H-11 manual (recorrido completo/cancelar chat), clave GPT H-20 y datos físicos H-19 siguen pendientes. H-07/H-08 validan dispositivo/caja; no hay aprobación física ni latencia GPT medida.
+Hay capturas y mediciones PC/LLM local en el reporte inicial; orientación y baile tienen evidencia nueva en `docs/reports/2026-10-07-H-20-22-gpt-orientacion-baile.md`. H-28 verifica respuestas Cloud; H-29 comprueba diagnóstico; H-30 verifica recuperación PC. H-15 añade voz real y su evidencia propia. H-11 verifica ahora tres preguntas/seguimiento UI, cancelación y recuperación, con guía `docs/PRUEBAS_CHAT_PC.md` y reporte `docs/reports/2026-10-10-H-11-chat-pc.md`. D-32/Q-11 adelantan H-15→H-16 en PC; H-16 está BLOCKED por aceptación humana Q-12 y H-17 espera ese resultado. Clave GPT H-20 y datos físicos H-19 siguen pendientes. H-07/H-08 validan dispositivo/caja; no hay aprobación física ni latencia GPT medida.

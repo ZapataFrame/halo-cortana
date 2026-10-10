@@ -1,6 +1,6 @@
 # H-16 — Captura y reconocimiento local PC
 
-Fecha: 2026-10-10. Responsable: Codex. Rama: `codex/reconocimiento-voz-pc`, base `a1d0bb9`, PR #2 ya integrado en main. Estado: **IN_PROGRESS: implementación y revisión visual PC verificadas; aceptación humana pendiente**.
+Fecha: 2026-10-10. Responsable: Codex. Rama: `codex/reconocimiento-voz-pc`, base `a1d0bb9`, PR #2 ya integrado en main. Estado: **BLOCKED por Q-12: implementación y revisión visual PC verificadas; aceptación humana pendiente**.
 
 ## Objetivo y cambios
 
@@ -59,4 +59,4 @@ Se detectó por revisión del código un riesgo: al acabar por límite de 15 s c
 
 Q-12: registrar navegador/micrófono/ruido PC y acordar diez frases de `docs/VOZ_PC.md`. Se solicitó al propietario ese contexto y participación al retomar la tarea; aún sin resultados humanos. Comprobar permiso inicial/denegado/tardío, captura humana, ≥8/10 con sentido útil antes de corregir, edición/envío explícito, cancelación en captura/STT, TTS detenido antes de captar y recuperación. Añadir ensayo de Enter/Espacio mantenidos hasta el límite y liberados durante STT. Revisión visual PC completada; no equivale a prueba de micrófono ni móvil/caja. Sin audios privados en Git.
 
-H-16 conserva IN_PROGRESS hasta esa evidencia. Después H-17: cinco conversaciones voz→texto revisado→LLM→TTS→avatar, dos interrupciones y fallo de proveedor con latencia por etapa. H-07/H-08/H-12/H-14 físicos y GPT real H-20 siguen pendientes; este avance no los cierra.
+Al continuar sin resultados humanos, H-16 pasa a BLOCKED por Q-12 y se completa H-11 independiente; ese ensayo de texto no sustituye el de micrófono. Después de aceptar H-16 sigue H-17: cinco conversaciones voz→texto revisado→LLM→TTS→avatar, dos interrupciones y fallo de proveedor con latencia por etapa. H-07/H-08/H-12/H-14 físicos y GPT real H-20 siguen pendientes; este avance no los cierra.

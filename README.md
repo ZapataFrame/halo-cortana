@@ -116,7 +116,9 @@ Suelta para apagar micrófono y transcribir (máximo 15 s). El texto se añade a
 
 ## Verificación
 
-68 pruebas aprobadas: controles, proyección, texturas, proveedores, cancelación, recuperación, TTS y STT con reserva única. Build e instaladores de voz/reconocimiento correctos. H-15 conserva tres WAV Gemma reales y reproducción UI verificada. H-16 verificó diez frases **sintéticas**, cuatro formatos y silencio mediante backend/Whisper reales (2.4–2.9 s), cancelación del worker en 106 ms y rechazo de audio largo. Hay errores de transcripción; **permiso/micrófono humano y meta ≥8/10 todavía no probados**. DOM del control inspeccionado; revisión visual H-16 pendiente tras desconexión del navegador de pruebas. [Reporte H-16](docs/reports/2026-10-10-H-16-reconocimiento-pc.md). Cloud real verificado históricamente; GPT requiere clave válida, sin generación comprobada. Celular físico, caja, audición humana y cinco conversaciones completas H-17 siguen pendientes.
+74 pruebas aprobadas: controles, proyección, texturas, proveedores, cancelación, recuperación, TTS y STT con reserva única. Build correcto. H-11 verificó en la interfaz tres preguntas y seguimiento con Gemma 4:31b Cloud, cancelación y recuperación; una respuesta real retenida y liberada después de cancelar no alteró el contexto. El prompt reconoce las funciones de voz existentes. [Reporte H-11](docs/reports/2026-10-10-H-11-chat-pc.md).
+
+H-15 conserva tres WAV Gemma reales y reproducción UI verificada. H-16 verificó diez frases **sintéticas**, cuatro formatos y silencio mediante backend/Whisper reales (2.4–2.9 s), cancelación del worker en 106 ms y rechazo de audio largo. El control se inspeccionó visualmente; hay errores de transcripción y **permiso/micrófono humano y meta ≥8/10 todavía no probados**. H-16 queda bloqueado por ese ensayo. [Reporte H-16](docs/reports/2026-10-10-H-16-reconocimiento-pc.md). GPT requiere clave válida, sin generación comprobada. Celular físico, caja, audición humana y cinco conversaciones completas H-17 siguen pendientes.
 
 ```bash
 npm test
@@ -124,6 +126,8 @@ npm run build
 ```
 
 Ensayo digital de negro: con la demo compilada, ejecuta `npm run qa:visual -- loading` y abre `http://127.0.0.1:3001/hologram`. Enter en terminal libera el GLB real. `npm run qa:visual -- error` provoca fallo del recurso. Detén un ensayo antes de iniciar el otro. El visor conserva negro y el diagnóstico aparece al abrir calibración; no se carga la clave API en estos ensayos.
+
+Ensayo de chat: `npm run qa:chat` sirve el control en `http://127.0.0.1:3002/control?avatar=cortana` y llama al proveedor real configurado en `.env`. El modo `npm run qa:chat -- delay` permite retener una respuesta para comprobar su descarte tras cancelar. [Preguntas, pasos y criterios](docs/PRUEBAS_CHAT_PC.md).
 
 [Roadmap](ROADMAP.MD) · [Especificación](SPECIFICACTIONS.MD) · [Plan](docs/plans/2026-10-07-mvp-holograma.md) · [Reporte de calibración](docs/reports/2026-10-07-H-06-calibracion-precisa.md) · [GPT/orientación/baile](docs/reports/2026-10-07-H-20-22-gpt-orientacion-baile.md).
 

@@ -162,6 +162,7 @@ Los estados actuales están en la roadmap. H-00 representa este plan documental;
 
 **H-11 — Panel de conversación PC (20–30 min). Depende de H-10.**
 
+- Verificado 2026-10-10, Codex: tres preguntas/seguimiento UI real con Gemma Cloud, prompt corregido para reconocer TTS/dictado, cancelación y recuperación. Respuesta real retenida y entregada tarde para comprobar descarte; sin texto inventado. Guía `docs/PRUEBAS_CHAT_PC.md`, `npm run qa:chat -- normal|delay`, reporte/evidencia H-11. No valida micrófono ni montaje físico.
 - Campo de texto, enviar, cancelar, estado, proveedor y respuesta. Cortana responde breve en español y sabe que el MVP solo muestra un avatar; no finge controlar el simulador.
 - Separar el panel de la ruta holográfica. Deshabilitar envíos duplicados y mostrar fallos en panel sin iluminar pantalla móvil.
 - Entregable: conversación real y posibilidad de reintentar tras error.
@@ -208,7 +209,7 @@ Los estados actuales están en la roadmap. H-00 representa este plan documental;
 **H-16 — Pulsar para hablar y reconocimiento (STT). Depende de H-15.**
 
 - Preferencia inicial: micrófono PC, transcripción editable y envío explícito. Si el micrófono debe vivir en móvil/navegador, resolver permisos/contexto seguro y compatibilidad antes de prometerlo en LAN HTTP.
-- Implementación 2026-10-10, Codex: controlador MediaRecorder independiente, adaptador/worker Whisper base en entorno CPU separado, instalador y manifiesto fijados; UI en control PC, contratos de captura y fase listening. Seguimiento: revisión visual PC completada, foco protegido ante tecla mantenida tras límite de captura, 74 pruebas/build. Estado IN_PROGRESS hasta aceptación con micrófono humano ≥8/10.
+- Implementación 2026-10-10, Codex: controlador MediaRecorder independiente, adaptador/worker Whisper base en entorno CPU separado, instalador y manifiesto fijados; UI en control PC, contratos de captura y fase listening. Seguimiento: revisión visual PC completada, foco protegido ante tecla mantenida tras límite de captura, 74 pruebas/build. Estado BLOCKED por aceptación pendiente con micrófono humano ≥8/10 (Q-12); se completó H-11 independiente.
 - Pasos verificables: comprobar capacidades/contexto sin pedir permiso al cargar → detener TTS propio → reservar micrófono → permiso → iniciar grabación → mantener máximo 15 s → soltar/apagar pistas → transcribir en backend → agregar al borrador → corregir → Enviar. Cerrar/cancelar nunca entrega texto tardío.
 - Contratos: loopback/Host/Origin; acciones reserve/start/stop/cancel con captureId; audio binario ≤2 MiB y ≤16 s; transcripción ≤30 s. Sin elección de URLs/modelos desde navegador, sin logs/archivos privados ni llamada LLM automática. Otro control no inicia TTS/captura superpuestos.
 - Verificación técnica: pruebas de permisos tardíos/denegados, liberación de pistas, pulsación corta, límites, silencio, fallo, cancelación durante reserva/reconocimiento, nueva sesión y recuperación; benchmark real con diez frases sintéticas públicas, WAV/WebM/Ogg/MP4 y métricas. Verificar límite con Enter/Espacio mantenidos, liberación fuera del botón deshabilitado y ausencia de envío por tecla repetida. Registrar comparación de modelos sin confundir audio Piper con precisión humana.

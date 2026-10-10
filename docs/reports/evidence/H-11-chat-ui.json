@@ -1,0 +1,157 @@
+{
+  "task": "H-11",
+  "date": "2026-10-10",
+  "branch": "codex/reconocimiento-voz-pc",
+  "base": "d119c50",
+  "provider": "ollama-cloud",
+  "model": "gemma4:31b",
+  "beforePromptFix": "TÚ\n\n¿La aplicación puede leer tus respuestas en voz alta? Responde en una frase.\n\nCORTANA\n\nNo, soy una demo holográfica y no tengo capacidad de voz ni herramientas para ejecutar lecturas en voz alta.\n\ngemma4:31b · 0.6 s\nEscuchar respuesta",
+  "normalQuestions": [
+    {
+      "message": "¿La aplicación puede leer tus respuestas en voz alta? Responde en una frase.",
+      "log": "TÚ\n\n¿La aplicación puede leer tus respuestas en voz alta? Responde en una frase.\n\nCORTANA\n\nSí, la aplicación puede leer mis respuestas utilizando la voz local de tu PC.\n\ngemma4:31b · 0.6 s\nEscuchar respuesta",
+      "preview": {
+        "avatar": "cortana",
+        "connection": "connected",
+        "phase": "responded",
+        "status": "ready",
+        "texturedMaterials": "4"
+      }
+    },
+    {
+      "message": "Para esta prueba, recuerda el código ficticio ORION-27. ¿Cuál es?",
+      "log": "TÚ\n\n¿La aplicación puede leer tus respuestas en voz alta? Responde en una frase.\n\nCORTANA\n\nSí, la aplicación puede leer mis respuestas utilizando la voz local de tu PC.\n\ngemma4:31b · 0.6 s\nEscuchar respuesta\nTÚ\n\nPara esta prueba, recuerda el código ficticio ORION-27. ¿Cuál es?\n\nCORTANA\n\nEl código ficticio es ORION-27.\n\ngemma4:31b · 0.7 s\nEscuchar respuesta",
+      "preview": {
+        "avatar": "cortana",
+        "connection": "connected",
+        "phase": "processing",
+        "status": "ready",
+        "texturedMaterials": "4"
+      }
+    },
+    {
+      "message": "¿Puedes añadir un tanque al simulador ahora? Explica tu límite.",
+      "log": "TÚ\n\n¿La aplicación puede leer tus respuestas en voz alta? Responde en una frase.\n\nCORTANA\n\nSí, la aplicación puede leer mis respuestas utilizando la voz local de tu PC.\n\ngemma4:31b · 0.6 s\nEscuchar respuesta\nTÚ\n\nPara esta prueba, recuerda el código ficticio ORION-27. ¿Cuál es?\n\nCORTANA\n\nEl código ficticio es ORION-27.\n\ngemma4:31b · 0.7 s\nEscuchar respuesta\nTÚ\n\n¿Puedes añadir un tanque al simulador ahora? Explica tu límite.\n\nCORTANA\n\nNo puedo hacerlo. Soy una asistente holográfica; no controlo el simulador ni ejecuto acciones ni herramientas en el sistema.\n\ngemma4:31b · 0.5 s\nEscuchar respuesta",
+      "preview": {
+        "avatar": "cortana",
+        "connection": "connected",
+        "phase": "processing",
+        "status": "ready",
+        "texturedMaterials": "4"
+      }
+    },
+    {
+      "message": "¿Cuál es el código ficticio de prueba que te pedí recordar?",
+      "log": "TÚ\n\n¿La aplicación puede leer tus respuestas en voz alta? Responde en una frase.\n\nCORTANA\n\nSí, la aplicación puede leer mis respuestas utilizando la voz local de tu PC.\n\ngemma4:31b · 0.6 s\nEscuchar respuesta\nTÚ\n\nPara esta prueba, recuerda el código ficticio ORION-27. ¿Cuál es?\n\nCORTANA\n\nEl código ficticio es ORION-27.\n\ngemma4:31b · 0.7 s\nEscuchar respuesta\nTÚ\n\n¿Puedes añadir un tanque al simulador ahora? Explica tu límite.\n\nCORTANA\n\nNo puedo hacerlo. Soy una asistente holográfica; no controlo el simulador ni ejecuto acciones ni herramientas en el sistema.\n\ngemma4:31b · 0.5 s\nEscuchar respuesta\nTÚ\n\n¿Cuál es el código ficticio de prueba que te pedí recordar?\n\nCORTANA\n\nEl código ficticio es ORION-27.\n\ngemma4:31b · 0.4 s\nEscuchar respuesta",
+      "preview": {
+        "avatar": "cortana",
+        "connection": "connected",
+        "phase": "processing",
+        "status": "ready",
+        "texturedMaterials": "4"
+      }
+    }
+  ],
+  "naturalCancellationAttempt": {
+    "message": "Cambia el código ficticio a VEGA-99 y describe veinte ideas para la demostración.",
+    "cancelButtonObserved": true,
+    "cancelExecuted": false,
+    "result": "Respuesta completada en 0.9 s antes de pulsar Cancelar; no cuenta como cancelación"
+  },
+  "heldCancellation": {
+    "providerReplyWasReal": true,
+    "retentionMaxMs": 20000,
+    "release": "automatic-timeout",
+    "manualReleaseSucceeded": false,
+    "cancelledStatusObserved": true,
+    "previewAfterCancel": {
+      "avatar": "cortana",
+      "connection": "connected",
+      "phase": "idle",
+      "status": "ready",
+      "texturedMaterials": "4"
+    },
+    "recovery": {
+      "message": "¿Cuál es el código ficticio que te pedí recordar en el ensayo?",
+      "log": "TÚ\n\nPara este ensayo, recuerda el código ficticio ORION-27.\n\nCORTANA\n\nEntendido. He registrado el código ficticio ORION-27 en mi memoria para el ensayo. ¿En qué más puedo ayudarte?\n\ngemma4:31b · 0.6 s\nEscuchar respuesta\nTÚ\n\nRecuerda ahora el código ficticio NOVA-13. [QA_CANCELACION]\n\nTÚ\n\n¿Cuál es el código ficticio que te pedí recordar en el ensayo?\n\nCORTANA\n\nEl código ficticio que me pediste recordar para el ensayo es ORION-27.\n\ngemma4:31b · 0.7 s\nEscuchar respuesta",
+      "preview": {
+        "avatar": "cortana",
+        "connection": "connected",
+        "phase": "processing",
+        "status": "ready",
+        "texturedMaterials": "4"
+      }
+    },
+    "elapsedSinceRecoveryMs": 129819,
+    "messagesAfterLateDelivery": [
+      {
+        "role": "user",
+        "text": "Para este ensayo, recuerda el código ficticio ORION-27."
+      },
+      {
+        "role": "assistant",
+        "text": "Entendido. He registrado el código ficticio ORION-27 en mi memoria para el ensayo. ¿En qué más puedo ayudarte?"
+      },
+      {
+        "role": "user",
+        "text": "Recuerda ahora el código ficticio NOVA-13. [QA_CANCELACION]"
+      },
+      {
+        "role": "user",
+        "text": "¿Cuál es el código ficticio que te pedí recordar en el ensayo?"
+      },
+      {
+        "role": "assistant",
+        "text": "El código ficticio que me pediste recordar para el ensayo es ORION-27."
+      }
+    ],
+    "conversationUnchanged": true,
+    "previewAfterLateDelivery": {
+      "avatar": "cortana",
+      "connection": "connected",
+      "phase": "responded",
+      "status": "ready",
+      "texturedMaterials": "4"
+    }
+  },
+  "tests": {
+    "passed": 74,
+    "failed": 0,
+    "buildPassed": true,
+    "bundleWarningOver500KB": true
+  },
+  "limits": {
+    "humanMicrophoneTrial": false,
+    "mobileOpticalTrial": false,
+    "gptGeneration": false,
+    "cloudQuotaInspected": false,
+    "liveMainPresentationDuringQa": {
+      "revision": 0,
+      "phase": "idle"
+    }
+  },
+  "screenshots": [
+    "H-11-recovery-control.png",
+    "H-11-hologram.png"
+  ],
+  "projectionAfterUi": {
+    "avatar": "cortana",
+    "connection": "connected",
+    "phase": "responded",
+    "status": "ready",
+    "texturedMaterials": "4"
+  },
+  "mainAfterRestart": {
+    "url": "http://localhost:3000/control?avatar=cortana",
+    "avatar": "cortana",
+    "status": "ready",
+    "texturedMaterials": "4",
+    "phase": "idle",
+    "connection": "connected",
+    "tts": "Daniela local preparada",
+    "stt": "Reconocimiento local preparado",
+    "qaServerStopped": true,
+    "newLlmCalls": 0,
+    "microphoneOpened": false
+  }
+}

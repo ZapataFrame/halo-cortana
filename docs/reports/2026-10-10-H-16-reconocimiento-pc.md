@@ -1,6 +1,6 @@
 # H-16 — Captura y reconocimiento local PC
 
-Fecha: 2026-10-10. Responsable: Codex. Rama: `codex/reconocimiento-voz-pc`, base `a1d0bb9`, PR #2 ya integrado en main. Estado: **IN_PROGRESS: implementación verificada técnicamente; aceptación humana/revisión visual pendientes**.
+Fecha: 2026-10-10. Responsable: Codex. Rama: `codex/reconocimiento-voz-pc`, base `a1d0bb9`, PR #2 ya integrado en main. Estado: **IN_PROGRESS: implementación y revisión visual PC verificadas; aceptación humana pendiente**.
 
 ## Objetivo y cambios
 
@@ -43,8 +43,20 @@ El benchmark detectó errores relevantes: «holograma»→«olorama», «ingenie
 
 Para comparar small se descargó públicamente `Systran/faster-whisper-small`, revisión `536b0662742c02347bc0e980a01041f333bce120`, a `.stt-models/small`. Ese experimento no se distribuye ni instala en `setup:stt`. En otro PC el comparador requiere primero ese recurso. No se activaron pagos ni se descargó Gemma localmente.
 
+## Seguimiento: revisión visual y teclado
+
+Al retomar H-16 se comprobó que el servidor estaba detenido y se inició `npm start`. `GET /api/stt` y `/api/tts` devolvieron 200/ready; presentación 200/idle. El navegador integrado recuperó conexión y permitió inspeccionar la aplicación renderizada en PC: Cortana texturada, controles de voz/micrófono legibles, instrucciones completas, borrador y Enviar. Se recargó después de compilar los cambios. Capturas reales de viewport, sin montajes ni datos de voz personales:
+
+- `evidence/H-16-control-ready.png`: control de dictado disponible.
+- `evidence/H-16-draft.png`: «Preséntate como Cortana» añadido mediante sugerencia UI, pendiente de envío. Presentación mantuvo revisión 0/idle; no se consultó al LLM.
+- `evidence/H-16-control-review.json`: verificaciones y límites de este seguimiento.
+
+Se detectó por revisión del código un riesgo: al acabar por límite de 15 s con Enter todavía pulsado, enfocar inmediatamente el editor permitiría que la repetición de la tecla enviara el texto. No se presenta como un incidente observado con micrófono real. `src/voice-input-controls.js` conserva el gesto hasta soltar, recibe keyup en la ventana aunque el botón esté deshabilitado y aplaza el foco. Descartar/pérdida de foco liberan ese gesto; perder pointer durante STT no descarta una transcripción legítima. El editor también ignora Enter repetido y no intercepta la confirmación de composición de texto.
+
+`npm test` final: **74/74**; seis pruebas nuevas de eventos/foco, además de las 68 anteriores. Incluyen límite con Enter mantenido, Espacio liberado fuera del botón, pointer correcto, pérdida de captura, descartar/blur y controles deshabilitados/destruidos. Son eventos controlados con EventTarget, no una certificación de permisos o teclado/micrófono nativos. `npm run build` final correcto: JS 666.51 kB/171.32 kB gzip; advertencia >500 kB conservada. `git diff --check` correcto. No se repitieron descarga, benchmark de modelos ni llamadas Cloud; no había cambios en el motor STT.
+
 ## Pendiente y siguiente paso
 
-Q-12: registrar navegador/micrófono/ruido PC y acordar diez frases de `docs/VOZ_PC.md`. Comprobar permiso inicial/denegado/tardío, captura humana, ≥8/10 con sentido útil antes de corregir, edición/envío explícito, cancelación en captura/STT, TTS detenido antes de captar y recuperación. Hacer revisión visual cuando el navegador esté conectado. Sin audios privados en Git.
+Q-12: registrar navegador/micrófono/ruido PC y acordar diez frases de `docs/VOZ_PC.md`. Se solicitó al propietario ese contexto y participación al retomar la tarea; aún sin resultados humanos. Comprobar permiso inicial/denegado/tardío, captura humana, ≥8/10 con sentido útil antes de corregir, edición/envío explícito, cancelación en captura/STT, TTS detenido antes de captar y recuperación. Añadir ensayo de Enter/Espacio mantenidos hasta el límite y liberados durante STT. Revisión visual PC completada; no equivale a prueba de micrófono ni móvil/caja. Sin audios privados en Git.
 
 H-16 conserva IN_PROGRESS hasta esa evidencia. Después H-17: cinco conversaciones voz→texto revisado→LLM→TTS→avatar, dos interrupciones y fallo de proveedor con latencia por etapa. H-07/H-08/H-12/H-14 físicos y GPT real H-20 siguen pendientes; este avance no los cierra.

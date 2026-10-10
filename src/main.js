@@ -3,13 +3,14 @@ import { createViewer } from './viewer.js';
 import { createPresentationSync } from './presentation-sync.js';
 import { createSpeechPlayer } from './speech-player.js';
 import { createVoiceInput, voiceCaptureSupport } from './voice-input.js';
+import { bindVoiceInputControls } from './voice-input-controls.js';
 
 const app = document.querySelector('#app');
 const hologram = location.pathname === '/hologram';
 const avatarId = new URLSearchParams(location.search).get('avatar') === 'cortana' ? 'cortana' : 'dancer';
 const importedAvatar = avatarId === 'cortana';
 const viewerPath = `/hologram${importedAvatar ? '?avatar=cortana' : ''}`;
-let viewer, voicePlayer, voiceInput, disposed = false, presentationSession;
+let viewer, voicePlayer, voiceInput, voiceInputControls, disposed = false, presentationSession;
 
 if (hologram) {
   document.body.classList.add('projection-page');
@@ -95,7 +96,7 @@ if (hologram) {
         + (state.elapsedMs !== undefined ? ` ${(state.elapsedMs / 1000).toFixed(1)} s.` : '');
       microphone.setAttribute('aria-pressed', String(state.phase === 'recording'));
       updateControls();
-      if (state.phase === 'ready') input.focus();
+      voiceInputControls?.onState(state.phase);
     },
     onTranscript(text) {
       const draft = input.value.trim(); const next = draft ? `${draft}\n${text}` : text;
@@ -103,20 +104,8 @@ if (hologram) {
       input.value = next; retry = null;
     },
   });
-  microphone.addEventListener('pointerdown', event => {
-    if (event.button !== 0 || microphone.disabled || microphoneBusy) return;
-    event.preventDefault(); microphone.setPointerCapture(event.pointerId); voiceInput.start();
-  });
-  microphone.addEventListener('pointerup', () => voiceInput.finish());
-  microphone.addEventListener('pointercancel', () => voiceInput.cancel());
-  microphone.addEventListener('lostpointercapture', () => { if (['preparing', 'recording'].includes(microphonePhase)) voiceInput.cancel(); });
-  microphone.addEventListener('keydown', event => {
-    if (![' ', 'Enter'].includes(event.key)) return;
-    event.preventDefault(); if (!event.repeat && !microphone.disabled && !microphoneBusy) voiceInput.start();
-  });
-  microphone.addEventListener('keyup', event => { if ([' ', 'Enter'].includes(event.key)) { event.preventDefault(); voiceInput.finish(); } });
-  microphoneCancel.addEventListener('click', () => voiceInput.cancel());
-  window.addEventListener('blur', () => { if (microphoneBusy) voiceInput.cancel(); });
+  voiceInputControls = bindVoiceInputControls({ button: microphone, discardButton: microphoneCancel, input, voiceInput,
+    getPhase: () => microphonePhase, isBusy: () => microphoneBusy });
   testVoice.addEventListener('click', () => voicePlayer.play('voice-test'));
   stopVoice.addEventListener('click', () => voicePlayer.stop());
   autoSpeak.addEventListener('change', () => { if (!autoSpeak.checked) voicePlayer.stop(); });
@@ -276,7 +265,10 @@ if (hologram) {
     if (message) submit(message, retry?.message === message ? retry : null);
   });
   input.addEventListener('keydown', event => {
-    if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); app.querySelector('#chat-form').requestSubmit(); }
+    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+      event.preventDefault();
+      if (!event.repeat) app.querySelector('#chat-form').requestSubmit();
+    }
   });
   app.querySelectorAll('.suggestions button').forEach(button => button.addEventListener('click', () => { input.value = button.textContent; input.focus(); }));
   cancel.addEventListener('click', async () => {
@@ -356,7 +348,7 @@ window.addEventListener('pagehide', event => {
   voicePlayer?.stop(false);
   voiceInput?.cancel(false);
   presentationSync.stop();
-  if (!event.persisted) { disposed = true; viewer.destroy(); }
+  if (!event.persisted) { disposed = true; voiceInputControls?.destroy(); viewer.destroy(); }
 });
 window.addEventListener('pageshow', event => {
   if (event.persisted && !disposed) presentationSync.start();

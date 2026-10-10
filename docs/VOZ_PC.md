@@ -55,7 +55,7 @@ Requiere los mismos `uv` y `hf`. Instala Python 3.13 y 23 paquetes fijados en `.
 
 1. Abre [control Cortana](http://localhost:3000/control?avatar=cortana) en PC mediante **localhost**, con micrófono conectado. No se pide permiso al cargar.
 2. **Mantén pulsado para hablar** y concede permiso al navegador. Si la primera pulsación termina al conceder permiso, vuelve a mantenerla pulsada. Solo comienza cuando aparece **Escuchando**.
-3. Habla una frase y suelta el botón. Alternativa de teclado: enfoca el botón con Tab y mantén Espacio o Enter. Captura mínima 0.6 s, máxima 15 s; pedir permiso aún no cuenta como escucha.
+3. Habla una frase y suelta el botón. Alternativa de teclado: enfoca el botón con Tab y mantén Espacio o Enter. Captura mínima 0.6 s, máxima 15 s; pedir permiso aún no cuenta como escucha. Si llegas al límite aún manteniendo una tecla, el editor espera a que la sueltes para recibir foco; soltar durante transcripción también se detecta aunque el botón esté deshabilitado. La repetición de Enter no envía el mensaje.
 4. El micrófono se apaga; aparece **Transcribiendo**. El resultado se añade al borrador existente en una línea nueva, hasta 2000 caracteres. Si excede ese límite, se conserva el borrador completo y se informa. **Corrige lo necesario y pulsa Enviar**; grabar/transcribir nunca consulta al LLM.
 5. **Descartar grabación** cancela captura o transcripción. Salir, cambiar de pestaña, perder foco/conexión o reiniciar servidor apagan captura y descartan resultados antiguos; no borran el mensaje. Un reset/cambio de proveedor/chat iniciado desde otro control también invalida reconocimiento pendiente.
 
@@ -89,5 +89,7 @@ Registrar PC/OS/navegador, micrófono, ruido, frase objetivo, texto antes de cor
 10. Gracias Cortana, hasta luego.
 
 Éxito H-16: ≥8/10 mantienen intención y datos importantes; corregir una palabra funciona antes de enviar; cero envíos automáticos; descartar en captura/transcripción no entrega texto tardío; TTS propia se detiene antes de captar. Probar permiso denegado/tardío, frase corta, silencio, pérdida de foco/conexión y recuperación sin perder borrador. No guardar grabaciones privadas en Git. Después H-17: cinco conversaciones completas y dos interrupciones, con latencia por etapa.
+
+Prueba de teclado: mantener Enter hasta que se alcance el máximo de 15 s, esperar la transcripción sin soltar y comprobar que el texto no se envía. Soltar debe permitir revisar el editor; hacer una pulsación nueva de Enter o pulsar Enviar para enviar deliberadamente. Repetir con Espacio y con una liberación durante transcripción. La secuencia de foco está cubierta por pruebas de eventos controlados; su comportamiento con micrófono/teclado reales todavía pertenece al ensayo humano.
 
 Benchmark técnico reproducible: `node tools/verify-stt.mjs` sintetiza diez frases públicas con Piper y usa HTTP/backend/worker reales, más WAV/WebM/Ogg/MP4 y silencio. No abre micrófono ni llama al LLM; audios temporales en `.stt-models/qa` ignorada y evidencia JSON explícitamente sintética. Base tardó 2.4–2.9 s en este PC; contiene errores y **no certifica ≥8/10 con voz humana**. Comparación experimental small (6.2–7.5 s y errores todavía presentes) en reporte H-16; no cambia el modelo instalado por defecto.

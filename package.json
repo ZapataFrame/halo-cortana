@@ -11,7 +11,8 @@
     "demo": "npm run build && npm start",
     "test": "node --test tests/*.test.js",
     "qa:visual": "node tools/serve-visual-qa.mjs",
-    "setup:voice": "node tools/setup-voice.mjs"
+    "setup:voice": "node tools/setup-voice.mjs",
+    "setup:stt": "node tools/setup-stt.mjs"
   },
   "dependencies": { "three": "0.186.1" },
   "devDependencies": { "vite": "8.3.3" }

@@ -1,6 +1,6 @@
 # Cortana · Holograma
 
-Humanoide sobre **negro puro** para una caja Pepper’s Ghost, modos vertical/horizontal y **Gangnam Style** activable desde PC. Conversación con **Gemma 4 en Ollama Cloud, GPT o Qwen local** y respuesta hablada en español. Cloud requiere su propia clave API; voz local en PC mediante Piper. El celular presenta el avatar; micrófono y simulador táctico quedan pendientes.
+Humanoide sobre **negro puro** para una caja Pepper’s Ghost, modos vertical/horizontal y **Gangnam Style** activable desde PC. Conversación con **Gemma 4 en Ollama Cloud, GPT o Qwen local**, respuesta hablada Piper y dictado Whisper local en español. Cloud requiere su propia clave API. El celular presenta el avatar; micrófono/audio funcionan en control PC. Ensayo de voz humana y simulador táctico siguen pendientes.
 
 ## Abrir la demo
 
@@ -102,11 +102,21 @@ npm run setup:voice
 
 Prepara Python 3.13/Piper y descarga la voz Daniela (114 MB), con versiones y hashes fijados. Después la voz funciona localmente en CPU, sin clave ni coste por llamada. Reinicia la demo y pulsa **Probar voz** en `/control`; no consulta al LLM.
 
-**Escuchar respuesta** lee cada respuesta recibida. Activa **Leer respuestas automáticamente** para respuestas nuevas; **Volumen** regula audio y **Detener voz** cancela preparación/reproducción sin borrar texto. Nueva pregunta/conversación, cambio de proveedor o salida del control detienen voz. El celular solo muestra el avatar y su estado **Hablando**, sin duplicar audio. Todavía no captura micrófono. [Instalación, licencia y recuperación](docs/VOZ_PC.md).
+**Escuchar respuesta** lee cada respuesta recibida. Activa **Leer respuestas automáticamente** para respuestas nuevas; **Volumen** regula audio y **Detener voz** cancela preparación/reproducción sin borrar texto. Nueva pregunta/conversación, cambio de proveedor o salida del control detienen voz. El celular solo muestra el avatar y su estado **Hablando**, sin duplicar audio. [Instalación, licencia y recuperación](docs/VOZ_PC.md).
+
+## Dictar desde el PC
+
+```bash
+npm run setup:stt
+```
+
+Instala Whisper base multilingüe (145 MB) en un entorno separado, con versiones/revisión/hashes fijados. Transcripción en CPU local, sin API pagada. Reinicia el servidor tras actualizar y abre `/control` mediante **localhost**. **Mantén pulsado para hablar**, permite micrófono si se solicita y habla cuando aparezca Escuchando. También puedes mantener Espacio/Enter con el botón enfocado. Si conceder permiso termina la primera pulsación, vuelve a pulsar.
+
+Suelta para apagar micrófono y transcribir (máximo 15 s). El texto se añade a tu borrador: **revisa/corrige y pulsa Enviar**. Cortana detiene su audio antes de captar; **Descartar grabación** cancela captura/transcripción sin borrar el texto. La voz no se guarda ni se envía a Gemma/GPT; solo el texto confirmado se envía al LLM. [Guía y ensayo de diez frases](docs/VOZ_PC.md).
 
 ## Verificación
 
-55 pruebas aprobadas: controles, proyección, texturas, proveedores, cancelación, recuperación y TTS con salida única. Build e instalador de voz correctos. Tres respuestas reales Gemma convertidas a WAV en 3.9–5.7 s; reproducción automática/manual y estado hablando comprobados en navegador PC. Audición humana y preferencia de voz pendientes. **Cloud real verificado; GPT requiere clave válida (401 inicial; ahora ausente), sin generación GPT comprobada. Celular físico, caja y ensayo integrado pendientes.** Las capturas digitales no prueban el efecto óptico ni rendimiento móvil.
+68 pruebas aprobadas: controles, proyección, texturas, proveedores, cancelación, recuperación, TTS y STT con reserva única. Build e instaladores de voz/reconocimiento correctos. H-15 conserva tres WAV Gemma reales y reproducción UI verificada. H-16 verificó diez frases **sintéticas**, cuatro formatos y silencio mediante backend/Whisper reales (2.4–2.9 s), cancelación del worker en 106 ms y rechazo de audio largo. Hay errores de transcripción; **permiso/micrófono humano y meta ≥8/10 todavía no probados**. DOM del control inspeccionado; revisión visual H-16 pendiente tras desconexión del navegador de pruebas. [Reporte H-16](docs/reports/2026-10-10-H-16-reconocimiento-pc.md). Cloud real verificado históricamente; GPT requiere clave válida, sin generación comprobada. Celular físico, caja, audición humana y cinco conversaciones completas H-17 siguen pendientes.
 
 ```bash
 npm test

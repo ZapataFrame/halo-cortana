@@ -17,6 +17,11 @@ h1 { font-size: clamp(34px, 3.2vw, 48px); font-weight: 400; line-height: 1.1; le
 .phase-chip { font-size: 10px; color: #b5b5bc; padding: 5px 9px; border: 1px solid #323238; border-radius: 20px; white-space: nowrap; }
 .phase-chip[data-phase=processing] { color: #fff; border-color: #b6b6bb; }
 .phase-chip[data-phase=speaking] { color: #fff; border-color: #b6b6bb; }
+.phase-chip[data-phase=listening] { color: #fff; border-color: #b6b6bb; }
+.microphone-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+#hold-microphone { touch-action: none; user-select: none; }
+#hold-microphone[aria-pressed=true] { background: #eee; color: #111; }
+#microphone-status[data-state=recording] { color: #eee; }
 .preview { height: 360px; position: relative; background: #000; }
 .avatar-card { display: flex; flex-direction: column; }
 .avatar-caption { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 20px 24px; margin-top: auto; font-size: 8px; color: #73737d; letter-spacing: 1px; }

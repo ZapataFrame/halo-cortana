@@ -1,6 +1,6 @@
 # Halo Strategy Lab — Roadmap activa
 
-Actualizado: 2026-10-08. **Prioridad: MVP holográfico para hoy, 2026-10-08; hora pendiente.** El simulador está diferido por instrucción del propietario. El propietario autorizó iniciar implementación tras cerrar el plan.
+Actualizado: 2026-10-10. **Prioridad: holograma y voz PC; aceptación física pendiente.** La fecha inicial 2026-10-08 es histórica; no hay nueva fecha/hora acordada. El simulador está diferido por instrucción del propietario. El propietario autorizó continuar implementación.
 
 ## Cómo continuar
 
@@ -13,7 +13,7 @@ Leer `AGENTS.md`, `SPECIFICACTIONS.MD`, `Cortana.md` y `docs/plans/2026-10-07-mv
 
 **Ampliación anterior:** H-20…H-22 por petición del propietario. GPT preparado; llamada real aún pendiente. Prueba vigente Cloud/Gemma por H-28. Orientación y baile con evidencia técnica, sin cerrar móvil/caja.
 
-**Base implementada:** main remoto 09ad91b (PR #1) integra calibración, texturas originales, guía y adaptador Gemma Cloud. H-28 ya tiene conversación/cancelación reales verificadas. Continuación en codex/verificacion-demo-holograma. Pruebas físicas siguen en H-19/H-07/H-08.
+**Base integrada:** main remoto a1d0bb9 (PR #2) incluye TTS H-15, diagnóstico H-29 y recuperación H-30, además de calibración/texturas/Gemma del PR #1. Continuación desde esa base en codex/reconocimiento-voz-pc; H-16 añade captura y reconocimiento local. Pruebas físicas siguen en H-19/H-07/H-08.
 
 ## Etapas y métricas de salida
 
@@ -48,7 +48,7 @@ A visual es el primer hito. Para cumplir la solicitud completa de mañana se req
 | H-13 | TODO | H-08, H-12 | P1 | Dos ensayos A+B, recuperación y 10 min integrados. |
 | H-14 | TODO | H-13 | P1 | README, `.env.example`, lockfile, modelo/licencias, `dist/` y reporte preparados; pendiente aceptación tras ensayo/reinicio/montaje real. |
 | H-15 | DONE | H-10, H-26, H-28 | P1 | Codex, 2026-10-08: Piper/Daniela instalado con versiones/revisión/hash; 55 pruebas/build e instalador correctos. Tres WAV Gemma reales (3.9–5.7 s) y tres respuestas UI reproducidas automáticamente (inicio 5.2–6.7 s), lectura manual, fin, interrupción de preparación/habla y avatar speaking/4 texturas comprobados. Reporte H-15; reproducción digital PC, audición humana/calidad y física no certificadas. |
-| H-16 | TODO | H-15 | P1 | Siguiente tarea de software: STT pulsar para hablar en PC, transcripción editable/envío explícito y meta 8/10 frases. D-32 la adelanta; no micrófono implementado ni permiso de captura probado todavía. |
+| H-16 | IN_PROGRESS | H-15 | P1 | Codex, 2026-10-10, rama codex/reconocimiento-voz-pc desde main a1d0bb9 (PR #2). Implementados captura por pulsación, Whisper base CPU, texto editable/envío explícito, exclusión TTS/captura y cancelación. 68 pruebas/build e instalador STT correctos; diez frases sintéticas HTTP 200 (2.4–2.9 s), cuatro formatos/silencio/cancelación real 106 ms. Reporte H-16 y guía VOZ_PC. Pendientes permisos/micrófono humano/meta ≥8/10 y revisión visual: navegador perdió conexión antes de captura de pantalla. H-17 espera aceptación H-16. |
 | H-17 | TODO | H-16 | P1 | Cinco conversaciones de voz y dos interrupciones con recuperación, tras STT. |
 | H-19 | BLOCKED | H-00 | P0 | Faltan celular/OS/navegador, caja y hora. Pregunta enviada; abrir URL en ese dispositivo. No bloquea base PC; sí móvil/caja. |
 | H-20 | BLOCKED | H-03, H-10 | P0 | Codex, 2026-10-08: GET real /v1/models/gpt-4.1-mini devolvió 401/AUTH_ERROR en 279 ms. Tras último reinicio clave ausente, diagnóstico NOT_CONFIGURED. Sin generación solicitada; falta clave válida y 3 respuestas+seguimiento. Evidence H-20-auth-check.json y H-29-control.json; no activar pagos ni fallback. |
@@ -76,6 +76,7 @@ Q-06/Q-08 pendientes: dispositivo/hora/caja. Q-07: GPT rechazó la clave con 401
 
 | Fecha | Tarea | Avance | Pendiente |
 |---|---|---|---|
+| 2026-10-10 | H-16 | Dictado PC y Whisper local, corrección/envío explícito; instalador y hashes, exclusión TTS/captura, cancelación y límites. 68 pruebas/build; diez frases sintéticas, formatos/silencio, comparación small y worker real cancelado en 106 ms. Reporte H-16. | Q-12: permiso/micrófono/navegador y diez frases humanas acordadas ≥8/10. Revisión visual pendiente tras pérdida de pestaña. H-17 continúa después de esa aceptación. |
 | 2026-10-08 | H-15 | Voz PC adelantada por el propietario: Piper local/Daniela, instalación reproducible, lectura de respuestas guardadas, audio único, volumen, parada y fase speaking ligada a reproducción. 55 pruebas/build; tres WAV y tres respuestas reales reproducidas en UI, parada de preparación/habla y cancelación del proceso real en 106 ms. Reporte docs/reports/2026-10-08-H-15-voz-pc.md. | H-16 reconocimiento PC es siguiente tarea; cinco conversaciones completas siguen H-17. Audición/calidad de voz y pruebas físicas no certificadas. No cerrar H-11 completo por usar botones de sugerencias. |
 | 2026-10-08 | Entrega Git | Propietario confirmó push/merge. Fetch verificó origin/main 09ad91b (Merge PR #1) incluyendo 1e67b15. Main local actualizado por fast-forward. Rama nueva codex/verificacion-demo-holograma publicada en origin: e6d2714 (Cloud real) y 7f0aebe (diagnóstico H-29). | Rechazos de publicación anteriores resueltos por el merge del propietario. La nueva rama está publicada; su integración en main y creación de PR siguen pendientes. |
 | 2026-10-08 | H-26/H-27 | Texturas originales recuperadas, render negro y calibración comprobados; guía de rig/múltiples clips con datos del GLB y fuentes oficiales. Commits `9dc254b` y `26bc2c7`. Reporte H-26 y guía. | Pose estática; animaciones nuevas son propuesta. Móvil/reflector requieren H-19/H-07/H-08. |

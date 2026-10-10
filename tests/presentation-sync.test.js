@@ -7,7 +7,7 @@ const flush = () => new Promise(resolve => setImmediate(resolve));
 
 test('contrato de presentación rechaza estados corruptos y campos privados', () => {
   for (const invalid of [null, [], {}, state(-1), state(1.5), state(Number.MAX_SAFE_INTEGER + 1),
-    state(0, { sessionId: '' }), state(0, { phase: 'listening' }), state(0, { animation: 'unknown' }),
+    state(0, { sessionId: '' }), state(0, { phase: 'unknown' }), state(0, { animation: 'unknown' }),
     { ...state(), message: 'privado' }, { ...state(), key: 'private-test-only' }]) {
     assert.throws(() => validatePresentation(invalid), /INVALID_PRESENTATION/);
   }
@@ -15,6 +15,7 @@ test('contrato de presentación rechaza estados corruptos y campos privados', ()
   original.phase = 'error';
   assert.equal(checked.phase, 'idle'); assert.equal(Object.isFrozen(checked), true);
   assert.equal(validatePresentation(state(1, { phase: 'speaking' })).phase, 'speaking');
+  assert.equal(validatePresentation(state(2, { phase: 'listening' })).phase, 'listening');
 });
 
 test('revisiones antiguas y duplicadas no repiten transiciones; nueva sesión acepta revisión cero', () => {

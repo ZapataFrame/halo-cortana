@@ -5,6 +5,7 @@ import { networkInterfaces } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { generateReply, providerHealth, localModels, checkProviderConnection } from './providers.js';
 import { createPiper, speechText } from './tts.js';
+import { createWhisper, AUDIO_LIMIT, validateAudioType, validateAudio } from './stt.js';
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.glb': 'model/gltf-binary', '.json': 'application/json', '.md': 'text/plain; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml' };
 const LOCAL = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
@@ -30,7 +31,25 @@ async function readJson(req) {
   try { return JSON.parse(text); } catch { throw new Error('JSON inválido.'); }
 }
 
-export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile, tts = createPiper(), ttsTimeoutMs = 20000, speechLeaseMs = 15000 } = {}) {
+function readAudio(req, signal) {
+  return new Promise((resolveBytes, reject) => {
+    const chunks = []; let size = 0;
+    const cleanup = () => { req.off('data', data); req.off('end', end); req.off('error', error); signal.removeEventListener('abort', abort); };
+    const error = () => { cleanup(); reject(new Error('STT_INVALID_AUDIO')); };
+    const abort = () => { cleanup(); req.resume(); reject(new Error('STT_CANCELLED')); };
+    const data = chunk => {
+      size += chunk.length;
+      if (size > AUDIO_LIMIT) { cleanup(); req.resume(); reject(new Error('STT_AUDIO_TOO_LARGE')); }
+      else chunks.push(chunk);
+    };
+    const end = () => { cleanup(); resolveBytes(Buffer.concat(chunks)); };
+    req.on('data', data); req.on('end', end); req.on('error', error);
+    signal.addEventListener('abort', abort, { once: true });
+    if (signal.aborted) abort();
+  });
+}
+
+export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile, tts = createPiper(), ttsTimeoutMs = 20000, speechLeaseMs = 15000, stt = createWhisper(), sttTimeoutMs = 30000, captureLeaseMs = 35000 } = {}) {
   const sessionId = randomUUID();
   let revision = 0, chatGeneration = 0, phase = 'idle', animation = 'idle', active = null, history = [];
   const completed = new Map();
@@ -43,7 +62,13 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
     clearTimeout(speech.timer);
     speech.timer = setTimeout(stopSpeech, speechLeaseMs); speech.timer.unref();
   }
-  const state = () => ({ sessionId, revision, phase: speech?.playing ? 'speaking' : phase, animation });
+  let capture;
+  function stopCapture() {
+    if (!capture) return;
+    capture.controller.abort(); clearTimeout(capture.timer); capture = undefined; revision++;
+  }
+  const state = () => ({ sessionId, revision, phase: capture?.stage === 'recording' ? 'listening'
+    : capture?.stage === 'transcribing' ? 'processing' : speech?.playing ? 'speaking' : phase, animation });
   const setPhase = value => { phase = value; revision++; };
   const localWrite = (req, res) => {
     if (!LOCAL.has(req.socket.remoteAddress)) { json(res, 403, { error: 'El chat se controla desde el PC en localhost.' }); return false; }
@@ -66,6 +91,10 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
         if (!localWrite(req, res)) return;
         json(res, 200, await tts.health()); return;
       }
+      if (req.method === 'GET' && pathname === '/api/stt') {
+        if (!localWrite(req, res)) return;
+        json(res, 200, await stt.health()); return;
+      }
       if (req.method === 'GET' && pathname === '/api/providers') {
         if (!localWrite(req, res)) return;
         let installed = [], detail = '';
@@ -81,7 +110,75 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
       }
       if (req.method === 'POST' && pathname.startsWith('/api/')) {
         if (!localWrite(req, res)) return;
+        if (pathname === '/api/stt') {
+          const token = capture;
+          if (!token || token.id !== req.headers['x-capture-id'] || token.stage !== 'stopped') {
+            json(res, 409, { error: 'La grabación ya no está activa. Graba de nuevo.' }); return;
+          }
+          let timedOut = false;
+          clearTimeout(token.timer); token.stage = 'transcribing'; revision++;
+          token.timer = setTimeout(() => { timedOut = true; token.controller.abort(); }, sttTimeoutMs);
+          const disconnected = () => { if (!res.writableEnded && capture === token) stopCapture(); };
+          res.on('close', disconnected);
+          const started = performance.now();
+          try {
+            const mime = validateAudioType(req.headers['content-type']);
+            if (Number(req.headers['content-length']) > AUDIO_LIMIT) throw new Error('STT_AUDIO_TOO_LARGE');
+            const bytes = await readAudio(req, token.controller.signal); validateAudio(bytes, mime);
+            const result = await stt.transcribe(bytes, token.controller.signal);
+            if (token.controller.signal.aborted || capture !== token) throw new Error('STT_CANCELLED');
+            stopCapture();
+            json(res, 200, { ...result, elapsedMs: Math.round(performance.now() - started), ...state() });
+          } catch (error) {
+            const cancelled = token.controller.signal.aborted;
+            if (capture === token) stopCapture();
+            const details = {
+              STT_NOT_CONFIGURED: [503, 'Falta instalar reconocimiento local. Ejecuta npm run setup:stt en el PC.'],
+              STT_AUDIO_TOO_LARGE: [413, 'La grabación supera 2 MiB. Graba una frase más corta.'],
+              STT_AUDIO_TOO_LONG: [413, 'La grabación supera 16 segundos. Graba una frase más corta.'],
+              STT_INVALID_AUDIO: [400, 'El audio no es válido. Graba de nuevo desde el micrófono.'],
+              STT_NO_SPEECH: [422, 'No se detectó voz. Acércate al micrófono y vuelve a grabar.'],
+            }[error.message];
+            if (!res.destroyed) json(res, timedOut ? 504 : cancelled ? 499 : details?.[0] || 502,
+              { error: timedOut ? 'La transcripción tardó demasiado. Puedes escribir o volver a grabar.'
+                : cancelled ? 'Transcripción cancelada.' : details?.[1] || 'No se pudo transcribir. Puedes escribir el mensaje.',
+                code: timedOut ? 'STT_TIMEOUT' : cancelled ? 'STT_CANCELLED' : details ? error.message : 'STT_UNAVAILABLE' });
+          } finally { clearTimeout(token.timer); res.off('close', disconnected); }
+          return;
+        }
         const body = await readJson(req);
+        if (pathname === '/api/stt/session') {
+          if (!body || Array.isArray(body) || Object.keys(body).sort().join(',') !== 'action,captureId'
+            || typeof body.captureId !== 'string' || !/^[a-zA-Z0-9-]{8,80}$/.test(body.captureId)
+            || !['reserve', 'start', 'stop', 'cancel'].includes(body.action)) {
+            json(res, 400, { error: 'Solicitud de micrófono inválida.' }); return;
+          }
+          if (body.action === 'cancel') {
+            if (capture?.id === body.captureId) stopCapture();
+            json(res, 200, state()); return;
+          }
+          if (body.action === 'reserve') {
+            if (active || speech || capture) { json(res, 409, { error: 'Hay una voz, grabación o respuesta en curso. Deténla antes de grabar.' }); return; }
+            const token = { id: body.captureId, stage: 'preparing', controller: new AbortController() };
+            capture = token; token.timer = setTimeout(stopCapture, captureLeaseMs); token.timer.unref();
+            let ready;
+            try { ready = await stt.health(); }
+            catch { ready = { ready: false, detail: 'No se pudo preparar el reconocimiento. Puedes escribir el mensaje.' }; }
+            if (capture !== token || token.controller.signal.aborted) { json(res, 499, { error: 'Preparación de micrófono cancelada.' }); return; }
+            if (!ready.ready) { stopCapture(); json(res, 503, { error: ready.detail }); return; }
+            token.stage = 'reserved';
+          } else {
+            const expected = body.action === 'start' ? 'reserved' : 'recording';
+            if (capture?.id !== body.captureId || capture.stage !== expected) {
+              json(res, 409, { error: 'La grabación ya no está activa. Graba de nuevo.' }); return;
+            }
+            capture.stage = body.action === 'start' ? 'recording' : 'stopped'; revision++;
+            if (body.action === 'start') {
+              clearTimeout(capture.timer); capture.timer = setTimeout(stopCapture, captureLeaseMs); capture.timer.unref();
+            }
+          }
+          json(res, 200, state()); return;
+        }
         if (pathname === '/api/tts' || pathname === '/api/tts/playback') {
           const playback = pathname.endsWith('/playback');
           if (!body || Array.isArray(body) || typeof body.speechId !== 'string' || !/^[a-zA-Z0-9-]{8,80}$/.test(body.speechId)
@@ -100,7 +197,7 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
             if (!speech.playing) { speech.playing = true; revision++; }
             renewSpeech(); json(res, 200, state()); return;
           }
-          if (active || speech) { json(res, 409, { error: 'Hay otra voz o respuesta en curso. Deténla antes de escuchar.' }); return; }
+          if (active || speech || capture) { json(res, 409, { error: 'Hay otra voz, micrófono o respuesta en curso. Deténla antes de escuchar.' }); return; }
           const text = body.requestId === 'voice-test'
             ? 'Hola, soy Cortana. Esta es una prueba de voz en español.' : completed.get(body.requestId)?.result.reply;
           if (!text || !speechText(text)) { json(res, 404, { error: 'Esta respuesta ya no está en la conversación. Envía un mensaje nuevo.' }); return; }
@@ -166,7 +263,7 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
           // La consulta del catálogo puede coincidir con un envío de otra pestaña.
           if (active) { json(res, 409, { error: 'Hay una respuesta en curso. Espera o cancélala.' }); return; }
           config = { ...selected, model: body.model };
-          stopSpeech();
+          stopSpeech(); stopCapture();
           history = []; completed.clear(); setPhase('idle');
           json(res, 200, { provider: config.provider, model: config.model, ...state() }); return;
         }
@@ -181,7 +278,7 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
         }
         if (pathname === '/api/reset') {
           if (active) { json(res, 409, { error: 'Cancela la respuesta antes de reiniciar.' }); return; }
-          stopSpeech(); history = []; completed.clear(); setPhase('idle'); json(res, 200, state()); return;
+          stopSpeech(); stopCapture(); history = []; completed.clear(); setPhase('idle'); json(res, 200, state()); return;
         }
         if (pathname !== '/api/chat') { json(res, 404, { error: 'Ruta no disponible.' }); return; }
         const { message, requestId } = validateChat(body);
@@ -191,7 +288,7 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
           json(res, 200, { ...cached.result, cached: true }); return;
         }
         if (active) { json(res, 409, { error: 'Hay una respuesta en curso. Espera o cancélala.' }); return; }
-        stopSpeech();
+        stopSpeech(); stopCapture();
         const controller = new AbortController();
         const requestConfig = config;
         const token = { requestId, controller };
@@ -255,6 +352,6 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
       json(res, clientError ? 400 : 404, { error: clientError ? error.message : 'Archivo no disponible.' });
     }
   });
-  server.on('close', () => { active?.controller.abort(); stopSpeech(); });
+  server.on('close', () => { active?.controller.abort(); stopSpeech(); stopCapture(); });
   return server;
 }

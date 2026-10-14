@@ -1,6 +1,6 @@
 # Halo Strategy Lab — Roadmap activa
 
-Actualizado: 2026-10-10. **Prioridad: holograma y voz PC; aceptación física pendiente.** La fecha inicial 2026-10-08 es histórica; no hay nueva fecha/hora acordada. El simulador está diferido por instrucción del propietario. El propietario autorizó continuar implementación.
+Actualizado: 2026-10-14. **Prioridad: holograma y voz PC; aceptación física pendiente.** La fecha inicial 2026-10-08 es histórica; no hay nueva fecha/hora acordada. El simulador está diferido por instrucción del propietario. El propietario autorizó continuar implementación.
 
 ## Cómo continuar
 
@@ -62,9 +62,19 @@ A visual es el primer hito. Para cumplir la solicitud completa de mañana se req
 | H-28 | DONE | H-23, H-10 | P1 | Codex, 2026-10-08: clave cargada, Gemma 4 31B real por backend: 3 preguntas+seguimiento HTTP 200 (833/588/484/657 ms). Contexto Ana conservado; cancelación 499→idle y recuperación 200/540 ms sin incorporar Bruno. Cortana ready/cuatro materiales texturados. Evidence H-28-cloud-live.json y reporte de validación real. Plan/saldo gratuito no inspeccionados; móvil/caja pendientes. |
 | H-29 | DONE | H-10, H-23, H-26 | P0 | Codex, 2026-10-08: Probar conexión y endpoint privado, GET sin generación, timeout 8 s, origen/cuerpo/concurrencia protegidos. 37 pruebas/build y UI Cloud→GPT sin clave→phi4-mini→Cloud comprobados; Cortana ready/cuatro materiales/tamaño 101 % conservados. Reporte H-29 y JSON/captura. Catálogo Cloud no valida clave/cuota; siguiente: prueba manual UI H-11 o datos físicos H-19. |
 | H-30 | DONE | H-10, H-26, H-29 | P0 | Codex, 2026-10-08: sincronización validada, revisión antigua/duplicada descartada y nueva sesión reconocida; timeout/ciclo de vida sin consultas superpuestas. 44 pruebas/build; dos cortes y reinicios reales en visor/control secuenciales, figura ready/cuatro materiales/tamaño 101 % conservados. Negro 5 puntos en 3 capturas. Reporte H-30. H-12 móvil y H-11 manual siguen pendientes. |
+| H-31 | DONE | H-03, H-15 | P0 | Codex, 2026-10-14: evaluación documental/técnica solicitada. 80 pruebas/build; visor/GLB/estado 200 por IP LAN desde PC, sin prueba de celular; servicio UFW activo con reglas sin acceso. Experimento sintético de recarga/modelo residente: TTS 2998→1684 ms y STT 2087→1259 ms, medianas n=3, sin optimización integrada. Reporte `docs/reports/2026-10-14-H-31-evaluacion-prioridades.md` y evidencia JSON. Propone conexión móvil → óptica/recuperación → voz útil → ensayo final; no cambia aceptación ni confirma nuevo alcance. |
 | H-18 | DEFERRED | H-17 | P3 | Avatar final, labios, wake word, app instalada y otras mejoras con nuevo alcance. |
 
 H-19/H-07/H-08 mantienen prioridad física cuando estén disponibles pantalla/caja. D-32 autoriza avanzar H-15→H-16→H-17 en PC mientras esas pruebas quedan pendientes; no cerrar A+B por completar voz. El simulador y H-18 siguen diferidos.
+
+## Próximos entregables propuestos por H-31 (2026-10-14)
+
+Evaluación solicitada por el propietario: [reporte H-31](docs/reports/2026-10-14-H-31-evaluacion-prioridades.md). Recomendaciones, sin nuevos requisitos aprobados ni tareas de implementación declaradas realizadas:
+
+1. **P0 — Conexión real PC/celular:** diagnosticar con servidor de demo activo y URL IP LAN; concretar dispositivo/red de H-19 y verificar H-07. `npm run dev` y QA son solo PC. Hoy no había servidor en 3000; el servidor temporal respondió 200 desde PC por LAN. Falta prueba desde teléfono y reglas UFW; no se identifica aún la causa del fallo reportado.
+2. **P0 — Holograma y recuperación físicos:** tras H-07, H-08/H-12 con cinco minutos, FPS, dos montajes y reconexión real. Los datos de caja/hora de H-19 no deben impedir diagnosticar antes el acceso de red.
+3. **P1 — Optimizar voz y aceptar H-16:** medir etapas, ajustes pequeños y reutilización de modelos antes de cambiar motores; ensayo humano ≥8/10. Si falta dispositivo/caja, esta preparación PC es independiente. El incremento previo del ensayo guiado permanece en curso, sin aceptación humana.
+4. **P1 — Cerrar demostración:** H-17 tras aceptar H-16; H-13/H-14 tras H-08/H-12. Cinco conversaciones/dos interrupciones, dos recorridos y diez minutos integrados con reinicio desde README. Reducir controles visibles y sincronizar documentación vigente en incrementos pequeños.
 
 ## Tiempos, contingencias y datos pendientes
 
@@ -76,6 +86,7 @@ Q-06/Q-08 pendientes: dispositivo/hora/caja. Q-07: GPT rechazó la clave con 401
 
 | Fecha | Tarea | Avance | Pendiente |
 |---|---|---|---|
+| 2026-10-14 | H-31 | Evaluación de documentos, red y voz; 80/80 pruebas/build. Configuración LAN correcta; servidor inicialmente detenido. Experimentos CPU con muestra pública comparan recarga y modelo residente, más hilos/beam. Reporte H-31 y `evidence/H-31-evaluacion.json`. Cambios previos de H-16 preservados. | Conexión del teléfono y reglas UFW no verificadas; sin micrófono/óptica ni optimización integrada. Siguiente acción recomendada: reproducir URL LAN con el celular y servidor de demo activo; H-16 sigue sin aceptación humana y H-17 espera. |
 | 2026-10-10 | H-11 | Chat UI real: tres preguntas/seguimiento, cancelación y recuperación con resultado real retenido; ninguna entrega antigua ni alteración de contexto. Prompt ya reconoce voz PC; 74 pruebas/build, QA repetible y evidencia. | H-16 BLOCKED por Q-12; H-17 espera voz humana ≥8/10. H-12 espera H-07 físico; pruebas de caja/móvil y GPT siguen pendientes. |
 | 2026-10-10 | H-16, seguimiento | Revisión visual PC completada y guardada; Whisper/TTS disponibles. Corregido foco tras límite con tecla mantenida, keyup fuera del botón y repetición de Enter. 74/74 pruebas/build; borrador real UI sin envío ni cambio de revisión. Reporte H-16 y evidencia de control/borrador. | Q-12: permiso/micrófono/navegador y diez frases humanas acordadas ≥8/10. H-17 continúa después de esa aceptación. |
 | 2026-10-10 | H-16, implementación | Dictado PC y Whisper local, corrección/envío explícito; instalador y hashes, exclusión TTS/captura, cancelación y límites. 68 pruebas/build; diez frases sintéticas, formatos/silencio, comparación small y worker real cancelado en 106 ms. Reporte H-16. | Ensayo humano Q-12; revisión visual inicialmente interrumpida, completada en seguimiento. |

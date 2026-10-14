@@ -42,7 +42,7 @@ if (hologram) {
           <div class="messages" aria-label="Conversación" role="log" aria-live="polite"><div class="empty-chat"><span class="empty-symbol">✧</span><h2>Inicia el contacto.</h2><p>Pregúntame algo o cuéntame qué estás construyendo.</p><div class="suggestions"><button>¿Qué es Pepper’s Ghost?</button><button>Preséntate como Cortana</button></div></div></div>
           <p id="chat-status" class="chat-status" role="status"></p><form id="chat-form"><label class="sr-only" for="message">Mensaje para Cortana</label><textarea id="message" placeholder="Escribe o dicta un mensaje…" maxlength="2000" rows="2" required></textarea><div class="composer-footer"><span class="small muted">Revisa el texto · tú decides cuándo enviar</span><button class="button" id="send" type="submit">Enviar ↗</button><button class="button secondary" id="cancel" type="button" hidden>Cancelar</button></div></form>
         </section>
-        <section class="connection-card card"><div class="card-heading"><span class="eyebrow">03 / PANTALLA EXTERNA</span><span class="small muted">MISMA RED WI-FI</span></div><h2>Lleva el avatar a tu celular.</h2><p>Abre esta dirección en su navegador. Toca la esquina superior izquierda del visor para ajustar espejo, posición y tamaño.</p><div id="viewer-links" class="viewer-links"><a href="${viewerPath}">Abrir visor local</a></div><p class="small muted" id="server-connection" role="status">Conectando con el PC…</p><p class="small muted">Una figura sobre negro puro. Ajusta brillo y bloqueo de pantalla en tu dispositivo.</p></section>
+        <section class="connection-card card"><div class="card-heading"><span class="eyebrow">03 / PANTALLA EXTERNA</span><span class="small muted">MISMA RED WI-FI</span></div><h2>Lleva el avatar a tu celular.</h2><p>Abre en el celular la dirección con la IP de este PC. Toca la esquina superior izquierda del visor para ajustar espejo, posición y tamaño.</p><div id="viewer-links" class="viewer-links"><a href="${viewerPath}">Abrir visor en este PC</a></div><p class="small muted" id="server-connection" role="status">Conectando con el PC…</p><details class="small muted"><summary>Si el celular no conecta</summary><p>En el celular, localhost abre el propio teléfono. Usa la dirección con números que aparece arriba y mantén la demo encendida en el PC. Comprueba que ambos usan la misma red y que la Wi-Fi permite conectar sus dispositivos. El chat y el micrófono se controlan desde el PC.</p></details><p class="small muted">Una figura sobre negro puro. Ajusta brillo y bloqueo de pantalla en tu dispositivo.</p></section>
         <section class="adjustment-card card"><div class="card-heading"><span class="eyebrow">04 / CALIBRACIÓN</span><span class="small muted">GUARDADO LOCAL</span></div><div id="desktop-settings"></div></section>
       </div><footer><span>DEMO LOCAL · VISOR + IA</span><a href="/models/README.md" target="_blank" rel="noopener">Modelo y baile / fuentes y licencias ↗</a></footer>
     </div>`;
@@ -292,16 +292,6 @@ if (hologram) {
   });
   updateControls();
   refreshInfo().then(async info => {
-    if (!info.localControl) { input.disabled = true; send.disabled = true; motionButtons.forEach(item => { item.disabled = true; }); status.textContent = 'Abre http://localhost:3000/control en el PC para conversar.'; }
-    else if (!info.health.ready) status.textContent = info.health.detail;
-    if (info.localControl) {
-      await refreshModels();
-      refreshVoice().catch(error => { voiceStatus.textContent = error.message; });
-      refreshMicrophone().catch(error => { microphoneStatus.textContent = error.message; });
-    } else {
-      voiceStatus.textContent = 'La voz se controla desde localhost en el PC.';
-      microphoneStatus.textContent = 'El micrófono se controla desde localhost en el PC.';
-    }
     const links = app.querySelector('#viewer-links');
     for (const address of info.viewerUrls) {
       const url = address + (importedAvatar ? '?avatar=cortana' : '');
@@ -310,6 +300,20 @@ if (hologram) {
       copy.addEventListener('click', async () => { try { await navigator.clipboard.writeText(url); copy.textContent = 'Copiado'; } catch { copy.textContent = 'Selecciona la dirección'; } });
       row.append(link, copy); links.append(row);
     }
+    if (!info.localControl) {
+      input.disabled = true; send.disabled = true; motionButtons.forEach(item => { item.disabled = true; });
+      status.textContent = 'Abre el control mediante localhost en el PC para conversar.';
+      voiceStatus.textContent = 'La voz se controla desde localhost en el PC.';
+      microphoneStatus.textContent = 'El micrófono se controla desde localhost en el PC.';
+      return;
+    }
+    if (!info.health.ready) status.textContent = info.health.detail;
+    // El catálogo de otro proveedor no debe retrasar los enlaces ni la voz local.
+    await Promise.allSettled([
+      refreshModels().catch(error => { providerHelp.textContent = error.message; }),
+      refreshVoice().catch(error => { voiceStatus.textContent = error.message; }),
+      refreshMicrophone().catch(error => { microphoneStatus.textContent = error.message; }),
+    ]);
   }).catch(() => { app.querySelector('#provider-status').textContent = 'Servidor no disponible. Inicia npm run demo.'; });
 }
 

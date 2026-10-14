@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-14",
+  "scope": "UI PC, catálogo retenido y liberado con HTTP 503. Sin micrófono ni llamada LLM. Puerto QA solo loopback; no prueba celular.",
+  "pendingCatalogVerified": {
+    "linksVisible": true,
+    "voiceReady": true,
+    "microphoneReady": true,
+    "render": "ready"
+  },
+  "afterCatalogFailure": {
+    "catalogNotice": "Catálogo no disponible en este ensayo.",
+    "helpOpen": true,
+    "links": [
+      "http://localhost:3003/hologram?avatar=cortana",
+      "http://192.168.1.66:3003/hologram?avatar=cortana"
+    ],
+    "microphoneReady": true,
+    "render": "ready",
+    "voiceReady": true
+  }
+}

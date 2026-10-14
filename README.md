@@ -16,7 +16,20 @@ npm run demo
 - Puerto 3000. Detener con `Ctrl+C`; después de compilar basta `npm start`.
 - Visor y baile usan recursos locales. GPT y Ollama Cloud necesitan internet; una caída del proveedor conserva la figura.
 
-Si el celular no conecta: comprueba IP, servidor, misma Wi-Fi y aislamiento de clientes. Si hay firewall, habilita TCP 3000 en esa red según tu sistema; no necesitas abrir puertos del router.
+### Conectar el celular
+
+En el celular, **localhost es el propio teléfono**. Usa la URL con la IP que aparece en **Pantalla externa** del control PC o en la terminal al arrancar. Para Cortana, abre esa dirección con `?avatar=cortana`, por ejemplo `http://192.168.1.66:3000/hologram?avatar=cortana`. La IP puede cambiar al cambiar de red.
+
+Mantén la terminal de `npm run demo` abierta. `npm run dev` y los comandos `qa:*` son para desarrollo/pruebas en el PC: no sustituyen al servidor de la demo ni habilitan por sí solos sus APIs.
+
+Si no conecta, comprueba en este orden:
+
+1. En el PC abre la misma URL con IP. Si tampoco funciona, comprueba que la demo está iniciada, la IP y el puerto mostrados en terminal. La configuración de ejemplo usa `HOST=0.0.0.0` y `PORT=3000`.
+2. En el celular abre esa URL exacta mediante `http://`, con ambos equipos en la misma red. Una red de invitados o el aislamiento de clientes puede impedir conexiones aunque ambos tengan internet.
+3. Si funciona en PC pero el celular agota la espera, revisa el firewall del PC y el aislamiento Wi-Fi. En equipos con UFW, `sudo ufw status verbose` permite consultar las reglas; requiere tu contraseña de administrador. Si se confirma un bloqueo, permitir TCP 3000 solo en la red local. No hace falta abrir puertos del router.
+4. Si la página abre pero no aparece el modelo, abre la calibración para leer el diagnóstico de carga/WebGL; es un problema distinto de alcanzar el servidor.
+
+El celular usa **`/hologram`**. El chat, TTS y micrófono son privados del control PC abierto mediante localhost; un rechazo 403 al intentar controlarlos por IP LAN corresponde a ese diseño. Los enlaces del visor y la preparación de voz se muestran sin esperar al catálogo de modelos locales.
 
 ## Preparar la caja y orientación
 

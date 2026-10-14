@@ -1,6 +1,6 @@
 # Cortana — MVP holográfico activo
 
-Actualizado: 2026-10-10. Visor, conversación, respuesta hablada y reconocimiento local PC implementados; D-32 adelanta voz. Aceptación de micrófono humano/móvil/caja pendiente.
+Actualizado: 2026-10-14. Visor, conversación, respuesta hablada y reconocimiento local PC implementados; D-32 adelanta voz y H-33 reduce recarga de modelos. Aceptación de micrófono humano/móvil/caja pendiente.
 
 La versión previa del agente del simulador se conserva en `docs/archive/Cortana-2026-10-05.md`. Alcance actual: `SPECIFICACTIONS.MD`; tareas/estados: `ROADMAP.MD`; tarjetas y pruebas: `docs/plans/2026-10-07-mvp-holograma.md`.
 
@@ -82,6 +82,8 @@ La caja y pantalla reales determinan tamaño y contraste; no asumir OLED ni dime
 ## 7. Voz PC y etapas siguientes
 
 H-15: Piper/Daniela en español, CPU y sin clave/coste por llamada. Probar voz, lectura automática opcional, Escuchar respuesta, Volumen y Detener voz. Lee respuesta guardada sin consultar otra vez al LLM; prueba fija diferenciada de conversación. Una salida compartida, cancelación y expiración. Guía/contrato/versión/hash/atribución: `docs/VOZ_PC.md`.
+
+H-33 conserva un proceso/modelo por motor entre peticiones, arranque al usarlo y cierre a los 60 s de inactividad. Cancelar durante procesamiento termina ese proceso; el próximo turno lo recrea. No añade puertos, escucha continua ni streaming; mantiene voz Daniela y Whisper base CPU/int8/beam=5. Mediciones actuales y límites en reporte H-33; velocidad no equivale a aceptación humana.
 
 H-16 implementado: mantener pulsado en control localhost (o Espacio/Enter con botón enfocado), soltar para transcribir mediante Whisper base CPU/español. Detiene TTS propio antes de captar; otra salida/grabación compartida bloquea el inicio. Máximo 15 s; texto añadido al borrador para corregir antes de Enviar, sin automatizar chat. Si se alcanza el límite con una tecla mantenida, el editor espera a que se suelte para recibir foco; Enter repetido no envía. Descartar grabación apaga pistas/cancela procesamiento; errores conservan texto. Entorno y pesos aparte de Piper, instalación `npm run setup:stt`. Audio solo en memoria PC, nunca en proveedor Cloud/visor ni en archivos del repositorio. Permisos reales y meta de ocho frases humanas correctas de diez pendientes; fuente sintética no sustituye ese ensayo. H-17 conserva voz→LLM→TTS→avatar con cinco conversaciones/dos interrupciones. Micrófono móvil requiere comprobar permisos/contexto seguro antes de escogerlo.
 

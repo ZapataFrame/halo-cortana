@@ -27,6 +27,12 @@ Una reserva compartida por PC evita audios superpuestos entre controles. Otro co
 
 ## Contrato y recuperación
 
+Desde H-33 (2026-10-14), cada motor conserva un proceso Python y su modelo entre peticiones. Arranca al usarlo y se libera tras **60 s sin trabajo**, al cerrar el servidor o al cancelar una petición activa. La primera petición y la primera después de cancelar/inactividad vuelven a cargar el modelo; las siguientes evitan ese coste. Una petición por motor, sin cola ni escucha continua. Los límites y las APIs privadas siguen iguales.
+
+La comunicación interna usa marcos binarios acotados por stdin/stdout; no abre otros puertos. Audio y texto pasan por memoria, sin guardarse en disco. Los procesos reciben un entorno reducido y trabajan desde el directorio temporal del sistema, con rutas absolutas a sus recursos. La memoria del modelo permanece mientras el proceso está disponible; no se prometen tiempos iguales después de una cancelación.
+
+Comparación HTTP local H-33 con tres frases públicas: mediana de preparación WAV Piper **3585 → 2037 ms** y Whisper **2320 → 1186 ms** en llamadas con modelo cargado. Primera llamada nueva: 3436/1975 ms respectivamente. Los mismos WAV STT conservan errores y presentan variaciones textuales menores; esto optimiza espera, no certifica precisión humana. [Reporte y condiciones](reports/2026-10-14-H-33-modelos-voz-reutilizables.md).
+
 - `GET /api/tts` privado: disponibilidad y nombre de voz; sin rutas locales.
 - `POST /api/tts {requestId,speechId}` privado: una respuesta guardada o `requestId: "voice-test"` (frase fija). No acepta texto arbitrario, modelos, destinos ni campos extra. Devuelve WAV mono PCM16 a 22,050 Hz; no guarda audio del chat en disco. Generación máxima 20 s, salida máxima 12 MiB.
 - `POST /api/tts/playback {speechId,playing}` privado: propietario de salida, reproducción/fin y renovación cada 5 s. Reserva preparada expira a los 15 s sin renovación. Otro control no puede renovarla/detenerla. Preparación no anuncia `speaking`.
@@ -92,4 +98,4 @@ Registrar PC/OS/navegador, micrófono, ruido, frase objetivo, texto antes de cor
 
 Prueba de teclado: mantener Enter hasta que se alcance el máximo de 15 s, esperar la transcripción sin soltar y comprobar que el texto no se envía. Soltar debe permitir revisar el editor; hacer una pulsación nueva de Enter o pulsar Enviar para enviar deliberadamente. Repetir con Espacio y con una liberación durante transcripción. La secuencia de foco está cubierta por pruebas de eventos controlados; su comportamiento con micrófono/teclado reales todavía pertenece al ensayo humano.
 
-Benchmark técnico reproducible: `node tools/verify-stt.mjs` sintetiza diez frases públicas con Piper y usa HTTP/backend/worker reales, más WAV/WebM/Ogg/MP4 y silencio. No abre micrófono ni llama al LLM; audios temporales en `.stt-models/qa` ignorada y evidencia JSON explícitamente sintética. Base tardó 2.4–2.9 s en este PC; contiene errores y **no certifica ≥8/10 con voz humana**. Comparación experimental small (6.2–7.5 s y errores todavía presentes) en reporte H-16; no cambia el modelo instalado por defecto.
+Benchmark técnico reproducible: `node tools/verify-stt.mjs` sintetiza diez frases públicas con Piper y usa HTTP/backend/worker reales, más WAV/WebM/Ogg/MP4 y silencio. No abre micrófono ni llama al LLM; audios temporales en `.stt-models/qa` ignorada y evidencia JSON explícitamente sintética. Los 2.4–2.9 s de base y 6.2–7.5 s de small pertenecen al reporte histórico H-16, anterior a H-33. La comparación actual de carga está en el reporte H-33; mantiene base/CPU/int8/beam=5. Ninguno de esos ensayos **certifica ≥8/10 con voz humana**.

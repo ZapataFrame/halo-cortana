@@ -9,6 +9,14 @@ import { createApp } from '../server/app.js';
 import { providerConfig } from '../server/providers.js';
 
 const config = { provider: 'ollama', model: 'test-only' };
+test('cerrar el servidor libera ambos motores de voz locales', async () => {
+  const closed = [];
+  const server = createApp({ config, tts: { close: () => closed.push('tts') }, stt: { close: () => closed.push('stt') } });
+  server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  const finished = once(server, 'close'); server.close(); await finished;
+  assert.deepEqual(closed, ['tts', 'stt']);
+});
+
 async function fixture(t, options = {}) {
   const server = createApp({ config, ...options });
   server.listen(0, '127.0.0.1'); await once(server, 'listening');

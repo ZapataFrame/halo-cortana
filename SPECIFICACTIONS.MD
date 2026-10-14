@@ -1,6 +1,6 @@
 # Halo Strategy Lab — Especificación activa
 
-Actualizado: 2026-10-10. Estado: **MVP holográfico y voz PC en desarrollo; aceptación física pendiente**. Fecha inicial solicitada: 2026-10-08, conservada como histórica, sin nueva fecha acordada. El juego de estrategia está diferido por instrucción del propietario.
+Actualizado: 2026-10-14. Estado: **MVP holográfico y voz PC en desarrollo; aceptación física pendiente**. Fecha inicial solicitada: 2026-10-08, conservada como histórica, sin nueva fecha acordada. El juego de estrategia está diferido por instrucción del propietario.
 
 Fuente de trabajo: esta especificación, `Cortana.md`, `ROADMAP.MD` y `docs/plans/2026-10-07-mvp-holograma.md`. La definición del simulador del 2026-10-05 se conserva en `docs/archive/SPECIFICACTIONS-2026-10-05.md`; no es alcance de mañana.
 
@@ -173,6 +173,7 @@ IDs nuevos conservan separación respecto a D-01…D-12 del plan histórico.
 | D-33 | CONFIRMADA | 2026-10-08 | Implementación H-15: Piper 1.4.1 local CPU, voz Daniela es_AR high fijada por revisión/hash. Motivo: salida en español sin API pagada ni depender de voces disponibles en navegador Linux. Instalación aislada/reproducible; una reserva de audio compartida, lectura de respuestas guardadas y speaking solo tras evento de reproducción. Voz/atribución y contrato en docs/VOZ_PC.md. |
 | D-34 | CONFIRMADA | 2026-10-10 | Implementación H-16: MediaRecorder/getUserMedia en control localhost; faster-whisper 1.2.1 con Whisper base multilingüe, CPU int8/español, entorno separado del TTS, revisión/hash y 23 paquetes fijados. Motivo: captura explícita y reconocimiento sin API pagada ni dependencia del reconocimiento remoto del navegador. LLM sigue independiente. Texto editable y envío manual; comparar precisión/latencia con evidencia sintética sin sustituir aceptación humana. |
 | D-35 | CONFIRMADA | 2026-10-14 | Continuación del propietario tras H-31: priorizar diagnóstico de conexión móvil, aceptación física y mejoras de voz independientes mientras falten dispositivos. H-32 publica enlaces LAN antes de cargar el catálogo y prepara TTS/STT en paralelo; un fallo del catálogo informa solo en su control. Conservar APIs privadas, aceptación humana ≥8/10 y pruebas físicas separadas. No cambia proveedores, modelos ni permisos de red. |
+| D-36 | CONFIRMADA | 2026-10-14 | Implementación H-33 dentro de la continuación autorizada: un proceso local reutilizable por motor y una petición activa, protocolo binario acotado por stdin/stdout, sin cola/puertos nuevos. Modelo cargado hasta 60 s de inactividad; cancelación activa mata el proceso y el siguiente turno lo recrea. Cerrar servidor libera ambos. Mantener Piper/Daniela y Whisper base CPU/int8/beam=5, contratos HTTP y revisión/envío manual. Motivo: H-31/H-33 miden recarga evitable; aceptar memoria residente temporal a cambio de menor espera, sin prometer mejora de precisión. |
 
 D-08 (voz primero) queda reemplazada para el corte inicial por D-13/D-16; D-32 adelanta ahora voz PC manteniendo aceptación física independiente. Decisiones del juego siguen en archivo histórico; no ejecutar su roadmap durante este objetivo.
 

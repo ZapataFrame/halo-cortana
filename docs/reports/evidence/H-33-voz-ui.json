@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-14",
+  "source": "Probar voz: frase fija Piper, demo real PC, sin micrófono ni LLM.",
+  "firstObserved": {
+    "startMs": 2991,
+    "synthesisMs": 2866
+  },
+  "laterObserved": [
+    {
+      "startMs": 3324,
+      "synthesisMs": 3273
+    },
+    {
+      "detail": "Lectura terminada.",
+      "render": "ready",
+      "startMs": 1666,
+      "state": "stopped",
+      "synthesisMs": 1606
+    }
+  ],
+  "limits": "Eventos digitales de reproducción y retorno a reposo; sin valoración auditiva humana, celular o caja. Una espera UI por texto exacto no coincidió porque el control añade la latencia al mensaje; se verificó el estado final y sus metadatos."
+}

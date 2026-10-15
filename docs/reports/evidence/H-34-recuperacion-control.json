@@ -1,0 +1,211 @@
+{
+  "task": "H-34",
+  "date": "2026-10-14",
+  "scope": "QA de fallo temporal en API local y arranque de demo; sin LLM ni captura de micrófono",
+  "before": {
+    "avatar": "ready",
+    "connection": "connected",
+    "inputDisabled": true,
+    "lanLinks": [
+      "http://localhost:3003/hologram?avatar=cortana"
+    ],
+    "microphoneDisabled": true,
+    "provider": "Servidor no disponible. Inicia npm run demo.",
+    "voiceDisabled": true
+  },
+  "after": {
+    "avatar": "ready",
+    "connection": "connected",
+    "draft": "Borrador de recuperación, sin enviar.",
+    "inputDisabled": false,
+    "lanLinks": [
+      "http://localhost:3003/hologram?avatar=cortana",
+      "http://192.168.1.66:3003/hologram?avatar=cortana"
+    ],
+    "microphoneDisabled": false,
+    "provider": "OPENAI / QA-sin-generacion · QA sin llamadas al proveedor.",
+    "voiceDisabled": false
+  },
+  "afterTimeout": {
+    "avatar": "ready",
+    "connection": "connected",
+    "draft": "Borrador tras timeout, sin enviar.",
+    "inputDisabled": false,
+    "lanLinks": [
+      "http://localhost:3003/hologram?avatar=cortana",
+      "http://192.168.1.66:3003/hologram?avatar=cortana"
+    ],
+    "microphoneDisabled": false,
+    "voiceDisabled": false
+  },
+  "live": {
+    "avatar": "ready",
+    "catalogDisabled": false,
+    "connection": "connected",
+    "inputDisabled": false,
+    "lanLinks": [
+      "http://localhost:3000/hologram?avatar=cortana",
+      "http://192.168.1.66:3000/hologram?avatar=cortana"
+    ],
+    "microphoneDisabled": false,
+    "provider": "OLLAMA-CLOUD / gemma4:31b · Ollama Cloud configurado; acceso y cuota se comprueban al enviar.",
+    "scale": "101",
+    "texturedMaterials": "4",
+    "voiceDisabled": false
+  },
+  "timeout": {
+    "mode": {
+      "info": "hold",
+      "presentation": "ok"
+    },
+    "calls": {
+      "/api/presentation": 23,
+      "/control": 1,
+      "/assets/index-CsGbVaqe.js": 1,
+      "/assets/index-CxzX0t-t.css": 1,
+      "/models/cortana.glb": 1,
+      "/api/info": 1,
+      "/qa/status": 17
+    },
+    "activeInfo": 0,
+    "maxActiveInfo": 1,
+    "infoRequests": [
+      {
+        "started": 1792026412842,
+        "mode": "hold",
+        "elapsedMs": 5000,
+        "aborted": true
+      }
+    ]
+  },
+  "stability": {
+    "initial": {
+      "mode": {
+        "info": "ok",
+        "presentation": "ok"
+      },
+      "calls": {
+        "/api/presentation": 71,
+        "/control": 2,
+        "/assets/index-CsGbVaqe.js": 2,
+        "/assets/index-CxzX0t-t.css": 2,
+        "/models/cortana.glb": 2,
+        "/api/info": 3,
+        "/qa/status": 244,
+        "/api/providers": 2,
+        "/api/tts": 2,
+        "/api/stt": 2
+      },
+      "activeInfo": 0,
+      "maxActiveInfo": 1,
+      "infoRequests": [
+        {
+          "started": 1792026412842,
+          "mode": "hold",
+          "elapsedMs": 5000,
+          "aborted": true
+        },
+        {
+          "started": 1792026417903,
+          "mode": "ok",
+          "elapsedMs": 1,
+          "aborted": false
+        },
+        {
+          "started": 1792026603510,
+          "mode": "ok",
+          "elapsedMs": 1,
+          "aborted": false
+        }
+      ]
+    },
+    "later": {
+      "mode": {
+        "info": "ok",
+        "presentation": "ok"
+      },
+      "calls": {
+        "/api/presentation": 73,
+        "/control": 2,
+        "/assets/index-CsGbVaqe.js": 2,
+        "/assets/index-CxzX0t-t.css": 2,
+        "/models/cortana.glb": 2,
+        "/api/info": 3,
+        "/qa/status": 262,
+        "/api/providers": 2,
+        "/api/tts": 2,
+        "/api/stt": 2
+      },
+      "activeInfo": 0,
+      "maxActiveInfo": 1,
+      "infoRequests": [
+        {
+          "started": 1792026412842,
+          "mode": "hold",
+          "elapsedMs": 5000,
+          "aborted": true
+        },
+        {
+          "started": 1792026417903,
+          "mode": "ok",
+          "elapsedMs": 1,
+          "aborted": false
+        },
+        {
+          "started": 1792026603510,
+          "mode": "ok",
+          "elapsedMs": 1,
+          "aborted": false
+        }
+      ]
+    },
+    "note": "Observacion con pagina QA abierta. Dos verificaciones previas se interrumpieron al navegar a la demo real en el navegador de una sola pestaña; no son fallos del producto."
+  },
+  "leaveDuringPreparation": {
+    "mode": {
+      "info": "hold",
+      "presentation": "ok"
+    },
+    "calls": {
+      "/api/presentation": 100,
+      "/control": 3,
+      "/assets/index-CsGbVaqe.js": 4,
+      "/assets/index-CxzX0t-t.css": 4,
+      "/models/cortana.glb": 4,
+      "/api/info": 4,
+      "/qa/status": 263,
+      "/api/providers": 2,
+      "/api/tts": 2,
+      "/api/stt": 2,
+      "/hologram": 1
+    },
+    "activeInfo": 0,
+    "maxActiveInfo": 1,
+    "infoRequests": [
+      {
+        "started": 1792026412842,
+        "mode": "hold",
+        "elapsedMs": 5000,
+        "aborted": true
+      },
+      {
+        "started": 1792026417903,
+        "mode": "ok",
+        "elapsedMs": 1,
+        "aborted": false
+      },
+      {
+        "started": 1792026603510,
+        "mode": "ok",
+        "elapsedMs": 1,
+        "aborted": false
+      },
+      {
+        "started": 1792026631779,
+        "mode": "hold",
+        "elapsedMs": 194,
+        "aborted": true
+      }
+    ]
+  }
+}

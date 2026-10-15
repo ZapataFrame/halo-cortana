@@ -1,0 +1,46 @@
+{
+  "task": "H-16",
+  "date": "2026-10-10",
+  "branch": "codex/reconocimiento-voz-pc",
+  "implementationBase": "be57414",
+  "environment": {
+    "platform": "Linux PC",
+    "browser": "Codex In-app Browser",
+    "url": "http://localhost:3000/control?avatar=cortana",
+    "node": "22.22.2"
+  },
+  "checks": {
+    "sttHealth": { "status": 200, "ready": true, "model": "Whisper base / español / CPU" },
+    "ttsHealth": { "status": 200, "ready": true, "voice": "es_AR-daniela-high" },
+    "visualControlInspected": true,
+    "texturedCortanaVisible": true,
+    "microphoneButtonEnabled": true,
+    "draftFromUiSuggestion": "Preséntate como Cortana",
+    "draftAwaitingExplicitSend": true,
+    "presentationAfterDraft": { "status": 200, "revision": 0, "phase": "idle", "animation": "idle" },
+    "testsPassed": 74,
+    "testsFailed": 0,
+    "buildPassed": true,
+    "bundleBytesReportedKB": 666.51,
+    "bundleGzipReportedKB": 171.32,
+    "bundleWarningOver500KB": true
+  },
+  "keyboardFix": {
+    "editorFocusWaitsForKeyRelease": true,
+    "keyupObservedOutsideDisabledButton": true,
+    "composerIgnoresRepeatedEnter": true,
+    "newControlledEventTests": 6,
+    "nativeMicrophoneKeyboardTrialExecuted": false
+  },
+  "limits": {
+    "microphonePermissionAcceptedByAgent": false,
+    "humanAudioRecorded": false,
+    "humanPhraseAgreementRecorded": false,
+    "humanAccuracyCriterionValidated": false,
+    "llmGenerationRequestsInFollowup": 0,
+    "mobileOpticalValidationExecuted": false,
+    "taskStatus": "IN_PROGRESS",
+    "nextTask": "Ensayo humano Q-12 para H-16; H-17 espera aceptación"
+  },
+  "screenshots": ["H-16-control-ready.png", "H-16-draft.png"]
+}

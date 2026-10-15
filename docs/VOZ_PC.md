@@ -1,6 +1,6 @@
 # Voz de Cortana en PC
 
-H-15 añade respuesta hablada; H-16 implementa reconocimiento local con revisión antes de enviar. El celular muestra la figura y su estado; micrófono y audio corresponden al control PC, sin duplicarse en el visor. La aceptación con voz humana sigue pendiente.
+H-15 añade respuesta hablada; H-16 implementa reconocimiento local con revisión antes de enviar. El celular muestra la figura y su estado; micrófono y audio corresponden al control PC, sin duplicarse en el visor. D-38 (2026-10-14) aplaza conexión real y ensayo humano por instrucción del propietario; siguiente tarea: H-17 software del flujo completo, sin esperar esas validaciones.
 
 ## Instalación Linux
 
@@ -26,6 +26,12 @@ Una reserva compartida por PC evita audios superpuestos entre controles. Otro co
 **Hablando** y pulso del avatar corresponden a reproducción real; no a llegada de texto ni generación WAV. No implica labios ni movimientos nuevos. La lectura quita formato Markdown, código y URLs; el texto original permanece visible.
 
 ## Contrato y recuperación
+
+Desde H-33 (2026-10-14), cada motor conserva un proceso Python y su modelo entre peticiones. Arranca al usarlo y se libera tras **60 s sin trabajo**, al cerrar el servidor o al cancelar una petición activa. La primera petición y la primera después de cancelar/inactividad vuelven a cargar el modelo; las siguientes evitan ese coste. Una petición por motor, sin cola ni escucha continua. Los límites y las APIs privadas siguen iguales.
+
+La comunicación interna usa marcos binarios acotados por stdin/stdout; no abre otros puertos. Audio y texto pasan por memoria, sin guardarse en disco. Los procesos reciben un entorno reducido y trabajan desde el directorio temporal del sistema, con rutas absolutas a sus recursos. La memoria del modelo permanece mientras el proceso está disponible; no se prometen tiempos iguales después de una cancelación.
+
+Comparación HTTP local H-33 con tres frases públicas: mediana de preparación WAV Piper **3585 → 2037 ms** y Whisper **2320 → 1186 ms** en llamadas con modelo cargado. Primera llamada nueva: 3436/1975 ms respectivamente. Los mismos WAV STT conservan errores y presentan variaciones textuales menores; esto optimiza espera, no certifica precisión humana. [Reporte y condiciones](reports/2026-10-14-H-33-modelos-voz-reutilizables.md).
 
 - `GET /api/tts` privado: disponibilidad y nombre de voz; sin rutas locales.
 - `POST /api/tts {requestId,speechId}` privado: una respuesta guardada o `requestId: "voice-test"` (frase fija). No acepta texto arbitrario, modelos, destinos ni campos extra. Devuelve WAV mono PCM16 a 22,050 Hz; no guarda audio del chat en disco. Generación máxima 20 s, salida máxima 12 MiB.
@@ -55,7 +61,7 @@ Requiere los mismos `uv` y `hf`. Instala Python 3.13 y 23 paquetes fijados en `.
 
 1. Abre [control Cortana](http://localhost:3000/control?avatar=cortana) en PC mediante **localhost**, con micrófono conectado. No se pide permiso al cargar.
 2. **Mantén pulsado para hablar** y concede permiso al navegador. Si la primera pulsación termina al conceder permiso, vuelve a mantenerla pulsada. Solo comienza cuando aparece **Escuchando**.
-3. Habla una frase y suelta el botón. Alternativa de teclado: enfoca el botón con Tab y mantén Espacio o Enter. Captura mínima 0.6 s, máxima 15 s; pedir permiso aún no cuenta como escucha.
+3. Habla una frase y suelta el botón. Alternativa de teclado: enfoca el botón con Tab y mantén Espacio o Enter. Captura mínima 0.6 s, máxima 15 s; pedir permiso aún no cuenta como escucha. Si llegas al límite aún manteniendo una tecla, el editor espera a que la sueltes para recibir foco; soltar durante transcripción también se detecta aunque el botón esté deshabilitado. La repetición de Enter no envía el mensaje.
 4. El micrófono se apaga; aparece **Transcribiendo**. El resultado se añade al borrador existente en una línea nueva, hasta 2000 caracteres. Si excede ese límite, se conserva el borrador completo y se informa. **Corrige lo necesario y pulsa Enviar**; grabar/transcribir nunca consulta al LLM.
 5. **Descartar grabación** cancela captura o transcripción. Salir, cambiar de pestaña, perder foco/conexión o reiniciar servidor apagan captura y descartan resultados antiguos; no borran el mensaje. Un reset/cambio de proveedor/chat iniciado desde otro control también invalida reconocimiento pendiente.
 
@@ -73,7 +79,20 @@ Si se deniega permiso, habilítalo manualmente en los permisos del sitio; no se 
 
 Motor [faster-whisper 1.2.1](https://github.com/SYSTRAN/faster-whisper), MIT. Modelo [Systran/faster-whisper-base](https://huggingface.co/Systran/faster-whisper-base/blob/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/README.md), revisión `ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66`, conversión de Whisper base OpenAI, MIT según ficha y [licencia original](https://github.com/openai/whisper/blob/main/LICENSE). Dependencias/licencias en el entorno instalado; preservar atribuciones si se redistribuyen. Pesos/CPU configurados en backend, sin acceso a `.env` desde worker.
 
-## Ensayo de aceptación humana pendiente
+## Ensayo de aceptación humana aplazado
+
+D-38 deja este protocolo para una aceptación futura. El panel permanece disponible como opción; no se requiere ejecutarlo para continuar H-17 software. No interpretar una prueba técnica/sintética ni la exportación como aceptación humana.
+
+El control incluye **Ensayo de micrófono · 10 frases**, integrado en el seguimiento H-16 del 2026-10-14:
+
+1. Abre `/control?avatar=cortana` mediante localhost en el PC y despliega ese panel.
+2. Completa PC/sistema, navegador, micrófono y ruido con las condiciones reales. Pulsa **Comenzar ensayo**; ese botón no abre el micrófono. El borrador se conserva y el chat queda pausado.
+3. Lee la frase indicada manteniendo el botón de micrófono; suelta para transcribir. El panel conserva el texto original, identificador de captura y tiempos, sin introducirlo en el borrador.
+4. Antes de corregir, elige **Conserva el sentido** o **Pierde datos o intención**. Si no hubo resultado, utiliza **Marcar frase sin resultado** y valórala como no útil. Una frase sin transcripción no puede contarse como útil. Repite hasta completar diez.
+5. Al finalizar, revisa **Otras comprobaciones manuales de H-16**. Conservan «No probado» hasta que la persona registre su resultado; el número de frases útiles no las aprueba automáticamente. **Terminar ensayo** permite salir antes y recuperar el chat, conservando el borrador.
+6. Pulsa **Exportar resultados JSON**. Descarga `H-16-ensayo-microfono.json` en el PC: entorno, frases, transcripciones originales, IDs/tiempos, interrupciones, valoraciones y resumen. No contiene audio ni se sube al servidor. Recargar pierde el ensayo en memoria; un nuevo ensayo borra sus resultados anteriores.
+
+El JSON es una autoevaluación pendiente de revisión. Exige diez frases valoradas para comprobar ≥8/10 y mantiene `reviewRequired: true`; exportarlo o pasar pruebas automáticas no acepta H-16 humano. H-17 software puede avanzar por D-38 sin ese resultado. Un fallo marcado sin captura tiene ID nulo. La prueba de interfaz guardada en el [reporte de integración](reports/2026-10-14-H-16-ensayo-guiado-integrado.md) utiliza datos ficticios y no cuenta como ensayo humano.
 
 Registrar PC/OS/navegador, micrófono, ruido, frase objetivo, texto antes de corregir, sentido correcto sí/no y latencia. Propuesta para acordar con el propietario; **no son frases humanas ya aceptadas/probadas**:
 
@@ -88,6 +107,8 @@ Registrar PC/OS/navegador, micrófono, ruido, frase objetivo, texto antes de cor
 9. El micrófono está conectado a la computadora.
 10. Gracias Cortana, hasta luego.
 
-Éxito H-16: ≥8/10 mantienen intención y datos importantes; corregir una palabra funciona antes de enviar; cero envíos automáticos; descartar en captura/transcripción no entrega texto tardío; TTS propia se detiene antes de captar. Probar permiso denegado/tardío, frase corta, silencio, pérdida de foco/conexión y recuperación sin perder borrador. No guardar grabaciones privadas en Git. Después H-17: cinco conversaciones completas y dos interrupciones, con latencia por etapa.
+Aceptación futura H-16: ≥8/10 mantienen intención y datos importantes; corregir una palabra funciona antes de enviar; cero envíos automáticos; descartar en captura/transcripción no entrega texto tardío; TTS propia se detiene antes de captar. Probar permiso denegado/tardío, frase corta, silencio, pérdida de foco/conexión y recuperación sin perder borrador. No guardar grabaciones privadas en Git. H-17 software puede avanzar antes por D-38: cinco conversaciones y dos interrupciones, con latencia por etapa y origen de evidencia identificado.
 
-Benchmark técnico reproducible: `node tools/verify-stt.mjs` sintetiza diez frases públicas con Piper y usa HTTP/backend/worker reales, más WAV/WebM/Ogg/MP4 y silencio. No abre micrófono ni llama al LLM; audios temporales en `.stt-models/qa` ignorada y evidencia JSON explícitamente sintética. Base tardó 2.4–2.9 s en este PC; contiene errores y **no certifica ≥8/10 con voz humana**. Comparación experimental small (6.2–7.5 s y errores todavía presentes) en reporte H-16; no cambia el modelo instalado por defecto.
+Prueba de teclado: mantener Enter hasta que se alcance el máximo de 15 s, esperar la transcripción sin soltar y comprobar que el texto no se envía. Soltar debe permitir revisar el editor; hacer una pulsación nueva de Enter o pulsar Enviar para enviar deliberadamente. Repetir con Espacio y con una liberación durante transcripción. La secuencia de foco está cubierta por pruebas de eventos controlados; su comportamiento con micrófono/teclado reales todavía pertenece al ensayo humano.
+
+Benchmark técnico reproducible: `node tools/verify-stt.mjs` sintetiza diez frases públicas con Piper y usa HTTP/backend/worker reales, más WAV/WebM/Ogg/MP4 y silencio. No abre micrófono ni llama al LLM; audios temporales en `.stt-models/qa` ignorada y evidencia JSON explícitamente sintética. Los 2.4–2.9 s de base y 6.2–7.5 s de small pertenecen al reporte histórico H-16, anterior a H-33. La comparación actual de carga está en el reporte H-33; mantiene base/CPU/int8/beam=5. Ninguno de esos ensayos **certifica ≥8/10 con voz humana**.

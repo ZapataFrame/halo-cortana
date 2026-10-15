@@ -2,6 +2,8 @@
 
 Humanoide sobre **negro puro** para una caja Pepper’s Ghost, modos vertical/horizontal y **Gangnam Style** activable desde PC. Conversación con **Gemma 4 en Ollama Cloud, GPT o Qwen local**, respuesta hablada Piper y dictado Whisper local en español. Cloud requiere su propia clave API. El celular presenta el avatar; micrófono/audio funcionan en control PC. Ensayo de voz humana y simulador táctico siguen pendientes.
 
+Prioridad actual (D-38, 2026-10-14): continuar H-17, integración y verificación del flujo de voz PC. La conexión real del celular y el ensayo humano quedan aplazados por el propietario; no bloquean ese desarrollo.
+
 ## Abrir la demo
 
 Requiere **Node.js ≥22.12**. Primera instalación:
@@ -16,7 +18,20 @@ npm run demo
 - Puerto 3000. Detener con `Ctrl+C`; después de compilar basta `npm start`.
 - Visor y baile usan recursos locales. GPT y Ollama Cloud necesitan internet; una caída del proveedor conserva la figura.
 
-Si el celular no conecta: comprueba IP, servidor, misma Wi-Fi y aislamiento de clientes. Si hay firewall, habilita TCP 3000 en esa red según tu sistema; no necesitas abrir puertos del router.
+### Conectar el celular
+
+En el celular, **localhost es el propio teléfono**. Usa la URL con la IP que aparece en **Pantalla externa** del control PC o en la terminal al arrancar. Para Cortana, abre esa dirección con `?avatar=cortana`, por ejemplo `http://192.168.1.66:3000/hologram?avatar=cortana`. La IP puede cambiar al cambiar de red.
+
+Mantén la terminal de `npm run demo` abierta. `npm run dev` y los comandos `qa:*` son para desarrollo/pruebas en el PC: no sustituyen al servidor de la demo ni habilitan por sí solos sus APIs.
+
+Si no conecta, comprueba en este orden:
+
+1. En el PC abre la misma URL con IP. Si tampoco funciona, comprueba que la demo está iniciada, la IP y el puerto mostrados en terminal. La configuración de ejemplo usa `HOST=0.0.0.0` y `PORT=3000`.
+2. En el celular abre esa URL exacta mediante `http://`, con ambos equipos en la misma red. Una red de invitados o el aislamiento de clientes puede impedir conexiones aunque ambos tengan internet.
+3. Si funciona en PC pero el celular agota la espera, revisa el firewall del PC y el aislamiento Wi-Fi. En equipos con UFW, `sudo ufw status verbose` permite consultar las reglas; requiere tu contraseña de administrador. Si se confirma un bloqueo, permitir TCP 3000 solo en la red local. No hace falta abrir puertos del router.
+4. Si la página abre pero no aparece el modelo, abre la calibración para leer el diagnóstico de carga/WebGL; es un problema distinto de alcanzar el servidor.
+
+El celular usa **`/hologram`**. El chat, TTS y micrófono son privados del control PC abierto mediante localhost; un rechazo 403 al intentar controlarlos por IP LAN corresponde a ese diseño. Los enlaces del visor y la preparación de voz se muestran sin esperar al catálogo de modelos locales.
 
 ## Preparar la caja y orientación
 
@@ -30,6 +45,8 @@ Si el celular no conecta: comprueba IP, servidor, misma Wi-Fi y aislamiento de c
 Los ajustes se guardan en cada navegador/origen; los del PC no calibran remotamente el celular. **Restablecer** vuelve a automático y valores iniciales. HTTP LAN puede limitar fullscreen/wake lock; usa ajustes del dispositivo si hace falta. **Contornos** muestra malla triangular. Sin piso ni texto de chat en la proyección.
 
 Si se corta la conexión con el PC, el avatar ya cargado conserva su figura, movimiento y ajustes. El control y la calibración avisan **PC sin conexión**; el visor con ajustes cerrados sigue mostrando solo la figura. Al restaurar el servidor se recupera su sesión automáticamente. Reiniciar el servidor vacía el contexto de conversación; la reconexión no reenvía mensajes.
+
+Si falla la preparación inicial del control, se reintenta cuando el estado del PC vuelve a responder, incluso si el avatar ya está conectado. Los enlaces del celular, chat y comprobaciones de voz se preparan sin recargar la página. Una consulta inicial atascada se cancela a los 5 s; recuperar la conexión no envía mensajes ni activa el micrófono.
 
 ## Baile
 
@@ -104,6 +121,8 @@ Prepara Python 3.13/Piper y descarga la voz Daniela (114 MB), con versiones y ha
 
 **Escuchar respuesta** lee cada respuesta recibida. Activa **Leer respuestas automáticamente** para respuestas nuevas; **Volumen** regula audio y **Detener voz** cancela preparación/reproducción sin borrar texto. Nueva pregunta/conversación, cambio de proveedor o salida del control detienen voz. El celular solo muestra el avatar y su estado **Hablando**, sin duplicar audio. [Instalación, licencia y recuperación](docs/VOZ_PC.md).
 
+Piper y Whisper reutilizan sus modelos entre turnos para reducir espera. Los procesos se liberan tras 60 s sin trabajo; cancelar una petición activa termina su proceso y el siguiente uso lo vuelve a cargar. La primera petición puede tardar más. [Mediciones HTTP y límites de H-33](docs/reports/2026-10-14-H-33-modelos-voz-reutilizables.md).
+
 ## Dictar desde el PC
 
 ```bash
@@ -114,9 +133,13 @@ Instala Whisper base multilingüe (145 MB) en un entorno separado, con versiones
 
 Suelta para apagar micrófono y transcribir (máximo 15 s). El texto se añade a tu borrador: **revisa/corrige y pulsa Enviar**. Cortana detiene su audio antes de captar; **Descartar grabación** cancela captura/transcripción sin borrar el texto. La voz no se guarda ni se envía a Gemma/GPT; solo el texto confirmado se envía al LLM. [Guía y ensayo de diez frases](docs/VOZ_PC.md).
 
+Para medir el reconocimiento, despliega **Ensayo de micrófono · 10 frases**, completa el entorno real y comienza. El panel pausa el chat y registra cada transcripción original para valorarla antes de corregir; conserva tu borrador. **Exportar resultados JSON** guarda el informe local sin audio. La aceptación exige diez frases y ≥8/10 útiles, además de revisar las comprobaciones manuales; no se aprueba automáticamente. [Pasos y límites](docs/VOZ_PC.md#ensayo-de-aceptación-humana-pendiente).
+
 ## Verificación
 
-68 pruebas aprobadas: controles, proyección, texturas, proveedores, cancelación, recuperación, TTS y STT con reserva única. Build e instaladores de voz/reconocimiento correctos. H-15 conserva tres WAV Gemma reales y reproducción UI verificada. H-16 verificó diez frases **sintéticas**, cuatro formatos y silencio mediante backend/Whisper reales (2.4–2.9 s), cancelación del worker en 106 ms y rechazo de audio largo. Hay errores de transcripción; **permiso/micrófono humano y meta ≥8/10 todavía no probados**. DOM del control inspeccionado; revisión visual H-16 pendiente tras desconexión del navegador de pruebas. [Reporte H-16](docs/reports/2026-10-10-H-16-reconocimiento-pc.md). Cloud real verificado históricamente; GPT requiere clave válida, sin generación comprobada. Celular físico, caja, audición humana y cinco conversaciones completas H-17 siguen pendientes.
+Suite automática aprobada: controles, proyección, texturas, proveedores, cancelación, recuperación, TTS/STT con reserva única y ciclo de vida de procesos reutilizables. Build correcto. H-11 verificó en la interfaz tres preguntas y seguimiento con Gemma 4:31b Cloud, cancelación y recuperación; una respuesta real retenida y liberada después de cancelar no alteró el contexto. El prompt reconoce las funciones de voz existentes. [Reporte H-11](docs/reports/2026-10-10-H-11-chat-pc.md); [verificación actual H-33](docs/reports/2026-10-14-H-33-modelos-voz-reutilizables.md).
+
+H-15 conserva tres WAV Gemma reales y reproducción UI verificada. H-16 verificó diez frases **sintéticas**, cuatro formatos y silencio mediante backend/Whisper reales (2.4–2.9 s), cancelación del worker en 106 ms y rechazo de audio largo. El control se inspeccionó visualmente; hay errores de transcripción y **permiso/micrófono humano y meta ≥8/10 todavía no probados**. Ese ensayo queda aplazado por D-38 y permite avanzar H-17 software sobre la implementación existente. [Reporte H-16](docs/reports/2026-10-10-H-16-reconocimiento-pc.md). GPT requiere clave válida, sin generación comprobada. Celular físico, caja y audición humana conservan aceptación futura; H-17 aún debe completar/verificar el flujo integrado.
 
 ```bash
 npm test
@@ -124,6 +147,8 @@ npm run build
 ```
 
 Ensayo digital de negro: con la demo compilada, ejecuta `npm run qa:visual -- loading` y abre `http://127.0.0.1:3001/hologram`. Enter en terminal libera el GLB real. `npm run qa:visual -- error` provoca fallo del recurso. Detén un ensayo antes de iniciar el otro. El visor conserva negro y el diagnóstico aparece al abrir calibración; no se carga la clave API en estos ensayos.
+
+Ensayo de chat: `npm run qa:chat` sirve el control en `http://127.0.0.1:3002/control?avatar=cortana` y llama al proveedor real configurado en `.env`. El modo `npm run qa:chat -- delay` permite retener una respuesta para comprobar su descarte tras cancelar. [Preguntas, pasos y criterios](docs/PRUEBAS_CHAT_PC.md).
 
 [Roadmap](ROADMAP.MD) · [Especificación](SPECIFICACTIONS.MD) · [Plan](docs/plans/2026-10-07-mvp-holograma.md) · [Reporte de calibración](docs/reports/2026-10-07-H-06-calibracion-precisa.md) · [GPT/orientación/baile](docs/reports/2026-10-07-H-20-22-gpt-orientacion-baile.md).
 

@@ -352,6 +352,6 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
       json(res, clientError ? 400 : 404, { error: clientError ? error.message : 'Archivo no disponible.' });
     }
   });
-  server.on('close', () => { active?.controller.abort(); stopSpeech(); stopCapture(); });
+  server.on('close', () => { active?.controller.abort(); stopSpeech(); stopCapture(); tts.close?.(); stt.close?.(); });
   return server;
 }

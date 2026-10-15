@@ -11,6 +11,7 @@
     "demo": "npm run build && npm start",
     "test": "node --test tests/*.test.js",
     "qa:visual": "node tools/serve-visual-qa.mjs",
+    "qa:chat": "node --env-file-if-exists=.env tools/serve-chat-qa.mjs",
     "setup:voice": "node tools/setup-voice.mjs",
     "setup:stt": "node tools/setup-stt.mjs"
   },

@@ -1,6 +1,6 @@
 # Cortana — MVP holográfico activo
 
-Actualizado: 2026-10-10. Visor, conversación, respuesta hablada y reconocimiento local PC implementados; D-32 adelanta voz. Aceptación de micrófono humano/móvil/caja pendiente.
+Actualizado: 2026-10-14. Visor, conversación, respuesta hablada y reconocimiento local PC implementados; D-32 adelanta voz y H-33 reduce recarga de modelos. D-38 prioriza H-17 software del flujo hablado; conexión real y ensayo humano quedan aplazados, sin bloquear ese trabajo.
 
 La versión previa del agente del simulador se conserva en `docs/archive/Cortana-2026-10-05.md`. Alcance actual: `SPECIFICACTIONS.MD`; tareas/estados: `ROADMAP.MD`; tarjetas y pruebas: `docs/plans/2026-10-07-mvp-holograma.md`.
 
@@ -38,6 +38,7 @@ Visor independiente: arranca sin clave y sigue visible si falla la IA. El móvil
 - Visor: `loading`, `ready`, `error`; durante carga/error conserva negro y el diagnóstico aparece en el panel de ajustes o control, nunca como HUD automático.
 - Conversación pública: `idle`, `processing`, `responded`, `error`; `speaking` durante reproducción confirmada en PC. Cancelar chat vuelve a `idle`; detener audio recupera fase anterior.
 - Conectividad: separada del estado visual. Desconexión no borra el modelo ya cargado; reconexión obtiene sesión/revisión actual.
+- Preparación del control H-34: un fallo inicial de información del PC se reintenta con las consultas de estado existentes, aunque no cambie la revisión. Una preparación activa y 5 s por consulta; recuperar enlaces y controles no envía chat ni pide micrófono. Al salir se aborta y al volver puede prepararse de nuevo sin duplicar enlaces.
 - Recuperación H-30: valida el contrato público e ignora revisiones viejas/duplicadas; nueva sesión tras reinicio acepta revisión cero. Una consulta activa, timeout 2.5 s, ciclo de 1 s en primer plano/3 s en segundo plano. Al salir se aborta; al volver se consulta estado actual. Aviso de desconexión en control/calibración, nunca HUD en el visor cerrado. Durante un corte se detiene el pulso y se conserva movimiento/figura; la reconexión no reenvía mensajes.
 - H-16 usa `listening` tras inicio de captura y confirmación al backend; `processing` durante reconocimiento local. Pedir permiso aún no anuncia escucha. Micrófono apagado antes de transcribir; termina restaurando la fase previa. `speaking` añade pulso luminoso sin labios; no proyecta botones/texto.
 
@@ -57,7 +58,7 @@ Opción **Cortana importada**: `?avatar=cortana` en control/visor. Copia local d
 
 ## 5. Conversación y proveedor
 
-Control PC separado del área reflejada: escribir, enviar, cancelar, leer respuesta y ver estado/proveedor. Personalidad aplicada mediante prompt del backend: «Eres Cortana, asistente de un prototipo holográfico. Responde en español de forma breve. Este MVP solo muestra tu modelo y admite conversación; no afirmes controlar un simulador ni dispositivos».
+Control PC separado del área reflejada: escribir, enviar, cancelar, leer respuesta y ver estado/proveedor. Prompt del backend: Cortana responde en español, máximo 25 palabras; conoce el avatar, lectura local automática/manual y dictado PC revisado antes de enviar. Distingue esas funciones de la aplicación de herramientas del LLM: no controla simulador/dispositivos ni ejecuta acciones. No afirma escucha/habla actual sin que la aplicación confirme captura/reproducción. H-11 corrige la instrucción histórica «no tienes voz», que producía una negación incorrecta de TTS.
 
 Sin herramientas de estrategia ni acciones de mundo en este corte. No anunciar «tanque creado», «escuchando» o «hablando» cuando esas funciones no existen. Historial breve y explícito; reiniciar conversación no reinicia calibración.
 
@@ -83,7 +84,11 @@ La caja y pantalla reales determinan tamaño y contraste; no asumir OLED ni dime
 
 H-15: Piper/Daniela en español, CPU y sin clave/coste por llamada. Probar voz, lectura automática opcional, Escuchar respuesta, Volumen y Detener voz. Lee respuesta guardada sin consultar otra vez al LLM; prueba fija diferenciada de conversación. Una salida compartida, cancelación y expiración. Guía/contrato/versión/hash/atribución: `docs/VOZ_PC.md`.
 
-H-16 implementado: mantener pulsado en control localhost (o Espacio/Enter con botón enfocado), soltar para transcribir mediante Whisper base CPU/español. Detiene TTS propio antes de captar; otra salida/grabación compartida bloquea el inicio. Máximo 15 s; texto añadido al borrador para corregir antes de Enviar, sin automatizar chat. Descartar grabación apaga pistas/cancela procesamiento; errores conservan texto. Entorno y pesos aparte de Piper, instalación `npm run setup:stt`. Audio solo en memoria PC, nunca en proveedor Cloud/visor ni en archivos del repositorio. Permisos reales y meta de ocho frases humanas correctas de diez pendientes; fuente sintética no sustituye ese ensayo. H-17 conserva voz→LLM→TTS→avatar con cinco conversaciones/dos interrupciones. Micrófono móvil requiere comprobar permisos/contexto seguro antes de escogerlo.
+H-33 conserva un proceso/modelo por motor entre peticiones, arranque al usarlo y cierre a los 60 s de inactividad. Cancelar durante procesamiento termina ese proceso; el próximo turno lo recrea. No añade puertos, escucha continua ni streaming; mantiene voz Daniela y Whisper base CPU/int8/beam=5. Mediciones actuales y límites en reporte H-33; velocidad no equivale a aceptación humana.
+
+El panel **Ensayo de micrófono · 10 frases** guía la aceptación pendiente de H-16: entorno real, captura explícita, texto original/ID/tiempos y valoración humana antes de corregir. Durante el ensayo pausa chat/proveedor/TTS de prueba y conserva borrador. Exporta JSON local sin audio; conserva comprobaciones no realizadas y revisión pendiente. No acepta H-16 ni inicia H-17 por sí mismo. Uso en `docs/VOZ_PC.md`.
+
+H-16 implementado: mantener pulsado en control localhost (o Espacio/Enter con botón enfocado), soltar para transcribir mediante Whisper base CPU/español. Detiene TTS propio antes de captar; otra salida/grabación compartida bloquea el inicio. Máximo 15 s; texto añadido al borrador para corregir antes de Enviar, sin automatizar chat. Si se alcanza el límite con una tecla mantenida, el editor espera a que se suelte para recibir foco; Enter repetido no envía. Descartar grabación apaga pistas/cancela procesamiento; errores conservan texto. Entorno y pesos aparte de Piper, instalación `npm run setup:stt`. Audio solo en memoria PC, nunca en proveedor Cloud/visor ni en archivos del repositorio. Permisos reales y meta de ocho frases humanas correctas de diez pendientes; fuente sintética no sustituye ese ensayo. H-17 conserva voz→LLM→TTS→avatar con cinco conversaciones/dos interrupciones. Micrófono móvil requiere comprobar permisos/contexto seguro antes de escogerlo.
 
 Modelo final, labios, escucha por nombre y app instalada son H-18 diferido. El baile solicitado se implementa en H-22 como animación concreta; no reactiva otros gestos ni el simulador. Herramientas tácticas y análisis de batalla permanecen en archivo histórico.
 
@@ -93,4 +98,4 @@ Modelo final, labios, escucha por nombre y app instalada son H-18 diferido. El b
 - B LLM: 3 preguntas nuevas y seguimiento, respuesta no pregrabada, errores controlados y figura estable.
 - Voz: adelantada en PC por el propietario; no sustituye aceptación física A+B.
 
-Hay capturas y mediciones PC/LLM local en el reporte inicial; orientación y baile tienen evidencia nueva en `docs/reports/2026-10-07-H-20-22-gpt-orientacion-baile.md`. H-28 verifica respuestas Cloud; H-29 comprueba diagnóstico; H-30 verifica recuperación PC. H-15 añade voz real y su evidencia propia. D-32/Q-11 adelantan H-15→H-16 en PC. H-11 manual (recorrido completo/cancelar chat), clave GPT H-20 y datos físicos H-19 siguen pendientes. H-07/H-08 validan dispositivo/caja; no hay aprobación física ni latencia GPT medida.
+Hay capturas y mediciones PC/LLM local en el reporte inicial; orientación y baile tienen evidencia nueva en `docs/reports/2026-10-07-H-20-22-gpt-orientacion-baile.md`. H-28 verifica respuestas Cloud; H-29 comprueba diagnóstico; H-30 verifica recuperación PC. H-15 añade voz real y su evidencia propia. H-11 verifica tres preguntas/seguimiento UI, cancelación y recuperación, con guía `docs/PRUEBAS_CHAT_PC.md` y reporte `docs/reports/2026-10-10-H-11-chat-pc.md`. D-38 aplaza la aceptación humana H-16/Q-12 y la conexión real H-19/H-07/H-12; H-17 software es la siguiente tarea y no espera esos resultados. Clave GPT H-20 sigue pendiente. H-07/H-08 conservan aceptación futura de dispositivo/caja; no hay aprobación física ni latencia GPT medida.

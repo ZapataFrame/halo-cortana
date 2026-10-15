@@ -27,7 +27,7 @@ OLLAMA_API_KEY=tu_clave_privada
 - Conversación en español, seis pares recientes, sin herramientas; respuesta no streaming, `think:false`, hasta 256 tokens, timeout 60 s y cancelación manual. Solo devuelve `message.content`, nunca el campo de pensamiento. [Contrato de chat](https://docs.ollama.com/api/chat).
 - Modelo configurado por `OLLAMA_CLOUD_MODEL`, no lista de modelos instalados. El selector local continúa consultando únicamente Ollama en loopback.
 - Un envío activo. Cambiar proveedor inicia conversación nueva, limpia cache y mantiene movimiento/calibración. No cambia automáticamente a GPT o Qwen ante error.
-- Visor, texturas y ajustes siguen funcionando sin la clave y ante fallos del proveedor. Todavía no hay reconocimiento ni síntesis de voz.
+- Visor, texturas y ajustes siguen funcionando sin la clave y ante fallos del proveedor. H-15/H-16 añaden síntesis y dictado locales en PC, independientes de Cloud; H-33 reutiliza sus modelos. La aceptación con micrófono humano sigue pendiente. [Voz PC](VOZ_PC.md).
 
 Las opciones iniciales de Gemma son temperatura 1, top-p 0.95 y top-k 64, según la ficha oficial; se desactiva pensamiento para el chat breve del MVP. Hay que medir calidad/latencia reales, no asumirlas. [Ficha de Gemma 4](https://ollama.com/library/gemma4%3A31b-cloud).
 

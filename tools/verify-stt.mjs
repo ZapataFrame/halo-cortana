@@ -38,8 +38,8 @@ async function recognize(bytes, type = 'audio/wav') {
 await mkdir('.stt-models/qa', { recursive: true });
 const evidence = { date: new Date().toISOString(), source: 'Piper/Daniela: diez frases sintéticas públicas; NO micrófono humano',
   model: `Whisper ${small ? 'small' : 'base'} / CPU int8 / español`, acceptanceHuman: 'PENDIENTE: acordar y medir diez frases humanas en el PC', results: [], formats: [] };
+const piper = createPiper();
 try {
-  const piper = createPiper();
   for (let i = 0; i < phrases.length; i++) {
     const bytes = await piper.synthesize(phrases[i], AbortSignal.timeout(20000));
     if (i === 0) await writeFile('.stt-models/qa/phrase.wav', bytes);
@@ -64,4 +64,4 @@ try {
   evidence.finalState = state;
   await writeFile(`docs/reports/evidence/H-16-stt${small ? '-small' : ''}-synthetic.json`, JSON.stringify(evidence, null, 2) + '\n');
   console.log(JSON.stringify({ formats: evidence.formats, silenceStatus: evidence.silence.status, finalPhase: state.phase }));
-} finally { server.closeAllConnections(); server.close(); }
+} finally { piper.close(); server.closeAllConnections(); server.close(); }

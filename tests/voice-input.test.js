@@ -95,3 +95,15 @@ test('fin inesperado del recorder libera pistas y no aplica transcripción', asy
   assert.ok(f.track.stopped > 0); assert.match(f.states.at(-1).detail, /inesperadamente/);
   assert.deepEqual(f.transcripts, []);
 });
+
+test('el ensayo recibe ID y tiempos del resultado original y puede indicar revisión fuera del chat', async t => {
+  let delivered;
+  const f = fixture(t, { onTranscript(text, metadata) { delivered = { text, metadata }; return { detail: 'Valora la frase en el ensayo.' }; } });
+  await f.input.start(); await flush();
+  assert.equal(f.states.find(state => state.phase === 'preparing').captureId, 'capture-test');
+  f.advance(); f.input.finish(); await flush();
+  assert.equal(delivered.text, 'Hola Cortana.'); assert.equal(delivered.metadata.captureId, 'capture-test');
+  assert.equal(delivered.metadata.elapsedMs, 25); assert.equal(delivered.metadata.releaseToTextMs, 0);
+  assert.equal(f.states.at(-1).detail, 'Valora la frase en el ensayo.');
+  assert.deepEqual(f.actions, ['stop-tts', 'reserve', 'start', 'stop']);
+});

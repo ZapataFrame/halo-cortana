@@ -1,7 +1,7 @@
-import { spawn } from 'node:child_process';
 import { access } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { resolve } from 'node:path';
+import { createVoiceWorker } from './voice-worker.js';
 
 export const AUDIO_LIMIT = 2 * 1024 * 1024;
 const FORMATS = new Set(['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/wav']);
@@ -18,7 +18,11 @@ export function validateAudio(bytes, mime) {
   if (!matches || bytes.length < 44 || bytes.length > AUDIO_LIMIT) throw new Error('STT_INVALID_AUDIO');
 }
 
-export function createWhisper({ python = resolve('.stt-venv/bin/python'), model = resolve('.stt-models/base'), worker = resolve('server/whisper_worker.py') } = {}) {
+export function createWhisper({ python = resolve('.stt-venv/bin/python'), model = resolve('.stt-models/base'),
+  worker = resolve('server/whisper_worker.py'), spawnProcess, idleMs } = {}) {
+  const engine = createVoiceWorker({ command: python, args: [worker, resolve(model)],
+    env: { PATH: process.env.PATH, HF_HUB_OFFLINE: '1', OMP_NUM_THREADS: '4', PYTHONDONTWRITEBYTECODE: '1' }, prefix: 'STT',
+    maxInput: AUDIO_LIMIT, maxOutput: 20000, spawnProcess, idleMs });
   async function health() {
     try {
       await access(python, constants.X_OK);
@@ -29,31 +33,19 @@ export function createWhisper({ python = resolve('.stt-venv/bin/python'), model 
   async function transcribe(bytes, signal) {
     if (!(await health()).ready) throw new Error('STT_NOT_CONFIGURED');
     if (signal.aborted) throw new Error('STT_CANCELLED');
-    return new Promise((resolveResult, reject) => {
-      const child = spawn(python, [worker, model], { stdio: ['pipe', 'pipe', 'pipe'],
-        env: { PATH: process.env.PATH, HF_HUB_OFFLINE: '1', OMP_NUM_THREADS: '4' } });
-      const chunks = []; let size = 0, overflow = false;
-      const abort = () => child.kill('SIGKILL');
-      signal.addEventListener('abort', abort, { once: true });
-      child.stdin.on('error', () => {}); child.stderr.resume();
-      child.stdout.on('data', chunk => { size += chunk.length; if (size > 20000) { overflow = true; abort(); } else chunks.push(chunk); });
-      child.on('error', () => { signal.removeEventListener('abort', abort); reject(new Error('STT_UNAVAILABLE')); });
-      child.on('close', code => {
-        signal.removeEventListener('abort', abort);
-        if (signal.aborted) { reject(new Error('STT_CANCELLED')); return; }
-        let result;
-        try { result = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { /* Sin salida válida. */ }
-        if (!overflow && code === 2 && ['STT_INVALID_AUDIO', 'STT_AUDIO_TOO_LONG', 'STT_NO_SPEECH'].includes(result?.error)) {
-          reject(new Error(result.error)); return;
-        }
-        if (code !== 0 || overflow || typeof result?.text !== 'string' || !result.text.trim() || result.text.length > 2000
-          || !Number.isFinite(result.durationMs) || result.durationMs < 400 || result.durationMs > 16000) {
-          reject(new Error('STT_UNAVAILABLE')); return;
-        }
-        resolveResult({ text: result.text.trim(), durationMs: Math.round(result.durationMs) });
-      });
-      child.stdin.end(bytes);
-    });
+    const response = await engine.request(bytes, signal);
+    if (!response.ok) {
+      const code = response.bytes.toString('utf8');
+      if (['STT_INVALID_AUDIO', 'STT_AUDIO_TOO_LONG', 'STT_NO_SPEECH'].includes(code)) throw new Error(code);
+      engine.close(); throw new Error('STT_UNAVAILABLE');
+    }
+    let result;
+    try { result = JSON.parse(response.bytes.toString('utf8')); } catch { /* Sin salida válida. */ }
+    if (typeof result?.text !== 'string' || !result.text.trim() || result.text.length > 2000
+      || !Number.isFinite(result.durationMs) || result.durationMs < 400 || result.durationMs > 16000) {
+      engine.close(); throw new Error('STT_UNAVAILABLE');
+    }
+    return { text: result.text.trim(), durationMs: Math.round(result.durationMs) };
   }
-  return { health, transcribe };
+  return { health, transcribe, close: engine.close };
 }

@@ -129,6 +129,8 @@ Instala Whisper base multilingüe (145 MB) en un entorno separado, con versiones
 
 Suelta para apagar micrófono y transcribir (máximo 15 s). El texto se añade a tu borrador: **revisa/corrige y pulsa Enviar**. Cortana detiene su audio antes de captar; **Descartar grabación** cancela captura/transcripción sin borrar el texto. La voz no se guarda ni se envía a Gemma/GPT; solo el texto confirmado se envía al LLM. [Guía y ensayo de diez frases](docs/VOZ_PC.md).
 
+Para medir el reconocimiento, despliega **Ensayo de micrófono · 10 frases**, completa el entorno real y comienza. El panel pausa el chat y registra cada transcripción original para valorarla antes de corregir; conserva tu borrador. **Exportar resultados JSON** guarda el informe local sin audio. La aceptación exige diez frases y ≥8/10 útiles, además de revisar las comprobaciones manuales; no se aprueba automáticamente. [Pasos y límites](docs/VOZ_PC.md#ensayo-de-aceptación-humana-pendiente).
+
 ## Verificación
 
 Suite automática aprobada: controles, proyección, texturas, proveedores, cancelación, recuperación, TTS/STT con reserva única y ciclo de vida de procesos reutilizables. Build correcto. H-11 verificó en la interfaz tres preguntas y seguimiento con Gemma 4:31b Cloud, cancelación y recuperación; una respuesta real retenida y liberada después de cancelar no alteró el contexto. El prompt reconoce las funciones de voz existentes. [Reporte H-11](docs/reports/2026-10-10-H-11-chat-pc.md); [verificación actual H-33](docs/reports/2026-10-14-H-33-modelos-voz-reutilizables.md).

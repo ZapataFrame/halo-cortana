@@ -4,13 +4,14 @@ import { createPresentationSync } from './presentation-sync.js';
 import { createSpeechPlayer } from './speech-player.js';
 import { createVoiceInput, voiceCaptureSupport } from './voice-input.js';
 import { bindVoiceInputControls } from './voice-input-controls.js';
+import { bindVoiceAcceptancePanel } from './voice-acceptance-panel.js';
 
 const app = document.querySelector('#app');
 const hologram = location.pathname === '/hologram';
 const avatarId = new URLSearchParams(location.search).get('avatar') === 'cortana' ? 'cortana' : 'dancer';
 const importedAvatar = avatarId === 'cortana';
 const viewerPath = `/hologram${importedAvatar ? '?avatar=cortana' : ''}`;
-let viewer, voicePlayer, voiceInput, voiceInputControls, disposed = false, presentationSession;
+let viewer, voicePlayer, voiceInput, voiceInputControls, voiceAcceptancePanel, disposed = false, presentationSession;
 
 if (hologram) {
   document.body.classList.add('projection-page');
@@ -38,6 +39,7 @@ if (hologram) {
             <div class="microphone-actions"><button type="button" class="button secondary" id="hold-microphone" aria-describedby="microphone-help" disabled>Mantén pulsado para hablar</button><button type="button" class="text-button" id="cancel-microphone" disabled>Descartar grabación</button></div>
             <p id="microphone-help" class="small muted">Micrófono de este PC · máximo 15 s. También puedes mantener Espacio o Enter con el botón enfocado. Revisa la transcripción antes de enviarla.</p>
             <p id="microphone-status" class="small muted" role="status" data-state="idle">Comprobando reconocimiento local…</p>
+            <details id="voice-acceptance" class="voice-trial"></details>
           </section>
           <div class="messages" aria-label="Conversación" role="log" aria-live="polite"><div class="empty-chat"><span class="empty-symbol">✧</span><h2>Inicia el contacto.</h2><p>Pregúntame algo o cuéntame qué estás construyendo.</p><div class="suggestions"><button>¿Qué es Pepper’s Ghost?</button><button>Preséntate como Cortana</button></div></div></div>
           <p id="chat-status" class="chat-status" role="status"></p><form id="chat-form"><label class="sr-only" for="message">Mensaje para Cortana</label><textarea id="message" placeholder="Escribe o dicta un mensaje…" maxlength="2000" rows="2" required></textarea><div class="composer-footer"><span class="small muted">Revisa el texto · tú decides cuándo enviar</span><button class="button" id="send" type="submit">Enviar ↗</button><button class="button secondary" id="cancel" type="button" hidden>Cancelar</button></div></form>
@@ -97,8 +99,10 @@ if (hologram) {
       microphone.setAttribute('aria-pressed', String(state.phase === 'recording'));
       updateControls();
       voiceInputControls?.onState(state.phase);
+      voiceAcceptancePanel?.onState(state);
     },
-    onTranscript(text) {
+    onTranscript(text, metadata) {
+      if (voiceAcceptancePanel?.onTranscript(text, metadata)) return { detail: 'Transcripción registrada en el ensayo. Valora si conserva el sentido.' };
       const draft = input.value.trim(); const next = draft ? `${draft}\n${text}` : text;
       if (next.length > 2000) return false;
       input.value = next; retry = null;
@@ -115,6 +119,9 @@ if (hologram) {
   const providerSelect = app.querySelector('#provider-select'), modelSelect = app.querySelector('#model-select');
   const providerHelp = app.querySelector('#provider-help');
   const checkProvider = app.querySelector('#check-provider');
+  voiceAcceptancePanel = bindVoiceAcceptancePanel({ root: app.querySelector('#voice-acceptance'),
+    available: () => Boolean(localControl && microphoneReady && !active && !changingProvider && !microphoneBusy && !voiceBusy),
+    cancelCapture: () => voiceInput.cancel(false), onChange: updateControls });
   function fillModels() {
     const cloud = providerSelect.value === 'ollama-cloud';
     const names = providerSelect.value === 'openai' ? [catalog?.openaiModel].filter(Boolean)
@@ -132,7 +139,7 @@ if (hologram) {
     updateControls();
   }
   function updateControls() {
-    const locked = Boolean(active || changingProvider || microphoneBusy || !localControl);
+    const locked = Boolean(active || changingProvider || microphoneBusy || voiceAcceptancePanel?.active || !localControl);
     providerSelect.disabled = locked || !catalog;
     modelSelect.disabled = locked || !modelSelect.value;
     app.querySelector('#apply-provider').disabled = locked || !modelSelect.value;
@@ -142,12 +149,15 @@ if (hologram) {
     checkProvider.title = unapplied ? 'Pulsa Cambiar modelo para aplicar la selección antes de probarla.' : 'Comprueba el proveedor activo sin generar texto.';
     input.disabled = locked; send.disabled = locked;
     app.querySelector('#reset-chat').disabled = locked;
-    autoSpeak.disabled = !localControl || !voiceReady;
+    autoSpeak.disabled = !localControl || !voiceReady || voiceAcceptancePanel?.active;
     testVoice.disabled = locked || !voiceReady || voiceBusy;
     stopVoice.disabled = !voiceBusy;
     app.querySelectorAll('.listen-response').forEach(button => { button.disabled = locked || !voiceReady || voiceBusy; });
-    microphone.disabled = Boolean(active || changingProvider || !localControl || !microphoneReady || microphonePhase === 'transcribing');
+    microphone.disabled = Boolean(active || changingProvider || !localControl || !microphoneReady || microphonePhase === 'transcribing'
+      || voiceAcceptancePanel?.active && !voiceAcceptancePanel.canCapture && !['preparing', 'recording'].includes(microphonePhase));
     microphoneCancel.disabled = !microphoneBusy;
+    app.querySelectorAll('.suggestions button').forEach(button => { button.disabled = locked; });
+    voiceAcceptancePanel?.refresh();
   }
   function showProviderHealth(info) {
     app.querySelector('#provider-status').textContent = `${info.provider.toUpperCase()} / ${info.model} · ${info.health.detail}`;
@@ -204,7 +214,7 @@ if (hologram) {
   });
   app.querySelector('#provider-form').addEventListener('submit', async event => {
     event.preventDefault();
-    if (active || changingProvider || microphoneBusy || !localControl) return;
+    if (active || changingProvider || microphoneBusy || voiceAcceptancePanel?.active || !localControl) return;
     changingProvider = true; updateControls();
     try {
       await voicePlayer.stop(false);
@@ -235,7 +245,7 @@ if (hologram) {
   }
   function busy(value) { send.hidden = value; cancel.hidden = !value; updateControls(); }
   async function submit(message, reused) {
-    if (active || changingProvider || microphoneBusy || !localControl) return;
+    if (active || changingProvider || microphoneBusy || voiceAcceptancePanel?.active || !localControl) return;
     const requestId = reused?.requestId || crypto.randomUUID();
     const controller = new AbortController();
     const current = { requestId, message, controller }; active = current; busy(true);

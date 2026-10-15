@@ -46,7 +46,7 @@ export function createVoiceInput({ request = fetch, getMedia = constraints => na
     const capability = support();
     if (!capability.ready) { report('error', capability.detail); return; }
     const job = { id: uuid(), controller: new AbortController(), chunks: [], bytes: 0, mime: capability.mime };
-    current = job; report('preparing', 'Preparando micrófono. Mantén pulsado y permite el acceso si se solicita.');
+    current = job; report('preparing', 'Preparando micrófono. Mantén pulsado y permite el acceso si se solicita.', { captureId: job.id });
     job.permissionTimer = setTimeout(() => fail(job, 'No se obtuvo permiso a tiempo. Vuelve a pulsar para grabar.'), permissionMs);
     try {
       await release; await stopSpeech();
@@ -96,7 +96,7 @@ export function createVoiceInput({ request = fetch, getMedia = constraints => na
     if (job.recordingRevision === undefined || now() - job.started < 600) {
       cancel(false); report('idle', 'No se grabó una frase. Mantén pulsado hasta terminar de hablar.'); return;
     }
-    job.finishing = true; clearTimeout(job.maxTimer); clearInterval(job.clock);
+    job.finishing = true; job.releasedAt = now(); clearTimeout(job.maxTimer); clearInterval(job.clock);
     report('transcribing', 'Transcribiendo en el PC… El micrófono está apagado.');
     job.recorder.stop(); job.stream.getTracks().forEach(track => { track.onended = null; track.stop(); });
   }
@@ -115,10 +115,11 @@ export function createVoiceInput({ request = fetch, getMedia = constraints => na
       if (job.controller.signal.aborted) throw new DOMException('Tiempo agotado', 'AbortError');
       if (!response.ok) throw new Error(data.error || 'No se pudo transcribir. Puedes escribir el mensaje.');
       if (typeof data.text !== 'string' || !data.text.trim() || data.text.length > 2000) throw new Error('La transcripción no es válida. Graba de nuevo.');
-      const appended = onTranscript(data.text.trim());
+      const appended = onTranscript(data.text.trim(), { captureId: job.id, elapsedMs: data.elapsedMs,
+        durationMs: data.durationMs, releaseToTextMs: now() - job.releasedAt });
       clear(job); current = undefined;
       report('ready', appended === false ? 'El texto supera 2000 caracteres. Tu borrador se conservó; acórtalo y graba de nuevo.'
-        : 'Transcripción lista. Revisa el texto y pulsa Enviar cuando quieras.', { elapsedMs: data.elapsedMs });
+        : appended?.detail || 'Transcripción lista. Revisa el texto y pulsa Enviar cuando quieras.', { elapsedMs: data.elapsedMs });
     } catch (error) {
       fail(job, error.name === 'AbortError' ? 'La transcripción tardó demasiado. Puedes escribir o grabar de nuevo.' : error.message);
     }

@@ -81,6 +81,17 @@ Motor [faster-whisper 1.2.1](https://github.com/SYSTRAN/faster-whisper), MIT. Mo
 
 ## Ensayo de aceptación humana pendiente
 
+El control incluye **Ensayo de micrófono · 10 frases**, integrado en el seguimiento H-16 del 2026-10-14:
+
+1. Abre `/control?avatar=cortana` mediante localhost en el PC y despliega ese panel.
+2. Completa PC/sistema, navegador, micrófono y ruido con las condiciones reales. Pulsa **Comenzar ensayo**; ese botón no abre el micrófono. El borrador se conserva y el chat queda pausado.
+3. Lee la frase indicada manteniendo el botón de micrófono; suelta para transcribir. El panel conserva el texto original, identificador de captura y tiempos, sin introducirlo en el borrador.
+4. Antes de corregir, elige **Conserva el sentido** o **Pierde datos o intención**. Si no hubo resultado, utiliza **Marcar frase sin resultado** y valórala como no útil. Una frase sin transcripción no puede contarse como útil. Repite hasta completar diez.
+5. Al finalizar, revisa **Otras comprobaciones manuales de H-16**. Conservan «No probado» hasta que la persona registre su resultado; el número de frases útiles no las aprueba automáticamente. **Terminar ensayo** permite salir antes y recuperar el chat, conservando el borrador.
+6. Pulsa **Exportar resultados JSON**. Descarga `H-16-ensayo-microfono.json` en el PC: entorno, frases, transcripciones originales, IDs/tiempos, interrupciones, valoraciones y resumen. No contiene audio ni se sube al servidor. Recargar pierde el ensayo en memoria; un nuevo ensayo borra sus resultados anteriores.
+
+El JSON es una autoevaluación pendiente de revisión. Exige diez frases valoradas para comprobar ≥8/10 y mantiene `reviewRequired: true`; exportarlo o pasar pruebas automáticas no marca H-16 DONE ni habilita H-17. Un fallo marcado sin captura tiene ID nulo. La prueba de interfaz guardada en el [reporte de integración](reports/2026-10-14-H-16-ensayo-guiado-integrado.md) utiliza datos ficticios y no cuenta como ensayo humano.
+
 Registrar PC/OS/navegador, micrófono, ruido, frase objetivo, texto antes de corregir, sentido correcto sí/no y latencia. Propuesta para acordar con el propietario; **no son frases humanas ya aceptadas/probadas**:
 
 1. Hola Cortana, preséntate en una frase.

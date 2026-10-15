@@ -1,6 +1,6 @@
 # Cortana — MVP holográfico activo
 
-Actualizado: 2026-10-14. Visor, conversación, respuesta hablada y reconocimiento local PC implementados; D-32 adelanta voz y H-33 reduce recarga de modelos. Aceptación de micrófono humano/móvil/caja pendiente.
+Actualizado: 2026-10-14. Visor, conversación, respuesta hablada y reconocimiento local PC implementados; D-32 adelanta voz y H-33 reduce recarga de modelos. D-38 prioriza H-17 software del flujo hablado; conexión real y ensayo humano quedan aplazados, sin bloquear ese trabajo.
 
 La versión previa del agente del simulador se conserva en `docs/archive/Cortana-2026-10-05.md`. Alcance actual: `SPECIFICACTIONS.MD`; tareas/estados: `ROADMAP.MD`; tarjetas y pruebas: `docs/plans/2026-10-07-mvp-holograma.md`.
 
@@ -98,4 +98,4 @@ Modelo final, labios, escucha por nombre y app instalada son H-18 diferido. El b
 - B LLM: 3 preguntas nuevas y seguimiento, respuesta no pregrabada, errores controlados y figura estable.
 - Voz: adelantada en PC por el propietario; no sustituye aceptación física A+B.
 
-Hay capturas y mediciones PC/LLM local en el reporte inicial; orientación y baile tienen evidencia nueva en `docs/reports/2026-10-07-H-20-22-gpt-orientacion-baile.md`. H-28 verifica respuestas Cloud; H-29 comprueba diagnóstico; H-30 verifica recuperación PC. H-15 añade voz real y su evidencia propia. H-11 verifica ahora tres preguntas/seguimiento UI, cancelación y recuperación, con guía `docs/PRUEBAS_CHAT_PC.md` y reporte `docs/reports/2026-10-10-H-11-chat-pc.md`. D-32/Q-11 adelantan H-15→H-16 en PC; H-16 está BLOCKED por aceptación humana Q-12 y H-17 espera ese resultado. Clave GPT H-20 y datos físicos H-19 siguen pendientes. H-07/H-08 validan dispositivo/caja; no hay aprobación física ni latencia GPT medida.
+Hay capturas y mediciones PC/LLM local en el reporte inicial; orientación y baile tienen evidencia nueva en `docs/reports/2026-10-07-H-20-22-gpt-orientacion-baile.md`. H-28 verifica respuestas Cloud; H-29 comprueba diagnóstico; H-30 verifica recuperación PC. H-15 añade voz real y su evidencia propia. H-11 verifica tres preguntas/seguimiento UI, cancelación y recuperación, con guía `docs/PRUEBAS_CHAT_PC.md` y reporte `docs/reports/2026-10-10-H-11-chat-pc.md`. D-38 aplaza la aceptación humana H-16/Q-12 y la conexión real H-19/H-07/H-12; H-17 software es la siguiente tarea y no espera esos resultados. Clave GPT H-20 sigue pendiente. H-07/H-08 conservan aceptación futura de dispositivo/caja; no hay aprobación física ni latencia GPT medida.

@@ -2,6 +2,8 @@
 
 Humanoide sobre **negro puro** para una caja Pepper’s Ghost, modos vertical/horizontal y **Gangnam Style** activable desde PC. Conversación con **Gemma 4 en Ollama Cloud, GPT o Qwen local**, respuesta hablada Piper y dictado Whisper local en español. Cloud requiere su propia clave API. El celular presenta el avatar; micrófono/audio funcionan en control PC. Ensayo de voz humana y simulador táctico siguen pendientes.
 
+Prioridad actual (D-38, 2026-10-14): continuar H-17, integración y verificación del flujo de voz PC. La conexión real del celular y el ensayo humano quedan aplazados por el propietario; no bloquean ese desarrollo.
+
 ## Abrir la demo
 
 Requiere **Node.js ≥22.12**. Primera instalación:
@@ -137,7 +139,7 @@ Para medir el reconocimiento, despliega **Ensayo de micrófono · 10 frases**, c
 
 Suite automática aprobada: controles, proyección, texturas, proveedores, cancelación, recuperación, TTS/STT con reserva única y ciclo de vida de procesos reutilizables. Build correcto. H-11 verificó en la interfaz tres preguntas y seguimiento con Gemma 4:31b Cloud, cancelación y recuperación; una respuesta real retenida y liberada después de cancelar no alteró el contexto. El prompt reconoce las funciones de voz existentes. [Reporte H-11](docs/reports/2026-10-10-H-11-chat-pc.md); [verificación actual H-33](docs/reports/2026-10-14-H-33-modelos-voz-reutilizables.md).
 
-H-15 conserva tres WAV Gemma reales y reproducción UI verificada. H-16 verificó diez frases **sintéticas**, cuatro formatos y silencio mediante backend/Whisper reales (2.4–2.9 s), cancelación del worker en 106 ms y rechazo de audio largo. El control se inspeccionó visualmente; hay errores de transcripción y **permiso/micrófono humano y meta ≥8/10 todavía no probados**. H-16 queda bloqueado por ese ensayo. [Reporte H-16](docs/reports/2026-10-10-H-16-reconocimiento-pc.md). GPT requiere clave válida, sin generación comprobada. Celular físico, caja, audición humana y cinco conversaciones completas H-17 siguen pendientes.
+H-15 conserva tres WAV Gemma reales y reproducción UI verificada. H-16 verificó diez frases **sintéticas**, cuatro formatos y silencio mediante backend/Whisper reales (2.4–2.9 s), cancelación del worker en 106 ms y rechazo de audio largo. El control se inspeccionó visualmente; hay errores de transcripción y **permiso/micrófono humano y meta ≥8/10 todavía no probados**. Ese ensayo queda aplazado por D-38 y permite avanzar H-17 software sobre la implementación existente. [Reporte H-16](docs/reports/2026-10-10-H-16-reconocimiento-pc.md). GPT requiere clave válida, sin generación comprobada. Celular físico, caja y audición humana conservan aceptación futura; H-17 aún debe completar/verificar el flujo integrado.
 
 ```bash
 npm test

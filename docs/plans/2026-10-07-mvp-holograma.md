@@ -197,6 +197,8 @@ Los estados actuales están en la roadmap. H-00 representa este plan documental;
 
 ### Etapa 5 — Voz PC adelantada por D-32 (2026-10-08)
 
+Actualización D-38 (2026-10-14): el propietario aplaza conexión real y ensayo humano. Priorizar H-17 software sobre la implementación H-16 ya verificada; conservar criterios humanos/físicos como aceptación futura sin exigirlos para continuar.
+
 **H-15 — Respuesta hablada (TTS). Depende de H-10/H-26/H-28. H-14 físico queda pendiente.**
 
 - Elegir voz en español y una sola salida activa; emitir voz desde respuesta real, cancelar audio y sincronizar avatar con reproducción. No clonación ni lip-sync fino requerido.
@@ -209,16 +211,17 @@ Los estados actuales están en la roadmap. H-00 representa este plan documental;
 **H-16 — Pulsar para hablar y reconocimiento (STT). Depende de H-15.**
 
 - Preferencia inicial: micrófono PC, transcripción editable y envío explícito. Si el micrófono debe vivir en móvil/navegador, resolver permisos/contexto seguro y compatibilidad antes de prometerlo en LAN HTTP.
-- Implementación 2026-10-10, Codex: controlador MediaRecorder independiente, adaptador/worker Whisper base en entorno CPU separado, instalador y manifiesto fijados; UI en control PC, contratos de captura y fase listening. Seguimiento: revisión visual PC completada, foco protegido ante tecla mantenida tras límite de captura, 74 pruebas/build. Estado BLOCKED por aceptación pendiente con micrófono humano ≥8/10 (Q-12); se completó H-11 independiente.
+- Implementación 2026-10-10, Codex: controlador MediaRecorder independiente, adaptador/worker Whisper base en entorno CPU separado, instalador y manifiesto fijados; UI en control PC, contratos de captura y fase listening. Seguimiento: revisión visual PC completada, foco protegido y ensayo guiado integrado. Software verificado en reportes H-16/H-33/H-34. Aceptación humana ≥8/10 (Q-12) DEFERRED por D-38, 2026-10-14; no bloquea H-17 software.
 - Pasos verificables: comprobar capacidades/contexto sin pedir permiso al cargar → detener TTS propio → reservar micrófono → permiso → iniciar grabación → mantener máximo 15 s → soltar/apagar pistas → transcribir en backend → agregar al borrador → corregir → Enviar. Cerrar/cancelar nunca entrega texto tardío.
 - Contratos: loopback/Host/Origin; acciones reserve/start/stop/cancel con captureId; audio binario ≤2 MiB y ≤16 s; transcripción ≤30 s. Sin elección de URLs/modelos desde navegador, sin logs/archivos privados ni llamada LLM automática. Otro control no inicia TTS/captura superpuestos.
 - Verificación técnica: pruebas de permisos tardíos/denegados, liberación de pistas, pulsación corta, límites, silencio, fallo, cancelación durante reserva/reconocimiento, nueva sesión y recuperación; benchmark real con diez frases sintéticas públicas, WAV/WebM/Ogg/MP4 y métricas. Verificar límite con Enter/Espacio mantenidos, liberación fuera del botón deshabilitado y ausencia de envío por tecla repetida. Registrar comparación de modelos sin confundir audio Piper con precisión humana.
 - Ensayo humano pendiente Q-12: PC/micrófono/navegador, conceder permiso, diez frases propuestas en docs/VOZ_PC.md acordadas por el propietario, corrección de una palabra, descarte durante captura y STT, permiso denegado y permiso tardío, TTS detenido antes de captar y cero envíos automáticos. Registrar sentido correcto ≥8/10 y latencia; sin guardar grabaciones privadas en Git.
 - Éxito: al menos 8 de 10 frases de prueba acordadas se transcriben con sentido suficiente; errores se corrigen y nunca ejecutan acciones directamente. Captura no reconoce el TTS de la propia asistente.
 
-**H-17 — Flujo de voz completo y gestos simples. Depende de H-16.**
+**H-17 — Flujo de voz completo y gestos simples. Depende de H-16 implementado; D-38 permite avanzar sin aceptación humana.**
 
 - Voz→texto→LLM→TTS→avatar con cancelación, timeout y estado real de habla. Gesto de reposo/pensando/hablando según capacidades del modelo.
+- Siguiente corte: completar/verificar integración de software PC y medir por etapa. Puede usar audio público identificado sin abrir micrófono; distinguir pruebas de contrato, motores/proveedor reales y reproducción digital. Mantener borrador revisable y envío explícito; la automatización de pruebas no cambia el recorrido del usuario.
 - Éxito: 5 conversaciones cortas, 2 interrupciones y recuperación ante proveedor caído sin perder visor/calibración. Registrar latencia por etapa.
 
 **H-19 — Identificar dispositivo, caja y horario. Depende de H-00.**

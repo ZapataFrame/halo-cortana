@@ -4,9 +4,11 @@
 
 Prioridad inicial desde 2026-10-07: MVP holográfico para 2026-10-08. Visor/calibración y LLM por texto implementados parcialmente; D-32 (2026-10-08) adelanta voz PC mientras queda pendiente validación física. El simulador táctico permanece diferido.
 
+Prioridad vigente D-38 (2026-10-14): el propietario pide dejar de lado la conexión real y el ensayo humano. Esas validaciones quedan aplazadas; no solicitarlas como siguiente paso ni bloquear por ellas el desarrollo. Continuar con H-17 en su parte de software PC a partir de H-16 ya implementado. Conservar sus criterios como aceptación futura, sin declararlos cumplidos.
+
 - `SPECIFICACTIONS.MD`: alcance, requisitos, decisiones, contratos y criterios de aceptación. El nombre se conserva como lo solicitó el propietario.
 - `ROADMAP.MD`: tareas ordenadas, dependencias, estados y evidencia de avance.
-- `Cortana.md`: diseño actual del avatar/visor negro, calibración, conversación y voz PC. `docs/VOZ_PC.md` documenta instalación, contratos, atribución de H-15/H-16 y ensayo humano pendiente. H-16 implementado no equivale a aceptación ≥8/10; respetar su estado en roadmap antes de iniciar H-17.
+- `Cortana.md`: diseño actual del avatar/visor negro, calibración, conversación y voz PC. `docs/VOZ_PC.md` documenta instalación, contratos y atribución de H-15/H-16. H-16 implementado no equivale a aceptación ≥8/10; D-38 permite avanzar H-17 software con esa aceptación aplazada.
 - `docs/plans/2026-10-07-mvp-holograma.md`: tarjetas detalladas H-00…H-19, pruebas y contingencias del MVP activo. H-19 identifica dispositivo/caja/hora sin dar por probadas las tareas físicas.
 - Ampliación vigente H-20…H-22: GPT principal solicitado por el propietario, orientación automática/vertical/horizontal y baile libre. Ollama es alternativa explícita; sin fallback automático. Credencial privada pendiente no bloquea funciones visuales independientes.
 - Ampliación 2026-10-08 H-25…H-28: merge de calibración en main, texturas originales de Cortana, guía de rig/múltiples clips y prueba temporal Ollama Cloud/Gemma 4. `docs/GUIA_RIG_ANIMACIONES.md` y `docs/API_OLLAMA_CLOUD.md` registran preparación y límites. Credencial cloud no bloquea visor; no declarar generación sin cuenta real.

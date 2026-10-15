@@ -1,6 +1,6 @@
 # Voz de Cortana en PC
 
-H-15 añade respuesta hablada; H-16 implementa reconocimiento local con revisión antes de enviar. El celular muestra la figura y su estado; micrófono y audio corresponden al control PC, sin duplicarse en el visor. La aceptación con voz humana sigue pendiente.
+H-15 añade respuesta hablada; H-16 implementa reconocimiento local con revisión antes de enviar. El celular muestra la figura y su estado; micrófono y audio corresponden al control PC, sin duplicarse en el visor. D-38 (2026-10-14) aplaza conexión real y ensayo humano por instrucción del propietario; siguiente tarea: H-17 software del flujo completo, sin esperar esas validaciones.
 
 ## Instalación Linux
 
@@ -79,7 +79,9 @@ Si se deniega permiso, habilítalo manualmente en los permisos del sitio; no se 
 
 Motor [faster-whisper 1.2.1](https://github.com/SYSTRAN/faster-whisper), MIT. Modelo [Systran/faster-whisper-base](https://huggingface.co/Systran/faster-whisper-base/blob/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66/README.md), revisión `ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66`, conversión de Whisper base OpenAI, MIT según ficha y [licencia original](https://github.com/openai/whisper/blob/main/LICENSE). Dependencias/licencias en el entorno instalado; preservar atribuciones si se redistribuyen. Pesos/CPU configurados en backend, sin acceso a `.env` desde worker.
 
-## Ensayo de aceptación humana pendiente
+## Ensayo de aceptación humana aplazado
+
+D-38 deja este protocolo para una aceptación futura. El panel permanece disponible como opción; no se requiere ejecutarlo para continuar H-17 software. No interpretar una prueba técnica/sintética ni la exportación como aceptación humana.
 
 El control incluye **Ensayo de micrófono · 10 frases**, integrado en el seguimiento H-16 del 2026-10-14:
 
@@ -90,7 +92,7 @@ El control incluye **Ensayo de micrófono · 10 frases**, integrado en el seguim
 5. Al finalizar, revisa **Otras comprobaciones manuales de H-16**. Conservan «No probado» hasta que la persona registre su resultado; el número de frases útiles no las aprueba automáticamente. **Terminar ensayo** permite salir antes y recuperar el chat, conservando el borrador.
 6. Pulsa **Exportar resultados JSON**. Descarga `H-16-ensayo-microfono.json` en el PC: entorno, frases, transcripciones originales, IDs/tiempos, interrupciones, valoraciones y resumen. No contiene audio ni se sube al servidor. Recargar pierde el ensayo en memoria; un nuevo ensayo borra sus resultados anteriores.
 
-El JSON es una autoevaluación pendiente de revisión. Exige diez frases valoradas para comprobar ≥8/10 y mantiene `reviewRequired: true`; exportarlo o pasar pruebas automáticas no marca H-16 DONE ni habilita H-17. Un fallo marcado sin captura tiene ID nulo. La prueba de interfaz guardada en el [reporte de integración](reports/2026-10-14-H-16-ensayo-guiado-integrado.md) utiliza datos ficticios y no cuenta como ensayo humano.
+El JSON es una autoevaluación pendiente de revisión. Exige diez frases valoradas para comprobar ≥8/10 y mantiene `reviewRequired: true`; exportarlo o pasar pruebas automáticas no acepta H-16 humano. H-17 software puede avanzar por D-38 sin ese resultado. Un fallo marcado sin captura tiene ID nulo. La prueba de interfaz guardada en el [reporte de integración](reports/2026-10-14-H-16-ensayo-guiado-integrado.md) utiliza datos ficticios y no cuenta como ensayo humano.
 
 Registrar PC/OS/navegador, micrófono, ruido, frase objetivo, texto antes de corregir, sentido correcto sí/no y latencia. Propuesta para acordar con el propietario; **no son frases humanas ya aceptadas/probadas**:
 
@@ -105,7 +107,7 @@ Registrar PC/OS/navegador, micrófono, ruido, frase objetivo, texto antes de cor
 9. El micrófono está conectado a la computadora.
 10. Gracias Cortana, hasta luego.
 
-Éxito H-16: ≥8/10 mantienen intención y datos importantes; corregir una palabra funciona antes de enviar; cero envíos automáticos; descartar en captura/transcripción no entrega texto tardío; TTS propia se detiene antes de captar. Probar permiso denegado/tardío, frase corta, silencio, pérdida de foco/conexión y recuperación sin perder borrador. No guardar grabaciones privadas en Git. Después H-17: cinco conversaciones completas y dos interrupciones, con latencia por etapa.
+Aceptación futura H-16: ≥8/10 mantienen intención y datos importantes; corregir una palabra funciona antes de enviar; cero envíos automáticos; descartar en captura/transcripción no entrega texto tardío; TTS propia se detiene antes de captar. Probar permiso denegado/tardío, frase corta, silencio, pérdida de foco/conexión y recuperación sin perder borrador. No guardar grabaciones privadas en Git. H-17 software puede avanzar antes por D-38: cinco conversaciones y dos interrupciones, con latencia por etapa y origen de evidencia identificado.
 
 Prueba de teclado: mantener Enter hasta que se alcance el máximo de 15 s, esperar la transcripción sin soltar y comprobar que el texto no se envía. Soltar debe permitir revisar el editor; hacer una pulsación nueva de Enter o pulsar Enviar para enviar deliberadamente. Repetir con Espacio y con una liberación durante transcripción. La secuencia de foco está cubierta por pruebas de eventos controlados; su comportamiento con micrófono/teclado reales todavía pertenece al ensayo humano.
 

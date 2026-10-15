@@ -64,6 +64,20 @@ test('respuesta tardía tras parar no puede cambiar la sesión ni iniciar otra c
   assert.deepEqual(states, []); assert.deepEqual(connections, []); assert.deepEqual(timers, []);
 });
 
+test('disponibilidad se notifica con revisión idéntica, sin reaplicar estado ni aceptar errores o resultados tardíos', async t => {
+  let available = 0;
+  const { client, reads, timers, states } = fixture(t, { onAvailable: () => { available++; } });
+  client.start(); reads[0].resolve(state(1)); await flush();
+  timers[0].callback(); reads[1].resolve(state(1)); await flush();
+  assert.equal(available, 2); assert.equal(states.length, 1);
+  timers[1].callback(); reads[2].resolve({ ...state(1), key: 'invalid-field' }); await flush();
+  assert.equal(available, 2);
+  timers[2].callback(); reads[3].reject(new Error('network')); await flush();
+  assert.equal(available, 2);
+  timers[3].callback(); client.stop(); reads[4].resolve(state(2)); await flush();
+  assert.equal(available, 2); assert.equal(states.length, 1);
+});
+
 test('red fallida conserva el último estado y al reconectar reaplica incluso la misma revisión', async t => {
   const { client, reads, timers, states, connections } = fixture(t);
   client.start(); reads[0].resolve(state(3, { animation: 'gangnam' })); await flush();

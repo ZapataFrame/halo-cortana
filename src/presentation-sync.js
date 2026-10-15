@@ -36,7 +36,7 @@ async function readPresentation(signal) {
 }
 
 // Solo lee presentación. La reconexión nunca reenvía una conversación.
-export function createPresentationSync({ read = readPresentation, onState, onConnection,
+export function createPresentationSync({ read = readPresentation, onState, onConnection, onAvailable = () => {},
   interval = () => 1000, timeoutMs = 2500, schedule = setTimeout, unschedule = clearTimeout } = {}) {
   const tracker = createPresentationTracker();
   let running = false, epoch = 0, timer, active, connected;
@@ -54,6 +54,7 @@ export function createPresentationSync({ read = readPresentation, onState, onCon
       const result = tracker.accept(raw), recovered = connected !== true;
       connection(true);
       if (result.changed || recovered) onState(result.state);
+      onAvailable(); // También con revisión idéntica: permite recuperar la preparación del control.
     } catch {
       if (running && epoch === currentEpoch) connection(false);
     } finally {

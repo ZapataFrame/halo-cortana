@@ -12,6 +12,7 @@ const avatarId = new URLSearchParams(location.search).get('avatar') === 'cortana
 const importedAvatar = avatarId === 'cortana';
 const viewerPath = `/hologram${importedAvatar ? '?avatar=cortana' : ''}`;
 let viewer, voicePlayer, voiceInput, voiceInputControls, voiceAcceptancePanel, disposed = false, presentationSession;
+let prepareControl, stopPreparingControl;
 
 if (hologram) {
   document.body.classList.add('projection-page');
@@ -163,30 +164,34 @@ if (hologram) {
     app.querySelector('#provider-status').textContent = `${info.provider.toUpperCase()} / ${info.model} · ${info.health.detail}`;
     app.querySelector('.status-dot').classList.toggle('ready', info.health.ready && info.health.verified);
   }
-  async function refreshInfo() {
-    const response = await fetch('/api/info');
+  async function refreshInfo(signal) {
+    const response = await fetch('/api/info', { signal });
     if (!response.ok) throw new Error('No se pudo consultar el proveedor.');
     const info = await response.json();
+    signal?.throwIfAborted();
     localControl = info.localControl;
     showProviderHealth(info);
     updateControls();
     return info;
   }
-  async function refreshVoice() {
-    const response = await fetch('/api/tts'); const data = await response.json();
+  async function refreshVoice(signal) {
+    const response = await fetch('/api/tts', { signal }); const data = await response.json();
+    signal?.throwIfAborted();
     if (!response.ok) throw new Error(data.error || 'No se pudo consultar la voz.');
     voiceReady = data.ready; voiceStatus.textContent = data.detail; updateControls();
   }
-  async function refreshMicrophone() {
+  async function refreshMicrophone(signal) {
     const support = voiceCaptureSupport();
     if (!support.ready) { microphoneStatus.textContent = support.detail; return; }
-    const response = await fetch('/api/stt'); const data = await response.json();
+    const response = await fetch('/api/stt', { signal }); const data = await response.json();
+    signal?.throwIfAborted();
     if (!response.ok) throw new Error(data.error || 'No se pudo consultar el reconocimiento.');
     microphoneReady = data.ready; microphoneStatus.textContent = data.detail; updateControls();
   }
-  async function refreshModels() {
-    const response = await fetch('/api/providers');
+  async function refreshModels(signal) {
+    const response = await fetch('/api/providers', { signal });
     const data = await response.json();
+    signal?.throwIfAborted();
     if (!response.ok) throw new Error(data.error || 'No se pudo consultar los modelos.');
     catalog = data; providerSelect.value = data.provider; fillModels();
   }
@@ -301,34 +306,54 @@ if (hologram) {
     } catch { status.textContent = 'No fue posible reiniciar. Comprueba el servidor.'; }
   });
   updateControls();
-  refreshInfo().then(async info => {
-    const links = app.querySelector('#viewer-links');
-    for (const address of info.viewerUrls) {
-      const url = address + (importedAvatar ? '?avatar=cortana' : '');
-      const row = document.createElement('div'), link = document.createElement('a'), copy = document.createElement('button');
-      link.href = url; link.textContent = url; copy.textContent = 'Copiar'; copy.className = 'text-button';
-      copy.addEventListener('click', async () => { try { await navigator.clipboard.writeText(url); copy.textContent = 'Copiado'; } catch { copy.textContent = 'Selecciona la dirección'; } });
-      row.append(link, copy); links.append(row);
+  let prepared = false, preparing;
+  stopPreparingControl = () => { prepared = false; preparing?.abort(); preparing = undefined; };
+  prepareControl = async () => {
+    if (prepared || preparing || disposed) return;
+    const attempt = new AbortController(); preparing = attempt;
+    const signal = () => AbortSignal.any([attempt.signal, AbortSignal.timeout(5000)]);
+    try {
+      const info = await refreshInfo(signal());
+      const links = app.querySelector('#viewer-links');
+      links.querySelectorAll('div').forEach(row => row.remove());
+      for (const address of info.viewerUrls) {
+        const url = address + (importedAvatar ? '?avatar=cortana' : '');
+        const row = document.createElement('div'), link = document.createElement('a'), copy = document.createElement('button');
+        link.href = url; link.textContent = url; copy.textContent = 'Copiar'; copy.className = 'text-button';
+        copy.addEventListener('click', async () => { try { await navigator.clipboard.writeText(url); copy.textContent = 'Copiado'; } catch { copy.textContent = 'Selecciona la dirección'; } });
+        row.append(link, copy); links.append(row);
+      }
+      if (!info.localControl) {
+        input.disabled = true; send.disabled = true; motionButtons.forEach(item => { item.disabled = true; });
+        status.textContent = 'Abre el control mediante localhost en el PC para conversar.';
+        voiceStatus.textContent = 'La voz se controla desde localhost en el PC.';
+        microphoneStatus.textContent = 'El micrófono se controla desde localhost en el PC.';
+        prepared = true;
+        return;
+      }
+      if (!info.health.ready) status.textContent = info.health.detail;
+      // El catálogo de otro proveedor no debe retrasar los enlaces ni la voz local.
+      await Promise.allSettled([
+        refreshModels(signal()).catch(error => { if (!attempt.signal.aborted) providerHelp.textContent = error.name === 'TimeoutError'
+          ? 'La consulta de modelos tardó demasiado. Pulsa Actualizar modelos para reintentar.' : error.message; }),
+        refreshVoice(signal()).catch(error => { if (!attempt.signal.aborted) voiceStatus.textContent = error.name === 'TimeoutError'
+          ? 'La consulta de voz tardó demasiado. Recarga el control para reintentar.' : error.message; }),
+        refreshMicrophone(signal()).catch(error => { if (!attempt.signal.aborted) microphoneStatus.textContent = error.name === 'TimeoutError'
+          ? 'La consulta de reconocimiento tardó demasiado. Recarga el control para reintentar.' : error.message; }),
+      ]);
+      if (!attempt.signal.aborted) prepared = true;
+    } catch {
+      if (!attempt.signal.aborted) app.querySelector('#provider-status').textContent = 'No se pudo preparar el control. Reintentando…';
+    } finally {
+      if (preparing === attempt) preparing = undefined;
     }
-    if (!info.localControl) {
-      input.disabled = true; send.disabled = true; motionButtons.forEach(item => { item.disabled = true; });
-      status.textContent = 'Abre el control mediante localhost en el PC para conversar.';
-      voiceStatus.textContent = 'La voz se controla desde localhost en el PC.';
-      microphoneStatus.textContent = 'El micrófono se controla desde localhost en el PC.';
-      return;
-    }
-    if (!info.health.ready) status.textContent = info.health.detail;
-    // El catálogo de otro proveedor no debe retrasar los enlaces ni la voz local.
-    await Promise.allSettled([
-      refreshModels().catch(error => { providerHelp.textContent = error.message; }),
-      refreshVoice().catch(error => { voiceStatus.textContent = error.message; }),
-      refreshMicrophone().catch(error => { microphoneStatus.textContent = error.message; }),
-    ]);
-  }).catch(() => { app.querySelector('#provider-status').textContent = 'Servidor no disponible. Inicia npm run demo.'; });
+  };
+  prepareControl();
 }
 
 const presentationSync = createPresentationSync({
   interval: () => document.hidden ? 3000 : 1000,
+  onAvailable: () => prepareControl?.(),
   onState(state) {
     voicePlayer?.onPresentation(state, Boolean(presentationSession && presentationSession !== state.sessionId));
     voiceInput?.onPresentation(state, Boolean(presentationSession && presentationSession !== state.sessionId));
@@ -359,6 +384,7 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden && !disposed) { presentationSync.stop(); presentationSync.start(); }
 });
 window.addEventListener('pagehide', event => {
+  stopPreparingControl?.();
   voicePlayer?.stop(false);
   voiceInput?.cancel(false);
   presentationSync.stop();

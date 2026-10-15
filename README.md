@@ -44,6 +44,8 @@ Los ajustes se guardan en cada navegador/origen; los del PC no calibran remotame
 
 Si se corta la conexión con el PC, el avatar ya cargado conserva su figura, movimiento y ajustes. El control y la calibración avisan **PC sin conexión**; el visor con ajustes cerrados sigue mostrando solo la figura. Al restaurar el servidor se recupera su sesión automáticamente. Reiniciar el servidor vacía el contexto de conversación; la reconexión no reenvía mensajes.
 
+Si falla la preparación inicial del control, se reintenta cuando el estado del PC vuelve a responder, incluso si el avatar ya está conectado. Los enlaces del celular, chat y comprobaciones de voz se preparan sin recargar la página. Una consulta inicial atascada se cancela a los 5 s; recuperar la conexión no envía mensajes ni activa el micrófono.
+
 ## Baile
 
 En el control pulsa **Bailar Gangnam Style**; los visores conectados cambian de movimiento. **Reposo** lo detiene. Al abrir un visor nuevo recupera la selección actual. Funciona sin API; no incluye música. Reiniciar chat conserva el baile; reiniciar servidor vuelve a reposo.

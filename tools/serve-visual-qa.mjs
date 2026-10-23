@@ -13,7 +13,7 @@ const server = createApp({
   root, port: 3001,
   config: { provider: 'openai', model: 'sin-configurar', key: '' },
   readAsset: async target => {
-    if (basename(target) === 'dancer.glb') {
+    if (basename(target) === 'cortana.glb') {
       if (scenario === 'error') throw new Error('Fallo de recurso provocado para QA.');
       console.info('GLB retenido: pulsa Enter para completar la carga real.');
       await pending;

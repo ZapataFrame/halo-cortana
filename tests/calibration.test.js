@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_CALIBRATION, STORAGE_KEY, loadCalibration, normalizeCalibration, saveCalibration } from '../src/calibration.js';
+import { DEFAULT_CALIBRATION, STORAGE_KEY, loadCalibration, normalizeCalibration, saveCalibration } from '../src/scene/calibration.js';
 
 test('datos corruptos, versión futura y almacenamiento bloqueado mantienen valores seguros', () => {
   assert.deepEqual(loadCalibration({ getItem: () => '{broken' }), DEFAULT_CALIBRATION);

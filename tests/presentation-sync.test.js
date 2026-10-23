@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createPresentationSync, createPresentationTracker, validatePresentation } from '../src/presentation-sync.js';
+import { createPresentationSync, createPresentationTracker, validatePresentation } from '../src/services/presentation-sync.js';
 
 const state = (revision = 0, extra = {}) => ({ sessionId: 'session-original', revision, phase: 'idle', animation: 'idle', ...extra });
 const flush = () => new Promise(resolve => setImmediate(resolve));
@@ -20,10 +20,10 @@ test('contrato de presentación rechaza estados corruptos y campos privados', ()
 
 test('revisiones antiguas y duplicadas no repiten transiciones; nueva sesión acepta revisión cero', () => {
   const tracker = createPresentationTracker();
-  assert.equal(tracker.accept(state(5, { phase: 'processing', animation: 'gangnam' })).changed, true);
+  assert.equal(tracker.accept(state(5, { phase: 'processing', animation: 'wave' })).changed, true);
   const stale = tracker.accept(state(3, { phase: 'responded' }));
   assert.equal(stale.changed, false); assert.equal(stale.state.phase, 'processing');
-  assert.equal(tracker.accept(state(5, { phase: 'processing', animation: 'gangnam' })).changed, false);
+  assert.equal(tracker.accept(state(5, { phase: 'processing', animation: 'wave' })).changed, false);
   assert.throws(() => tracker.accept(state(5, { phase: 'idle' })), /INCONSISTENT_PRESENTATION/);
   assert.equal(tracker.accept(state(6, { phase: 'responded' })).changed, true);
   const restarted = tracker.accept(state(0, { sessionId: 'session-restarted' }));
@@ -80,12 +80,12 @@ test('disponibilidad se notifica con revisión idéntica, sin reaplicar estado n
 
 test('red fallida conserva el último estado y al reconectar reaplica incluso la misma revisión', async t => {
   const { client, reads, timers, states, connections } = fixture(t);
-  client.start(); reads[0].resolve(state(3, { animation: 'gangnam' })); await flush();
+  client.start(); reads[0].resolve(state(3, { animation: 'wave' })); await flush();
   timers[0].callback(); reads[1].reject(new Error('red-interna-privada')); await flush();
   assert.deepEqual(connections, [true, false]); assert.equal(states.length, 1);
-  timers[1].callback(); reads[2].resolve(state(3, { animation: 'gangnam' })); await flush();
+  timers[1].callback(); reads[2].resolve(state(3, { animation: 'wave' })); await flush();
   assert.deepEqual(connections, [true, false, true]); assert.equal(states.length, 2);
-  assert.equal(states[1].animation, 'gangnam');
+  assert.equal(states[1].animation, 'wave');
 });
 
 test('suspensión/reanudación descarta una respuesta antigua sin afectar la consulta nueva', async t => {

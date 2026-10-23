@@ -1,155 +1,60 @@
-# Cortana · Holograma
+# Cortana
 
-Humanoide sobre **negro puro** para una caja Pepper’s Ghost, modos vertical/horizontal y **Gangnam Style** activable desde PC. Conversación con **Gemma 4 en Ollama Cloud, GPT o Qwen local**, respuesta hablada Piper y dictado Whisper local en español. Cloud requiere su propia clave API. El celular presenta el avatar; micrófono/audio funcionan en control PC. Ensayo de voz humana y simulador táctico siguen pendientes.
+Prototipo conversacional con un avatar 3D sobre negro puro. El PC controla conversación, voz y micrófono; el visor puede abrirse en otra pantalla para una presentación Pepper’s Ghost.
 
-Prioridad actual (D-38, 2026-10-14): continuar H-17, integración y verificación del flujo de voz PC. La conexión real del celular y el ensayo humano quedan aplazados por el propietario; no bloquean ese desarrollo.
+## Iniciar
 
-## Abrir la demo
-
-Requiere **Node.js ≥22.12**. Primera instalación:
+Requiere Node.js ≥22.12 y npm.
 
 ```bash
 npm ci
 npm run demo
 ```
 
-- **PC:** [control, baile y conversación](http://localhost:3000/control).
-- **Celular:** misma Wi-Fi; abre la dirección en **Pantalla externa**. Equipo actual: `http://192.168.1.66:3000/hologram`; la IP puede cambiar.
-- Puerto 3000. Detener con `Ctrl+C`; después de compilar basta `npm start`.
-- Visor y baile usan recursos locales. GPT y Ollama Cloud necesitan internet; una caída del proveedor conserva la figura.
+- [Control PC](http://localhost:3000/control): conversación, voz, saludo y calibración.
+- [Visor](http://localhost:3000/hologram): Cortana, controles ocultos. Toca la esquina superior izquierda para calibrar.
+- En otra pantalla, utiliza la URL con la IP del PC mostrada en **Conectar otra pantalla**, con ambos equipos en la misma red. Mantén el servidor abierto.
 
-### Conectar el celular
+`npm run dev` inicia Vue y las APIs del mismo backend en [localhost:5173](http://localhost:5173). `npm run build` genera `dist/`; `npm start` sirve esa entrega en el puerto 3000. Las rutas antiguas con `?avatar=cortana` siguen abriendo Cortana; ya no hay selector de avatares.
 
-En el celular, **localhost es el propio teléfono**. Usa la URL con la IP que aparece en **Pantalla externa** del control PC o en la terminal al arrancar. Para Cortana, abre esa dirección con `?avatar=cortana`, por ejemplo `http://192.168.1.66:3000/hologram?avatar=cortana`. La IP puede cambiar al cambiar de red.
+## Configurar conversación
 
-Mantén la terminal de `npm run demo` abierta. `npm run dev` y los comandos `qa:*` son para desarrollo/pruebas en el PC: no sustituyen al servidor de la demo ni habilitan por sí solos sus APIs.
+Crea `.env` a partir de `.env.example` si no existe. Si ya tienes uno, conserva sus valores. El visor funciona aunque el proveedor no responda.
 
-Si no conecta, comprueba en este orden:
+| Proveedor | Variables del PC |
+|---|---|
+| Ollama local | `LLM_PROVIDER=ollama`, `OLLAMA_MODEL` con un nombre de `ollama list` |
+| Ollama Cloud | `LLM_PROVIDER=ollama-cloud`, `OLLAMA_CLOUD_MODEL`, `OLLAMA_API_KEY` |
+| OpenAI | `LLM_PROVIDER=openai`, `OPENAI_MODEL`, `OPENAI_API_KEY` |
 
-1. En el PC abre la misma URL con IP. Si tampoco funciona, comprueba que la demo está iniciada, la IP y el puerto mostrados en terminal. La configuración de ejemplo usa `HOST=0.0.0.0` y `PORT=3000`.
-2. En el celular abre esa URL exacta mediante `http://`, con ambos equipos en la misma red. Una red de invitados o el aislamiento de clientes puede impedir conexiones aunque ambos tengan internet.
-3. Si funciona en PC pero el celular agota la espera, revisa el firewall del PC y el aislamiento Wi-Fi. En equipos con UFW, `sudo ufw status verbose` permite consultar las reglas; requiere tu contraseña de administrador. Si se confirma un bloqueo, permitir TCP 3000 solo en la red local. No hace falta abrir puertos del router.
-4. Si la página abre pero no aparece el modelo, abre la calibración para leer el diagnóstico de carga/WebGL; es un problema distinto de alcanzar el servidor.
+Reinicia el servidor tras cambiar `.env`. La interfaz permite seleccionar los modelos configurados o instalados y probar conexión sin generar texto. Cambiar modelo inicia una conversación nueva. No hay cambio automático de proveedor. Las claves nunca deben ir en variables `VITE_`; suscripciones y saldo API son independientes.
 
-El celular usa **`/hologram`**. El chat, TTS y micrófono son privados del control PC abierto mediante localhost; un rechazo 403 al intentar controlarlos por IP LAN corresponde a ese diseño. Los enlaces del visor y la preparación de voz se muestran sin esperar al catálogo de modelos locales.
+## Usar Cortana
 
-## Preparar la caja y orientación
+Escribe y pulsa **Enviar mensaje**; Enter envía y Shift+Enter agrega una línea. **Cancelar respuesta** detiene la espera y **Nueva conversación** vacía el contexto. La respuesta permanece disponible si falla el audio.
 
-1. Abre `/hologram` en el celular: una figura sobre negro.
-2. Toca la **esquina superior izquierda** para calibrar. En **Orientación** elige **Automática**, **Vertical** o **Horizontal** según el montaje.
-3. Gira también el dispositivo. El modo adapta la imagen si la postura del viewport no coincide; **Rotación de pantalla** añade 0/90/180/270°. No garantiza bloquear la orientación física del SO.
-4. Ajusta tamaño, X/Y, vista del cuerpo y espejos. Puedes escribir porcentajes exactos junto a los deslizadores: tamaño 25–200 %, X/Y −45…45 %, y giro en pasos de 5°. Los valores válidos se aplican al escribir; Enter confirma y ajusta los límites. X/Y positivos mueven a la derecha/abajo.
-5. El **Patrón de prueba** con F y punto comprueba lateralidad; puedes cerrar el panel y conservarlo visible. Comienza con reflector a unos 45° y calibra la caja real.
-6. Desactiva patrón, pulsa **Pantalla completa** si está disponible y **×** para ocultar controles. Ajusta brillo y bloqueo automático desde el dispositivo.
+Despliega **Voz y micrófono** para activar lectura automática, escuchar una respuesta o mantener pulsado para dictar. El resultado se añade al editor: debes revisarlo y enviarlo. Instalación y contratos: [voz PC](docs/VOZ_PC.md).
 
-Los ajustes se guardan en cada navegador/origen; los del PC no calibran remotamente el celular. **Restablecer** vuelve a automático y valores iniciales. HTTP LAN puede limitar fullscreen/wake lock; usa ajustes del dispositivo si hace falta. **Contornos** muestra malla triangular. Sin piso ni texto de chat en la proyección.
+**Reposo** reproduce un bucle de 4 s; **Saludar** reproduce un gesto de 3.6 s y vuelve a reposo. Son movimientos propios en desarrollo sobre el rig existente. No hay labios sincronizados. Regenerar curvas: `npm run animations:bake`.
 
-Si se corta la conexión con el PC, el avatar ya cargado conserva su figura, movimiento y ajustes. El control y la calibración avisan **PC sin conexión**; el visor con ajustes cerrados sigue mostrando solo la figura. Al restaurar el servidor se recupera su sesión automáticamente. Reiniciar el servidor vacía el contexto de conversación; la reconexión no reenvía mensajes.
+En **Calibrar imagen** ajusta orientación, tamaño, posición, giro, espejos y contornos. El patrón temporal sirve para comprobar lateralidad. Los ajustes se guardan por navegador; calibrar el PC no cambia otra pantalla. Durante un corte el visor cargado conserva a Cortana; reconectar no reenvía mensajes.
 
-Si falla la preparación inicial del control, se reintenta cuando el estado del PC vuelve a responder, incluso si el avatar ya está conectado. Los enlaces del celular, chat y comprobaciones de voz se preparan sin recargar la página. Una consulta inicial atascada se cancela a los 5 s; recuperar la conexión no envía mensajes ni activa el micrófono.
+## Estructura y comprobaciones
 
-## Baile
-
-En el control pulsa **Bailar Gangnam Style**; los visores conectados cambian de movimiento. **Reposo** lo detiene. Al abrir un visor nuevo recupera la selección actual. Funciona sin API; no incluye música. Reiniciar chat conserva el baile; reiniciar servidor vuelve a reposo.
-
-Es una recreación libre de un baile presente en Fortnite, descargada de **ProgramAsWeights/avatar**, con código MIT y humanoide **Quaternius CC0**. No es el archivo oficial del juego. [Fuentes, licencias y hashes](public/models/README.md).
-
-## Probar tu GLB Cortana
-
-En **Avatar**, pulsa **Cortana importada**. También puedes abrir [control Cortana](http://localhost:3000/control?avatar=cortana) o [visor Cortana](http://localhost:3000/hologram?avatar=cortana). La dirección para celular que aparece en ese control incluye la selección de Cortana.
-
-La copia local utiliza las **texturas originales** de ojos, rostro, cuerpo y cabello sobre negro puro. El original de Descargas permanece intacto. Para regresar pulsa **Humanoide + Gangnam**. GPT y Qwen funcionan igual en ambas vistas. La selección del modelo viaja en la URL; cada pantalla debe abrir la variante deseada. La calibración existente se conserva y puede necesitar ajuste para esta silueta.
-
-Esta primera prueba muestra una **pose estática**. El archivo incluye una animación llamada `Twerking`; no se activa automáticamente. [Guía para preparar varias animaciones](docs/GUIA_RIG_ANIMACIONES.md). Gangnam Style sigue disponible con el humanoide original, pues usa otro esqueleto. [Atribución y cambios](public/models/README.md): licencia CC BY-NC 4.0 declarada en los metadatos del archivo.
-
-## Probar Gemma 4 31B en Ollama Cloud
-
-En **Proveedor**, elige **Ollama Cloud / Gemma 4**, modelo `gemma4:31b`, y pulsa **Cambiar modelo**. No descarga el modelo en la laptop. Guarda una clave creada en [Ollama API keys](https://ollama.com/settings/keys) en el `.env` existente del PC:
-
-```dotenv
-LLM_PROVIDER=ollama-cloud
-OLLAMA_CLOUD_MODEL=gemma4:31b
-OLLAMA_API_KEY=tu_clave_privada
+```text
+src/        Vue: componentes, composables, servicios y escena 3D
+server/     APIs privadas, proveedores y trabajadores de voz
+tools/      Preparación de Cortana, instalación de voz y QA visual
+public/     Solo modelo, curvas y atribución de Cortana
+tests/      Contratos, cancelación, recuperación y geometría
+docs/       Arquitectura, voz y evaluación de la reorganización
 ```
-
-Reinicia `npm start` para cargar la clave. [Guía completa y prueba de aceptación](docs/API_OLLAMA_CLOUD.md). Gemma respondió realmente en este equipo: 0.48–0.83 s, contexto y cancelación comprobados. En otro PC debes configurar tu propia clave. El plan Free tiene créditos/modelos iniciales limitados; el acceso gratuito a Gemma 31B de tu cuenta está sin verificar. No se activan pagos. [Condiciones actuales de Ollama](https://ollama.com/pricing).
-
-## Configurar GPT
-
-GPT sigue disponible como **OpenAI / `gpt-4.1-mini`**, mediante Responses. La prueba actual arranca en Ollama Cloud si copias el `.env.example`. Crea una clave propia en [OpenAI Platform](https://platform.openai.com/api-keys) y guárdala solo en `.env` del PC. Si el archivo ya existe, edítalo; no lo reemplaces.
-
-```dotenv
-LLM_PROVIDER=openai
-OPENAI_MODEL=gpt-4.1-mini
-OPENAI_API_KEY=tu_clave_privada
-```
-
-Reinicia con `Ctrl+C` y `npm start`; recarga `/control`. La suscripción ChatGPT/Codex y la API tienen facturación separada. [Guía de configuración](docs/API_OPENAI.md). No pegues claves en el chat ni en variables `VITE_`.
-
-Conversación desde `localhost` en PC: Enter envía, Shift+Enter agrega línea. **Cancelar** detiene la espera; **Nueva conversación** vacía contexto. Entrada de 2000 caracteres, seis pares recientes, 256 tokens de salida y timeout 60 s. Errores de clave/cuota se explican en el control; no hay cambio automático a Ollama ni reintentos automáticos.
-
-## Usar tu Qwen local y alternar con GPT
-
-1. Mantén [Ollama](https://ollama.com/) activo en este PC. `ollama list` debe mostrar tu modelo. Qwen se probó en H-23; el catálogo actual muestra **`phi4-mini:latest` y `llama3.1:latest`**.
-2. En `/control`, sección **Conversación**, selecciona **Local / Ollama (Qwen)** y elige uno de los modelos disponibles. Para Qwen, debe aparecer instalado en la lista.
-3. Pulsa **Cambiar modelo** y envía un mensaje. **Actualizar modelos** renueva la lista si instalaste otro modelo o encendiste Ollama después.
-4. Para volver, selecciona **GPT / OpenAI** y pulsa **Cambiar modelo**. Conserva la clave y configuración OpenAI existentes; no necesitas reiniciar para alternar.
-
-Cada cambio empieza una conversación nueva. La selección se comparte entre las pestañas de control y dura hasta reiniciar el servidor; entonces vuelve al proveedor de `.env` (GPT si no se indica otro). Cancela o termina la respuesta antes de cambiar. El proveedor activo aparece sobre el selector; las opciones editadas se aplican al pulsar el botón.
-
-**Probar conexión** comprueba el proveedor aplicado sin generar texto. Informa falta de clave, servicio caído, modelo ausente y errores de acceso. Para Cloud confirma el catálogo; la clave/cuota se comprueban al enviar un mensaje. Para GPT confirma clave/modelo, con cuota de generación todavía pendiente. No borra el chat ni cambia el avatar. Aplica primero cualquier selección nueva con **Cambiar modelo**.
-
-Para arrancar siempre en Qwen, edita solo estas líneas de tu `.env`, conservando las de OpenAI, y reinicia:
-
-```dotenv
-LLM_PROVIDER=ollama
-OLLAMA_URL=http://127.0.0.1:11434
-OLLAMA_MODEL=qwen2.5:32b
-```
-
-Usa el nombre exacto que muestra `ollama list` si tu modelo es otro. No se descarga ningún LLM automáticamente. El backend se conecta a Ollama en loopback; el celular sigue mostrando el avatar. Si Ollama no responde, revisa su servicio y pulsa **Actualizar modelos**. Salida local de 48 tokens, timeout 60 s; un modelo grande puede superar ese tiempo. Sin coste por llamada; rendimiento sujeto al equipo.
-
-## Respuesta hablada en PC
-
-Instala [uv](https://docs.astral.sh/uv/getting-started/installation/) y [hf](https://huggingface.co/docs/huggingface_hub/en/guides/cli), después ejecuta:
-
-```bash
-npm run setup:voice
-```
-
-Prepara Python 3.13/Piper y descarga la voz Daniela (114 MB), con versiones y hashes fijados. Después la voz funciona localmente en CPU, sin clave ni coste por llamada. Reinicia la demo y pulsa **Probar voz** en `/control`; no consulta al LLM.
-
-**Escuchar respuesta** lee cada respuesta recibida. Activa **Leer respuestas automáticamente** para respuestas nuevas; **Volumen** regula audio y **Detener voz** cancela preparación/reproducción sin borrar texto. Nueva pregunta/conversación, cambio de proveedor o salida del control detienen voz. El celular solo muestra el avatar y su estado **Hablando**, sin duplicar audio. [Instalación, licencia y recuperación](docs/VOZ_PC.md).
-
-Piper y Whisper reutilizan sus modelos entre turnos para reducir espera. Los procesos se liberan tras 60 s sin trabajo; cancelar una petición activa termina su proceso y el siguiente uso lo vuelve a cargar. La primera petición puede tardar más. [Mediciones HTTP y límites de H-33](docs/reports/2026-10-14-H-33-modelos-voz-reutilizables.md).
-
-## Dictar desde el PC
-
-```bash
-npm run setup:stt
-```
-
-Instala Whisper base multilingüe (145 MB) en un entorno separado, con versiones/revisión/hashes fijados. Transcripción en CPU local, sin API pagada. Reinicia el servidor tras actualizar y abre `/control` mediante **localhost**. **Mantén pulsado para hablar**, permite micrófono si se solicita y habla cuando aparezca Escuchando. También puedes mantener Espacio/Enter con el botón enfocado. Si conceder permiso termina la primera pulsación, vuelve a pulsar.
-
-Suelta para apagar micrófono y transcribir (máximo 15 s). El texto se añade a tu borrador: **revisa/corrige y pulsa Enviar**. Cortana detiene su audio antes de captar; **Descartar grabación** cancela captura/transcripción sin borrar el texto. La voz no se guarda ni se envía a Gemma/GPT; solo el texto confirmado se envía al LLM. [Guía y ensayo de diez frases](docs/VOZ_PC.md).
-
-Para medir el reconocimiento, despliega **Ensayo de micrófono · 10 frases**, completa el entorno real y comienza. El panel pausa el chat y registra cada transcripción original para valorarla antes de corregir; conserva tu borrador. **Exportar resultados JSON** guarda el informe local sin audio. La aceptación exige diez frases y ≥8/10 útiles, además de revisar las comprobaciones manuales; no se aprueba automáticamente. [Pasos y límites](docs/VOZ_PC.md#ensayo-de-aceptación-humana-pendiente).
-
-## Verificación
-
-Suite automática aprobada: controles, proyección, texturas, proveedores, cancelación, recuperación, TTS/STT con reserva única y ciclo de vida de procesos reutilizables. Build correcto. H-11 verificó en la interfaz tres preguntas y seguimiento con Gemma 4:31b Cloud, cancelación y recuperación; una respuesta real retenida y liberada después de cancelar no alteró el contexto. El prompt reconoce las funciones de voz existentes. [Reporte H-11](docs/reports/2026-10-10-H-11-chat-pc.md); [verificación actual H-33](docs/reports/2026-10-14-H-33-modelos-voz-reutilizables.md).
-
-H-15 conserva tres WAV Gemma reales y reproducción UI verificada. H-16 verificó diez frases **sintéticas**, cuatro formatos y silencio mediante backend/Whisper reales (2.4–2.9 s), cancelación del worker en 106 ms y rechazo de audio largo. El control se inspeccionó visualmente; hay errores de transcripción y **permiso/micrófono humano y meta ≥8/10 todavía no probados**. Ese ensayo queda aplazado por D-38 y permite avanzar H-17 software sobre la implementación existente. [Reporte H-16](docs/reports/2026-10-10-H-16-reconocimiento-pc.md). GPT requiere clave válida, sin generación comprobada. Celular físico, caja y audición humana conservan aceptación futura; H-17 aún debe completar/verificar el flujo integrado.
 
 ```bash
 npm test
 npm run build
 ```
 
-Ensayo digital de negro: con la demo compilada, ejecuta `npm run qa:visual -- loading` y abre `http://127.0.0.1:3001/hologram`. Enter en terminal libera el GLB real. `npm run qa:visual -- error` provoca fallo del recurso. Detén un ensayo antes de iniciar el otro. El visor conserva negro y el diagnóstico aparece al abrir calibración; no se carga la clave API en estos ensayos.
+`npm run qa:visual -- loading` retiene el GLB hasta pulsar Enter en terminal; `-- error` provoca un fallo de carga. Sirve el visor compilado en loopback 3001 sin cargar `.env` ni consultar al LLM.
 
-Ensayo de chat: `npm run qa:chat` sirve el control en `http://127.0.0.1:3002/control?avatar=cortana` y llama al proveedor real configurado en `.env`. El modo `npm run qa:chat -- delay` permite retener una respuesta para comprobar su descarte tras cancelar. [Preguntas, pasos y criterios](docs/PRUEBAS_CHAT_PC.md).
-
-[Roadmap](ROADMAP.MD) · [Especificación](SPECIFICACTIONS.MD) · [Plan](docs/plans/2026-10-07-mvp-holograma.md) · [Reporte de calibración](docs/reports/2026-10-07-H-06-calibracion-precisa.md) · [GPT/orientación/baile](docs/reports/2026-10-07-H-20-22-gpt-orientacion-baile.md).
-
-Avatar provisional de Quaternius; no es el modelo oficial de Cortana/Halo. El CesiumMan anterior permanece con su atribución y licencia como recurso histórico.
+[Roadmap y plan](ROADMAP.MD) · [Arquitectura](docs/ARQUITECTURA.md) · [Evaluación de la reorganización](docs/REORGANIZACION.md) · [Modelo y atribución](public/models/README.md).

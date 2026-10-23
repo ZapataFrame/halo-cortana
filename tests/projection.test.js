@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Group, Vector3 } from 'three';
-import { DEFAULT_CALIBRATION } from '../src/calibration.js';
-import { applyProjection, effectiveRotation } from '../src/projection.js';
+import { DEFAULT_CALIBRATION } from '../src/scene/calibration.js';
+import { applyProjection, effectiveRotation } from '../src/scene/projection.js';
 
 function point(settings, value) {
   const projection = new Group(), orientation = new Group();

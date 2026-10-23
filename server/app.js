@@ -49,10 +49,11 @@ function readAudio(req, signal) {
   });
 }
 
-export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile, tts = createPiper(), ttsTimeoutMs = 20000, speechLeaseMs = 15000, stt = createWhisper(), sttTimeoutMs = 30000, captureLeaseMs = 35000 } = {}) {
+export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile, tts = createPiper(), ttsTimeoutMs = 20000, speechLeaseMs = 15000, stt = createWhisper(), sttTimeoutMs = 30000, captureLeaseMs = 35000, animationMs = 3600 } = {}) {
   const sessionId = randomUUID();
   let revision = 0, chatGeneration = 0, phase = 'idle', animation = 'idle', active = null, history = [];
   const completed = new Map();
+  let animationTimer;
   let speech;
   function stopSpeech() {
     if (!speech) return;
@@ -268,8 +269,12 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
           json(res, 200, { provider: config.provider, model: config.model, ...state() }); return;
         }
         if (pathname === '/api/animation') {
-          if (!['idle', 'gangnam'].includes(body.animation)) { json(res, 400, { error: 'Animación no disponible.' }); return; }
-          animation = body.animation; revision++;
+          if (!body || Object.keys(body).length !== 1 || !['idle', 'wave'].includes(body.animation)) { json(res, 400, { error: 'Animación no disponible.' }); return; }
+          clearTimeout(animationTimer); animation = body.animation; revision++;
+          if (animation === 'wave') {
+            animationTimer = setTimeout(() => { animation = 'idle'; revision++; }, animationMs);
+            animationTimer.unref();
+          }
           json(res, 200, state()); return;
         }
         if (pathname === '/api/cancel') {
@@ -352,6 +357,6 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
       json(res, clientError ? 400 : 404, { error: clientError ? error.message : 'Archivo no disponible.' });
     }
   });
-  server.on('close', () => { active?.controller.abort(); stopSpeech(); stopCapture(); tts.close?.(); stt.close?.(); });
+  server.on('close', () => { clearTimeout(animationTimer); active?.controller.abort(); stopSpeech(); stopCapture(); tts.close?.(); stt.close?.(); });
   return server;
 }

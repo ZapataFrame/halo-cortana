@@ -72,20 +72,32 @@ test('chat rechaza origen externo y Host extraño; no sirve secretos ni fuente',
   assert.deepEqual(Object.keys(state).sort(), ['animation', 'phase', 'revision', 'sessionId']);
 });
 
-test('baile es independiente del proveedor, valida catálogo y conserva estado ante entradas inválidas', async t => {
+test('saludo es independiente del proveedor, valida catálogo y conserva estado ante entradas inválidas', async t => {
   const { post, base } = await fixture(t, { config: { provider: 'openai', model: 'gpt-4.1-mini', key: '' } });
   assert.equal((await post('/api/chat', { message: 'hola', requestId: 'request-no-key' })).status, 503);
   const initial = await (await fetch(base + '/api/presentation')).json();
   assert.equal(initial.phase, 'error'); assert.equal(initial.animation, 'idle');
-  assert.equal((await post('/api/animation', { animation: 'gangnam' })).status, 200);
-  const dancing = await (await fetch(base + '/api/presentation')).json();
-  assert.equal(dancing.animation, 'gangnam'); assert.equal(dancing.phase, 'error');
-  for (const animation of ['unknown', '../private', null, { value: 'gangnam' }]) {
+  assert.equal((await post('/api/animation', { animation: 'wave' })).status, 200);
+  const waving = await (await fetch(base + '/api/presentation')).json();
+  assert.equal(waving.animation, 'wave'); assert.equal(waving.phase, 'error');
+  for (const animation of ['unknown', '../private', null, { value: 'wave' }]) {
     assert.equal((await post('/api/animation', { animation })).status, 400);
-    assert.deepEqual(await (await fetch(base + '/api/presentation')).json(), dancing);
+    assert.deepEqual(await (await fetch(base + '/api/presentation')).json(), waving);
   }
   assert.equal((await post('/api/animation', { animation: 'idle' })).status, 200);
   assert.equal((await fetch(base + '/api/presentation')).status, 200);
+});
+
+test('saludo vuelve a reposo por sí solo y rechaza el catálogo retirado/campos adicionales', async t => {
+  const { post, base } = await fixture(t, { animationMs: 35 });
+  const waved = await (await post('/api/animation', { animation: 'wave' })).json();
+  assert.equal(waved.animation, 'wave');
+  for (const body of [{ animation: 'gangnam' }, { animation: 'wave', extra: true }, null, []]) {
+    assert.equal((await post('/api/animation', body)).status, 400);
+  }
+  await new Promise(resolve => setTimeout(resolve, 60));
+  const rest = await (await fetch(base + '/api/presentation')).json();
+  assert.equal(rest.animation, 'idle'); assert.ok(rest.revision > waved.revision);
 });
 
 test('errores de credencial o cuota son accionables y no incorporan historial', async t => {
@@ -155,7 +167,7 @@ const selectable = {
   ollama: { provider: 'ollama', model: 'phi4-mini:latest', url: 'http://127.0.0.1:11434' },
 };
 
-test('selector cambia GPT→Qwen→GPT, limpia contexto/cache y conserva baile sin exponer secretos', async t => {
+test('selector cambia GPT→Qwen→GPT, limpia contexto/cache y conserva movimiento sin exponer secretos', async t => {
   const seen = [];
   const { post, base } = await fixture(t, { config: selectable.openai, configs: selectable,
     models: async () => ['qwen2.5:32b', 'llama3.1:latest'],
@@ -164,7 +176,7 @@ test('selector cambia GPT→Qwen→GPT, limpia contexto/cache y conserva baile s
   const catalog = await (await fetch(base + '/api/providers')).json();
   assert.deepEqual(catalog.localModels, ['qwen2.5:32b', 'llama3.1:latest']);
   assert.ok(!JSON.stringify(catalog).includes('test-private-key'));
-  await post('/api/animation', { animation: 'gangnam' });
+  await post('/api/animation', { animation: 'wave' });
   const message = { message: 'hola', requestId: 'request-shared' };
   await post('/api/chat', message);
   await post('/api/chat', { message: 'seguimiento', requestId: 'request-followup' });
@@ -176,7 +188,7 @@ test('selector cambia GPT→Qwen→GPT, limpia contexto/cache y conserva baile s
     assert.deepEqual(seen.at(-1).history, []);
   }
   assert.equal(seen.at(-1).key, 'test-private-key');
-  assert.equal((await (await fetch(base + '/api/presentation')).json()).animation, 'gangnam');
+  assert.equal((await (await fetch(base + '/api/presentation')).json()).animation, 'wave');
 });
 
 test('selector rechaza entradas, origen y Host inválidos; caída local no cambia proveedor ni historial', async t => {
@@ -219,14 +231,14 @@ test('cambiar modelo durante generación o consulta concurrente no mezcla respue
   releaseReply(); assert.equal((await (await pending).json()).provider, 'openai');
 });
 
-test('selector Cloud valida modelo, borra contexto/cache y mantiene baile sin revelar clave', async t => {
+test('selector Cloud valida modelo, borra contexto/cache y mantiene movimiento sin revelar clave', async t => {
   const configs = Object.fromEntries(['openai', 'ollama', 'ollama-cloud'].map(provider => [provider, providerConfig({ OLLAMA_API_KEY: 'cloud-private-test' }, provider)]));
   const seen = [];
   const { base, post } = await fixture(t, { config: configs.openai, configs, models: async () => ['qwen2.5:32b'],
     reply: async (selected, history) => { seen.push({ provider: selected.provider, history }); return { text: 'fixture de protocolo' }; },
   });
   await post('/api/chat', { message: 'antes', requestId: 'request-cloud-switch' });
-  await post('/api/animation', { animation: 'gangnam' });
+  await post('/api/animation', { animation: 'wave' });
   const catalog = await (await fetch(base + '/api/providers')).json();
   assert.equal(catalog.cloudModel, 'gemma4:31b'); assert.equal(catalog.cloudConfigured, true);
   assert.ok(!JSON.stringify(catalog).includes('cloud-private-test'));
@@ -237,7 +249,7 @@ test('selector Cloud valida modelo, borra contexto/cache y mantiene baile sin re
   ]) assert.equal((await post('/api/provider', body)).status, 400);
   assert.equal((await post('/api/provider', { provider: 'ollama-cloud', model: 'gemma4:31b' }, { Origin: 'https://unrelated.example' })).status, 403);
   const applied = await post('/api/provider', { provider: 'ollama-cloud', model: 'gemma4:31b' });
-  assert.equal(applied.status, 200); assert.equal((await applied.json()).animation, 'gangnam');
+  assert.equal(applied.status, 200); assert.equal((await applied.json()).animation, 'wave');
   const response = await post('/api/chat', { message: 'después', requestId: 'request-cloud-switch' });
   const data = await response.json();
   assert.equal(response.status, 200); assert.equal(data.provider, 'ollama-cloud'); assert.equal(data.cached, undefined);
@@ -256,7 +268,7 @@ test('Cloud informa autenticación/cuota sin alterar historial ni movimiento', a
       throw new Error(message === 'sin-clave' ? 'PROVIDER_NOT_CONFIGURED' : `PROVIDER_HTTP_${message}`);
     },
   });
-  await post('/api/animation', { animation: 'gangnam' });
+  await post('/api/animation', { animation: 'wave' });
   for (const [message, status, code] of [
     ['sin-clave', 503, 'NOT_CONFIGURED'], ['401', 502, 'AUTH_ERROR'], ['402', 503, 'USAGE_LIMIT'],
     ['403', 502, 'ACCESS_ERROR'], ['404', 502, 'MODEL_UNAVAILABLE'], ['429', 503, 'RATE_LIMIT'],
@@ -269,7 +281,7 @@ test('Cloud informa autenticación/cuota sin alterar historial ni movimiento', a
   assert.match((await missing.json()).error, /OLLAMA_API_KEY/);
   assert.equal((await post('/api/chat', { message: 'ok', requestId: 'request-cloud-ok' })).status, 200);
   assert.deepEqual(seen, []);
-  assert.equal((await (await fetch(base + '/api/presentation')).json()).animation, 'gangnam');
+  assert.equal((await (await fetch(base + '/api/presentation')).json()).animation, 'wave');
 });
 
 test('diagnóstico solo acepta origen/Host de control y cuerpo vacío sin invocar el proveedor', async t => {
@@ -287,7 +299,7 @@ test('diagnóstico solo acepta origen/Host de control y cuerpo vacío sin invoca
   assert.equal((await fetch(base + '/api/provider/check')).status, 404);
 });
 
-test('diagnóstico conserva estado, baile, historial y respuesta idempotente', async t => {
+test('diagnóstico conserva estado, movimiento, historial y respuesta idempotente', async t => {
   let calls = 0, seenHistory;
   const { base, post } = await fixture(t, { config: selectable.openai,
     check: async selected => {
@@ -298,7 +310,7 @@ test('diagnóstico conserva estado, baile, historial y respuesta idempotente', a
   });
   const message = { message: 'primero', requestId: 'request-before-check' };
   await post('/api/chat', message);
-  await post('/api/animation', { animation: 'gangnam' });
+  await post('/api/animation', { animation: 'wave' });
   const before = await (await fetch(base + '/api/presentation')).json();
   const response = await post('/api/provider/check', {});
   assert.equal(response.status, 200);

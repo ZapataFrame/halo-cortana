@@ -62,6 +62,6 @@ try {
   if (evidence.silence.status !== 422) throw new Error('El silencio no se rechazó.');
   const state = await (await fetch(base + '/api/presentation')).json();
   evidence.finalState = state;
-  await writeFile(`docs/reports/evidence/H-16-stt${small ? '-small' : ''}-synthetic.json`, JSON.stringify(evidence, null, 2) + '\n');
+  await writeFile(`.stt-models/qa/stt${small ? '-small' : ''}-synthetic.json`, JSON.stringify(evidence, null, 2) + '\n');
   console.log(JSON.stringify({ formats: evidence.formats, silenceStatus: evidence.silence.status, finalPhase: state.phase }));
 } finally { piper.close(); server.closeAllConnections(); server.close(); }

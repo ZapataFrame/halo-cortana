@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createSpeechPlayer } from '../src/speech-player.js';
+import { createSpeechPlayer } from '../src/services/speech-player.js';
 
 const flush = () => new Promise(resolve => setImmediate(resolve));
 function fixture(t, options = {}) {

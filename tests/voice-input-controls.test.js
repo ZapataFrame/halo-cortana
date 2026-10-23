@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { bindVoiceInputControls } from '../src/voice-input-controls.js';
+import { bindVoiceInputControls } from '../src/services/voice-input-controls.js';
 
 function dispatch(target, type, properties = {}) {
   const event = new Event(type, { cancelable: true });

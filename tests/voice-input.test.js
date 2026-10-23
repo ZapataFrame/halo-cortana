@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createVoiceInput, voiceCaptureSupport } from '../src/voice-input.js';
+import { createVoiceInput, voiceCaptureSupport } from '../src/services/voice-input.js';
 
 const flush = () => new Promise(resolve => setImmediate(resolve));
 function fixture(t, extra = {}) {

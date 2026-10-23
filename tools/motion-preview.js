@@ -1,0 +1,12 @@
+import { createViewer } from '../src/scene/viewer.js';
+import { ANIMATIONS } from '../src/services/animation-catalog.js';
+import { DEFAULT_CALIBRATION } from '../src/scene/calibration.js';
+const motion = document.querySelector('#motion'), time = document.querySelector('#time'), pause = document.querySelector('#pause');
+for (const [key, value] of Object.entries(ANIMATIONS)) motion.add(new Option(value.label, key));
+let paused = false;
+const viewer = createViewer(document.querySelector('#surface'), { onStatus(data) { if (data.detail) document.querySelector('#status').textContent = data.detail; } });
+motion.addEventListener('change', () => { viewer.setAnimation(motion.value); time.max = ANIMATIONS[motion.value].duration; time.value = 0; viewer.setPlayback({ paused, time: 0 }); });
+pause.addEventListener('click', () => { paused = !paused; viewer.setPlayback({ paused }); pause.textContent = paused ? 'Reanudar' : 'Pausar'; });
+time.addEventListener('input', () => { paused = true; pause.textContent = 'Reanudar'; viewer.setPlayback({ paused, time: Number(time.value) }); document.querySelector('#position').textContent = `${time.value} s`; });
+document.querySelector('#view').addEventListener('change', event => viewer.setSettings({ ...DEFAULT_CALIBRATION, turn: Number(event.target.value) }));
+window.addEventListener('pagehide', () => viewer.destroy(), { once: true });

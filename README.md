@@ -35,7 +35,9 @@ Escribe y pulsa **Enviar mensaje**; Enter envía y Shift+Enter agrega una línea
 
 Despliega **Voz y micrófono** para activar lectura automática, escuchar una respuesta o mantener pulsado para dictar. El resultado se añade al editor: debes revisarlo y enviarlo. Instalación y contratos: [voz PC](docs/VOZ_PC.md).
 
-**Reposo** reproduce un bucle de 4 s; **Saludar** reproduce un gesto de 3.6 s y vuelve a reposo. Son movimientos propios en desarrollo sobre el rig existente. No hay labios sincronizados. Regenerar curvas: `npm run animations:bake`.
+Cortana acompaña la escucha, la espera y la reproducción de voz con movimientos de atención, reflexión y explicación. El reposo incluye balanceo y cambios periódicos de apoyo. En **Movimiento** puedes elegir saludo, sí, no, pensar, manos en cadera, escucha, explicación o cambio de postura. **Automático** libera el gesto manual; los gestos también terminan por sí solos.
+
+Los nueve clips funcionan sobre el rig existente; reposo y explicación adaptan curvas CC0 de Quaternius. No hay sincronización labial ni expresiones faciales nuevas. Detalles, procedencia y límites de revisión en [animaciones](docs/ANIMACIONES.md). Regenerar sin red: `npm run animations:bake`.
 
 En **Calibrar imagen** ajusta orientación, tamaño, posición, giro, espejos y contornos. El patrón temporal sirve para comprobar lateralidad. Los ajustes se guardan por navegador; calibrar el PC no cambia otra pantalla. Durante un corte el visor cargado conserva a Cortana; reconectar no reenvía mensajes.
 

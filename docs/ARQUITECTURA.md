@@ -21,8 +21,8 @@ Vue 3 + Composition API con SFC; se mantiene JavaScript ESM para reutilizar serv
 
 ## Contratos que deben conservarse
 
-- `GET /api/presentation`: solo `{sessionId,revision,phase,animation}`; público en LAN. Fases `idle|processing|responded|error|speaking|listening`; movimientos `idle|wave`. No publica conversación, audio ni claves.
-- `POST /api/animation {animation}`: privado; catálogo cerrado, sin campos adicionales. Saludo expira a reposo tras 3.6 s; no se exige sincronía exacta de frames entre pantallas.
+- `GET /api/presentation`: solo `{sessionId,revision,phase,animation}`; público en LAN. Fases `idle|processing|responded|error|speaking|listening`; movimientos del catálogo cerrado compartido `src/services/animation-catalog.js`: `idle|wave|nod|shake_head|think|hands_on_hips|listen|explain|shift_weight`. `animation` representa la selección manual; el visor deriva su postura automática de `phase` cuando vale `idle`. No publica conversación, audio ni claves.
+- `POST /api/animation {animation}`: privado; catálogo cerrado, sin campos adicionales. Los gestos finitos expiran según su duración; posturas manuales, tras 8 s. `idle` libera la prioridad manual y el visor sigue la fase actual. Cada nueva solicitud sustituye el temporizador anterior; no se exige sincronía exacta de frames entre pantallas.
 - Chat/proveedor/TTS/STT: loopback, Host y Origin local. Límite de entrada 2000 caracteres; seis pares de contexto; timeout LLM 60 s, cancelación e IDs idempotentes. Cambiar proveedor limpia historial y caché; no fallback automático.
 - `GET /api/providers` enumera modelos permitidos. `POST /api/provider` valida contra ese catálogo; diagnóstico `POST /api/provider/check {}` no genera texto ni certifica cuota mediante un catálogo público.
 - Dictado revisable: no envío automático. `listening` requiere captura confirmada; `speaking` requiere reproducción real. Las reservas excluyen micrófono y TTS entre controles.
@@ -31,8 +31,10 @@ Vue 3 + Composition API con SFC; se mantiene JavaScript ESM para reutilizar serv
 
 El backend de desarrollo se monta como middleware de Vite y utiliza el mismo `createApp` que la entrega compilada. Las credenciales se cargan solo en el proceso Node; no se exponen a Vue. Producción sigue con `npm run demo` y servidor Node independiente.
 
-## Alcance posterior
+## Movimiento corporal
 
-Escucha atenta, reflexión, explicación, asentimiento y presentación lateral son poses propuestas, aún no generadas. El avatar no tiene morph targets faciales. Retargeting, lipsync y arte final requieren otro incremento. Los LLM conversan; no reciben herramientas ni controlan dispositivos.
+`motion-player` mantiene un solo mixer con mezcla de 0.35 s y descarta finalizaciones de acciones que ya no son actuales. Escucha confirmada selecciona `listen`; espera de ≥0.6 s, `think`; reproducción real, `explain`. Un gesto manual tiene prioridad temporal y vuelve a la fase vigente al terminar. En reposo conversacional hay un cambio de apoyo tras 18 s. Asentimiento y negación son manuales; el LLM no elige acciones a partir de texto libre.
+
+El generador adapta dos clips CC0 de torso de Quaternius y añade curvas propias/IK sobre el rig existente. Se conservan el GLB, las texturas, la calibración y el fondo negro. Diagnóstico, catálogo, procedencia y límites de revisión: [animaciones](ANIMACIONES.md). El modelo no tiene morph targets faciales; sincronización labial y arte final siguen fuera de este incremento. Los LLM conversan; no reciben herramientas ni controlan dispositivos.
 
 Referencias de implementación: [SFC de Vue](https://vuejs.org/guide/scaling-up/sfc.html), [composables](https://vuejs.org/guide/reusability/composables.html), [sistema de animación de Three](https://threejs.org/manual/en/animation-system.html).

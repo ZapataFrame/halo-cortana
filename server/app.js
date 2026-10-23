@@ -1,4 +1,5 @@
 import { createServer } from 'node:http';
+import { ANIMATIONS, hasAnimation } from '../src/services/animation-catalog.js';
 import { readFile, stat } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { networkInterfaces } from 'node:os';
@@ -49,7 +50,7 @@ function readAudio(req, signal) {
   });
 }
 
-export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile, tts = createPiper(), ttsTimeoutMs = 20000, speechLeaseMs = 15000, stt = createWhisper(), sttTimeoutMs = 30000, captureLeaseMs = 35000, animationMs = 3600 } = {}) {
+export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile, tts = createPiper(), ttsTimeoutMs = 20000, speechLeaseMs = 15000, stt = createWhisper(), sttTimeoutMs = 30000, captureLeaseMs = 35000, animationMs } = {}) {
   const sessionId = randomUUID();
   let revision = 0, chatGeneration = 0, phase = 'idle', animation = 'idle', active = null, history = [];
   const completed = new Map();
@@ -269,10 +270,10 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
           json(res, 200, { provider: config.provider, model: config.model, ...state() }); return;
         }
         if (pathname === '/api/animation') {
-          if (!body || Object.keys(body).length !== 1 || !['idle', 'wave'].includes(body.animation)) { json(res, 400, { error: 'Animación no disponible.' }); return; }
+          if (!body || Object.keys(body).length !== 1 || !hasAnimation(body.animation)) { json(res, 400, { error: 'Animación no disponible.' }); return; }
           clearTimeout(animationTimer); animation = body.animation; revision++;
-          if (animation === 'wave') {
-            animationTimer = setTimeout(() => { animation = 'idle'; revision++; }, animationMs);
+          if (animation !== 'idle') {
+            animationTimer = setTimeout(() => { animation = 'idle'; revision++; }, animationMs ?? ANIMATIONS[animation].manualSeconds * 1000);
             animationTimer.unref();
           }
           json(res, 200, state()); return;

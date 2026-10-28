@@ -8,6 +8,7 @@ const working = shallowRef(false), loading = shallowRef(false), detail = shallow
 let controller;
 const enabled = computed(() => props.connected && props.info?.localControl);
 const names = computed(() => provider.value === 'openai' ? [catalog.value?.openaiModel].filter(Boolean)
+  : provider.value === 'gemini' ? [catalog.value?.geminiModel].filter(Boolean)
   : provider.value === 'ollama-cloud' ? [catalog.value?.cloudModel].filter(Boolean) : catalog.value?.localModels || []);
 const unapplied = computed(() => provider.value !== catalog.value?.provider || model.value !== catalog.value?.model);
 watch(working, value => emit('busy', value), { flush: 'sync' });
@@ -49,7 +50,7 @@ onUnmounted(() => controller?.abort());
   <details class="provider-settings">
     <summary>Proveedor y modelo<span v-if="catalog" class="summary-value"> · {{ catalog.model }}</span></summary>
     <form class="provider-form" @submit.prevent="apply">
-      <label>Proveedor<select v-model="provider" :disabled="!enabled || locked || working || loading || !catalog"><option value="openai">OpenAI</option><option value="ollama-cloud">Ollama Cloud</option><option value="ollama">Ollama local</option></select></label>
+      <label>Proveedor<select v-model="provider" :disabled="!enabled || locked || working || loading || !catalog"><option value="openai">OpenAI</option><option value="gemini">Google Gemini</option><option value="ollama-cloud">Ollama Cloud</option><option value="ollama">Ollama local</option></select></label>
       <label>Modelo<select v-model="model" :disabled="!enabled || locked || working || loading || !names.length"><option v-for="name in names" :key="name" :value="name">{{ name }}</option><option v-if="!names.length" value="">Sin modelos disponibles</option></select></label>
       <div class="actions"><button :disabled="!enabled || locked || working || loading || !model || !unapplied">Aplicar modelo</button><button type="button" :disabled="!enabled || locked || working || loading" @click="refresh">Actualizar modelos</button><button type="button" :disabled="!enabled || locked || working || loading || !catalog || unapplied" @click="check">Probar conexión</button></div>
     </form>

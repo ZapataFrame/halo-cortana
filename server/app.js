@@ -3,7 +3,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { networkInterfaces } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import { generateReply, providerHealth, localModels, checkProviderConnection } from './providers.js';
+import { generateReply, providerHealth, localModels, checkProviderConnection, PROVIDERS } from './providers.js';
 import { createPiper, speechText } from './tts.js';
 import { createWhisper, AUDIO_LIMIT, validateAudioType, validateAudio } from './stt.js';
 
@@ -102,6 +102,7 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
         try { if (configs.ollama) installed = await models(configs.ollama); }
         catch { detail = 'Ollama no responde. Inicia Ollama en el PC y pulsa Actualizar modelos.'; }
         json(res, 200, { provider: config.provider, model: config.model, openaiModel: configs.openai?.model,
+          geminiModel: configs.gemini?.model,
           cloudModel: configs['ollama-cloud']?.model, cloudConfigured: Boolean(configs['ollama-cloud']?.key),
           localModels: installed, detail }); return;
       }
@@ -245,7 +246,7 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
         }
         if (pathname === '/api/provider') {
           if (active) { json(res, 409, { error: 'Espera o cancela la respuesta antes de cambiar de modelo.' }); return; }
-          if (!body || !['openai', 'ollama', 'ollama-cloud'].includes(body.provider) || !configs[body.provider]
+          if (!body || !PROVIDERS.includes(body.provider) || !configs[body.provider]
             || typeof body.model !== 'string' || !body.model || body.model.length > 200
             || Object.keys(body).some(key => !['provider', 'model'].includes(key))) {
             json(res, 400, { error: 'Selecciona un proveedor y modelo disponibles.' }); return;
@@ -257,7 +258,7 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
             catch { json(res, 503, { error: 'Ollama no responde. Inicia el servicio local y actualiza los modelos.' }); return; }
             if (!installed.includes(body.model)) { json(res, 400, { error: 'El modelo no está instalado en Ollama. Actualiza la lista.' }); return; }
           } else if (body.model !== selected.model) {
-            json(res, 400, { error: body.provider === 'ollama-cloud'
+            json(res, 400, { error: body.provider === 'gemini' ? 'El modelo Gemini se configura en GEMINI_MODEL del PC.' : body.provider === 'ollama-cloud'
               ? 'El modelo cloud se configura en OLLAMA_CLOUD_MODEL del PC.'
               : 'El modelo GPT se configura en OPENAI_MODEL del PC.' }); return;
           }
@@ -316,7 +317,17 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
         } catch (error) {
           if (active === token) setPhase(controller.signal.aborted && !timedOut ? 'idle' : 'error');
           const cloud = requestConfig.provider === 'ollama-cloud';
-          const providerError = cloud ? {
+          const gemini = requestConfig.provider === 'gemini';
+          const providerError = gemini ? {
+            PROVIDER_NOT_CONFIGURED: [503, 'NOT_CONFIGURED', 'Falta GEMINI_API_KEY. Guárdala en .env del PC y reinicia el servidor.'],
+            PROVIDER_HTTP_400: [502, 'INVALID_REQUEST', 'Gemini rechazó la solicitud. Revisa GEMINI_API_KEY y GEMINI_MODEL en el PC.'],
+            PROVIDER_HTTP_401: [502, 'AUTH_ERROR', 'Gemini rechazó la clave API. Comprueba GEMINI_API_KEY en el PC.'],
+            PROVIDER_HTTP_403: [502, 'ACCESS_ERROR', 'La clave o proyecto no tiene acceso a Gemini. Revisa permisos, restricciones y disponibilidad.'],
+            PROVIDER_HTTP_404: [502, 'MODEL_UNAVAILABLE', 'El modelo Gemini no está disponible. Comprueba GEMINI_MODEL en el PC.'],
+            PROVIDER_HTTP_429: [503, 'RATE_LIMIT', 'Gemini alcanzó un límite de solicitudes o cuota. Revisa tu cuenta e intenta más tarde.'],
+            PROVIDER_BLOCKED_RESPONSE: [502, 'BLOCKED_RESPONSE', 'Gemini no pudo entregar esa respuesta. Reformula el mensaje; el visor continúa.'],
+            PROVIDER_EMPTY_RESPONSE: [502, 'EMPTY_RESPONSE', 'Gemini no devolvió texto. Reformula el mensaje o revisa el modelo y vuelve a intentar.'],
+          }[error.message] : cloud ? {
             PROVIDER_NOT_CONFIGURED: [503, 'NOT_CONFIGURED', 'Falta OLLAMA_API_KEY. Guárdala en .env del PC y reinicia el servidor.'],
             PROVIDER_HTTP_401: [502, 'AUTH_ERROR', 'Ollama Cloud rechazó la clave. Comprueba OLLAMA_API_KEY en el PC.'],
             PROVIDER_HTTP_402: [503, 'USAGE_LIMIT', 'Ollama Cloud requiere créditos o acceso adicional para este modelo. Revisa tu cuenta; no se activan pagos desde la aplicación.'],

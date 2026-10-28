@@ -1,6 +1,6 @@
 # Cortana — Plan y roadmap
 
-Actualizado: 2026-10-23. Objetivo: un prototipo conversacional mantenible con Cortana, Vue y presentación 3D. El propietario retiró el simulador, avatares alternativos, placeholders y documentación histórica redundante. Esta es la única planificación vigente.
+Actualizado: 2026-10-28. Objetivo: un prototipo conversacional mantenible con Cortana, Vue y presentación 3D. El propietario retiró el simulador, avatares alternativos, placeholders y documentación histórica redundante. Esta es la única planificación vigente.
 
 ## Trabajo actual
 
@@ -11,11 +11,12 @@ Actualizado: 2026-10-23. Objetivo: un prototipo conversacional mantenible con Co
 | C-03 | TODO | — | C-01 | Refinar reposo/saludo y transiciones. Producir escucha, reflexión y explicación sobre el rig solo después de revisar las poses base. Mantener pies estables, silueta completa y control manual. |
 | C-04 | DEFERRED | Propietario | — | Ensayo humano: diez frases reales, ≥8/10 útiles y revisión/cancelación. Aplazado por el propietario; no bloquea software. |
 | C-05 | DEFERRED | Propietario | — | Conexión en pantalla real, reflector, cinco minutos, orientación y recuperación física. Aplazado; no solicitar como siguiente paso de desarrollo. |
+| C-06 | DONE | Codex, 2026-10-28 | C-01 | Gemini API solicitada por el propietario: REST nativo, clave solo backend, modelo configurable, selector/diagnóstico Vue, cancelación/errores/pruebas y build; conservar Piper/Whisper y proveedores existentes. 96 pruebas y build correctos; revisión visual escritorio/390×844 y errores sin clave comprobados. Evidencia y límites en docs/ARQUITECTURA.md. Generación real pendiente de clave propia; sin fallback ni pagos. |
 
 ## Orden de ejecución
 
 1. C-01 cerrado; consultar su evaluación antes de ampliar el alcance.
-2. Ejecutar C-02 sobre la base reorganizada, sin nuevos proveedores ni pagos.
+2. C-06 cerrado en software; generación Gemini real pendiente de clave propia. Siguiente tarea disponible: C-02. No activar pagos.
 3. Trabajar C-03 en incrementos de una pose/clip; no declarar aceptación artística a partir de geometría o tests.
 
 Se conservan LLM intercambiables, TTS/STT locales, cancelación, reserva exclusiva de audio y calibración v1. No hay herramientas de juego, autonomía de dispositivos, escucha continua, sincronización labial ni exportación instalada en el alcance actual.

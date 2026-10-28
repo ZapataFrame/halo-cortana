@@ -31,6 +31,16 @@ Vue 3 + Composition API con SFC; se mantiene JavaScript ESM para reutilizar serv
 
 El backend de desarrollo se monta como middleware de Vite y utiliza el mismo `createApp` que la entrega compilada. Las credenciales se cargan solo en el proceso Node; no se exponen a Vue. Producción sigue con `npm run demo` y servidor Node independiente.
 
+## Gemini API · C-06, 2026-10-28
+
+Se incorpora un adaptador REST nativo en `server/providers.js`, compartido por desarrollo y producción, sin dependencias nuevas. Usa `generateContent` con `systemInstruction` y contexto `user/model`; la clave viaja en `x-goog-api-key` al origen fijo de Google, con redirecciones desactivadas. No se aceptan URL ni credenciales desde Vue. El modelo configurable por backend aparece en el catálogo permitido del control.
+
+La respuesta toma texto del primer candidato y descarta partes marcadas como pensamiento. Se conservan cancelación, timeout, idempotencia y limpieza del contexto al cambiar proveedor. Bloqueos, respuestas vacías, clave ausente, permisos, modelo y cuota producen errores en español sin exponer el cuerpo del proveedor. Piper, Whisper y el contrato público de presentación se mantienen.
+
+El diagnóstico autenticado consulta `models.get`; confirma metadatos y soporte de `generateContent`, sin certificar cuota de generación. La configuración local por sí sola no acredita conexión. Referencias oficiales: [generación](https://ai.google.dev/api/generate-content), [metadatos](https://ai.google.dev/api/models), [claves](https://ai.google.dev/gemini-api/docs/api-key) y [modelo seleccionado](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite).
+
+Verificación: 96 pruebas y build correctos. Las pruebas HTTP usan respuestas controladas de Google para validar contrato, errores, privacidad, cambios de proveedor, cancelación y recuperación; no acreditan generación real. Control renderizado en escritorio y 390×844, diagnóstico y envío sin clave comprobados: [escritorio](evidence/C-06-gemini-desktop.jpg), [vertical](evidence/C-06-gemini-vertical.jpg). Falta clave propia para probar conversación real con Gemini; la validación humana y física continúa aplazada.
+
 ## Alcance posterior
 
 Escucha atenta, reflexión, explicación, asentimiento y presentación lateral son poses propuestas, aún no generadas. El avatar no tiene morph targets faciales. Retargeting, lipsync y arte final requieren otro incremento. Los LLM conversan; no reciben herramientas ni controlan dispositivos.

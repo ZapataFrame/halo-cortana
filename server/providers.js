@@ -1,7 +1,14 @@
 const SYSTEM_PROMPT = 'Eres Cortana, asistente de una demo holográfica. Responde en español, máximo 25 palabras. Solo conversas: no controlas dispositivos y no ejecutas acciones ni herramientas. La aplicación muestra tu avatar sobre fondo negro y puede leer tus respuestas con voz local en el PC; el usuario usa Leer respuestas automáticamente o Escuchar respuesta. También puede mantener pulsado el micrófono del PC, revisar la transcripción y enviarla explícitamente. No afirmes estar escuchando o hablando ahora: esos estados dependen de la captura o reproducción real de la aplicación.';
+export const PROVIDERS = Object.freeze(['openai', 'ollama', 'ollama-cloud', 'gemini']);
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 export function providerConfig(env = process.env, provider = env.LLM_PROVIDER || 'openai') {
-  if (!['ollama', 'openai', 'ollama-cloud'].includes(provider)) throw new Error('LLM_PROVIDER debe ser ollama, ollama-cloud u openai.');
+  if (!PROVIDERS.includes(provider)) throw new Error('LLM_PROVIDER debe ser ollama, ollama-cloud, openai o gemini.');
+  if (provider === 'gemini') {
+    const model = env.GEMINI_MODEL?.trim() || 'gemini-3.5-flash-lite';
+    if (!/^gemini-[a-zA-Z0-9._-]{1,120}$/.test(model)) throw new Error('GEMINI_MODEL debe ser un identificador Gemini, sin URL ni prefijo models/.');
+    return { provider, model, key: env.GEMINI_API_KEY?.trim() || '', url: GEMINI_URL };
+  }
   if (provider === 'openai') {
     return { provider, model: env.OPENAI_MODEL || 'gpt-4.1-mini', key: env.OPENAI_API_KEY?.trim() || '', url: 'https://api.openai.com/v1/responses' };
   }
@@ -29,20 +36,26 @@ export async function localModels(config, request = fetch) {
 
 export async function checkProviderConnection(config, signal = AbortSignal.timeout(8000), request = fetch) {
   const failed = (code, detail) => ({ ready: false, verified: false, code, detail });
-  const gpt = config.provider === 'openai', cloud = config.provider === 'ollama-cloud';
-  if (!config.model || ((gpt || cloud) && !config.key)) {
+  const gpt = config.provider === 'openai', cloud = config.provider === 'ollama-cloud', gemini = config.provider === 'gemini';
+  if (!config.model || ((gpt || cloud || gemini) && !config.key)) {
     return failed('NOT_CONFIGURED', !config.model ? 'Configura el modelo en .env del PC y reinicia el servidor.'
-      : `Añade ${gpt ? 'OPENAI_API_KEY' : 'OLLAMA_API_KEY'} a .env del PC y reinicia el servidor.`);
+      : `Añade ${gemini ? 'GEMINI_API_KEY' : gpt ? 'OPENAI_API_KEY' : 'OLLAMA_API_KEY'} a .env del PC y reinicia el servidor.`);
   }
   try {
     signal.throwIfAborted();
-    const url = gpt ? `https://api.openai.com/v1/models/${encodeURIComponent(config.model)}`
+    const url = gemini ? `${GEMINI_URL}/${encodeURIComponent(config.model)}` : gpt ? `https://api.openai.com/v1/models/${encodeURIComponent(config.model)}`
       : cloud ? 'https://ollama.com/api/tags' : `${config.url}/api/tags`;
     // El catálogo Cloud es público: consultarlo no prueba su clave y no la necesita.
     const response = await request(url, { method: 'GET', signal, redirect: 'error',
-      headers: gpt ? { Authorization: `Bearer ${config.key}` } : {} });
+      headers: gemini ? { 'x-goog-api-key': config.key } : gpt ? { Authorization: `Bearer ${config.key}` } : {} });
     if (!response.ok) {
-      const errors = gpt && {
+      const errors = gemini ? {
+        400: ['AUTH_ERROR', 'Gemini rechazó la solicitud de diagnóstico. Comprueba GEMINI_API_KEY y GEMINI_MODEL en el PC.'],
+        401: ['AUTH_ERROR', 'Gemini rechazó la clave. Comprueba GEMINI_API_KEY en el PC.'],
+        403: ['ACCESS_ERROR', 'La clave o proyecto no tiene acceso a Gemini. Revisa permisos, restricciones y disponibilidad.'],
+        404: ['MODEL_UNAVAILABLE', 'Modelo Gemini no disponible. Comprueba GEMINI_MODEL en el PC.'],
+        429: ['RATE_LIMIT', 'Gemini alcanzó un límite de solicitudes o cuota. Revisa tu cuenta e intenta más tarde.'],
+      } : gpt && {
         401: ['AUTH_ERROR', 'GPT rechazó la clave. Comprueba OPENAI_API_KEY en el PC.'],
         403: ['ACCESS_ERROR', 'La cuenta API no tiene acceso a este modelo GPT. Revisa sus permisos.'],
         404: ['MODEL_UNAVAILABLE', 'Modelo GPT no disponible. Comprueba OPENAI_MODEL en el PC.'],
@@ -52,6 +65,13 @@ export async function checkProviderConnection(config, signal = AbortSignal.timeo
         : failed('UNAVAILABLE', 'El servicio no pudo comprobarse. Intenta más tarde; el visor sigue disponible.');
     }
     const data = await response.json();
+    if (gemini) {
+      if (data?.name !== `models/${config.model}` || !data.supportedGenerationMethods?.includes('generateContent')) {
+        return failed('MODEL_UNAVAILABLE', 'Gemini no confirmó un modelo compatible con generación de texto. Revisa GEMINI_MODEL.');
+      }
+      return { ready: true, verified: true, code: 'MODEL_AVAILABLE',
+        detail: 'Clave aceptada y modelo Gemini disponible. La cuota de generación se comprueba al enviar.' };
+    }
     if (gpt) {
       if (data.id !== config.model) return failed('INVALID_RESPONSE', 'El servicio no confirmó el modelo configurado.');
       return { ready: true, verified: true, code: 'MODEL_AVAILABLE',
@@ -71,6 +91,11 @@ export async function checkProviderConnection(config, signal = AbortSignal.timeo
 }
 
 export async function providerHealth(config) {
+  if (config.provider === 'gemini') return {
+    ready: Boolean(config.key && config.model), verified: false,
+    detail: config.key && config.model ? 'Gemini configurado; acceso y cuota se comprueban al enviar.'
+      : 'Añade GEMINI_API_KEY al archivo .env del PC y reinicia el servidor. El visor sigue disponible.',
+  };
   if (config.provider === 'ollama-cloud') return {
     ready: Boolean(config.key && config.model), verified: false,
     detail: config.key && config.model ? 'Ollama Cloud configurado; acceso y cuota se comprueban al enviar.'
@@ -89,9 +114,22 @@ export async function providerHealth(config) {
 }
 
 export async function generateReply(config, history, message, signal, request = fetch) {
+  signal?.throwIfAborted();
   let url, body, headers = { 'Content-Type': 'application/json' };
   const messages = [{ role: 'system', content: SYSTEM_PROMPT }, ...history, { role: 'user', content: message }];
-  if (config.provider === 'ollama' || config.provider === 'ollama-cloud') {
+  if (config.provider === 'gemini') {
+    if (!config.key || !config.model) throw new Error('PROVIDER_NOT_CONFIGURED');
+    // Origen fijo, clave en cabecera: no incluirla en URL, contenido ni navegador.
+    url = `${GEMINI_URL}/${encodeURIComponent(config.model)}:generateContent`;
+    headers['x-goog-api-key'] = config.key;
+    body = {
+      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      contents: [...history, { role: 'user', content: message }].map(item => ({
+        role: item.role === 'assistant' ? 'model' : 'user', parts: [{ text: item.content }],
+      })),
+      generationConfig: { candidateCount: 1, maxOutputTokens: 1024, thinkingConfig: { includeThoughts: false } },
+    };
+  } else if (config.provider === 'ollama' || config.provider === 'ollama-cloud') {
     url = `${config.url}/api/chat`;
     if (config.provider === 'ollama-cloud') {
       if (!config.key || !config.model) throw new Error('PROVIDER_NOT_CONFIGURED');
@@ -111,6 +149,17 @@ export async function generateReply(config, history, message, signal, request = 
   // No devolver el cuerpo del proveedor: puede contener información privada.
   if (!response.ok) throw new Error(`PROVIDER_HTTP_${response.status}`);
   const data = await response.json();
+  if (config.provider === 'gemini') {
+    const candidate = data?.candidates?.[0];
+    if ((data?.promptFeedback?.blockReason && data.promptFeedback.blockReason !== 'BLOCK_REASON_UNSPECIFIED')
+      || (candidate?.finishReason && !['STOP', 'MAX_TOKENS'].includes(candidate.finishReason))) {
+      throw new Error('PROVIDER_BLOCKED_RESPONSE');
+    }
+    const text = candidate?.content?.parts?.filter(part => part.thought !== true && typeof part.text === 'string')
+      .map(part => part.text).join('');
+    if (!text?.trim()) throw new Error('PROVIDER_EMPTY_RESPONSE');
+    return { text: text.trim().slice(0, 8000), truncated: candidate.finishReason === 'MAX_TOKENS' };
+  }
   const content = config.provider !== 'openai' ? data.message?.content
     : data.output?.filter(item => item.type === 'message').flatMap(item => item.content || [])
       .filter(item => item.type === 'output_text').map(item => item.text).join('\n');

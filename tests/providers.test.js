@@ -102,7 +102,7 @@ test('Gemma Cloud envía contexto/abort, protege clave y devuelve solo contenido
 
 test('diagnóstico no solicita generación y una clave ausente no inicia tráfico', async () => {
   let calls = 0;
-  for (const provider of ['openai', 'ollama-cloud']) {
+  for (const provider of ['openai', 'ollama-cloud', 'gemini']) {
     const result = await checkProviderConnection(providerConfig({}, provider), undefined, async () => { calls++; });
     assert.equal(result.code, 'NOT_CONFIGURED'); assert.equal(result.verified, false);
   }
@@ -120,6 +120,86 @@ test('diagnóstico no solicita generación y una clave ausente no inicia tráfic
   assert.match(result.detail, /cuota.*al enviar/);
   assert.ok(!JSON.stringify(result).includes('diagnostic-private-test'));
   assert.ok(!JSON.stringify(result).includes('no-publicar'));
+});
+
+test('Gemini usa clave propia y destino fijo; configuración ausente, modelo inválido o aborto no generan tráfico', async () => {
+  const empty = providerConfig({ LLM_PROVIDER: 'gemini', OPENAI_API_KEY: 'another-provider' });
+  assert.equal(empty.model, 'gemini-3.5-flash-lite'); assert.equal(empty.key, '');
+  assert.equal((await providerHealth(empty)).ready, false);
+  let calls = 0;
+  await assert.rejects(generateReply(empty, [], 'hola', undefined, async () => { calls++; }), /NOT_CONFIGURED/);
+  const config = providerConfig({ LLM_PROVIDER: 'gemini', GEMINI_API_KEY: ' gemini-private-test ', GEMINI_URL: 'https://unrelated.example' });
+  assert.equal(config.url, 'https://generativelanguage.googleapis.com/v1beta/models');
+  assert.equal(config.key, 'gemini-private-test'); assert.equal((await providerHealth(config)).verified, false);
+  for (const model of ['../private', 'models/gemini-test', 'https://other.example', 'gemini-a?key=x', 'gemini-a/b']) {
+    assert.throws(() => providerConfig({ LLM_PROVIDER: 'gemini', GEMINI_MODEL: model }), /GEMINI_MODEL/);
+  }
+  const controller = new AbortController(); controller.abort();
+  await assert.rejects(generateReply(config, [], 'hola', controller.signal, async () => { calls++; }));
+  assert.equal(calls, 0);
+});
+
+test('Gemini REST convierte historial, conserva cancelación y solo devuelve texto final de un candidato', async () => {
+  const config = providerConfig({ LLM_PROVIDER: 'gemini', GEMINI_API_KEY: 'gemini-private-test' });
+  const controller = new AbortController();
+  const history = [{ role: 'user', content: 'Me llamo Ana' }, { role: 'assistant', content: 'Hola Ana.' }];
+  const snapshot = structuredClone(history);
+  const result = await generateReply({ ...config, url: 'https://unrelated.example' }, history, '¿Mi nombre?', controller.signal, async (url, options) => {
+    assert.equal(url, 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent');
+    assert.equal(options.headers['x-goog-api-key'], 'gemini-private-test'); assert.equal(options.headers.Authorization, undefined);
+    assert.equal(options.signal, controller.signal); assert.equal(options.redirect, 'error');
+    assert.ok(!url.includes('gemini-private-test')); assert.ok(!options.body.includes('gemini-private-test'));
+    const body = JSON.parse(options.body);
+    assert.deepEqual(body.contents, [
+      { role: 'user', parts: [{ text: 'Me llamo Ana' }] }, { role: 'model', parts: [{ text: 'Hola Ana.' }] },
+      { role: 'user', parts: [{ text: '¿Mi nombre?' }] },
+    ]);
+    assert.match(body.systemInstruction.parts[0].text, /español/);
+    assert.equal(body.tools, undefined); assert.equal(body.generationConfig.candidateCount, 1);
+    assert.equal(body.generationConfig.maxOutputTokens, 1024); assert.equal(body.generationConfig.thinkingConfig.includeThoughts, false);
+    return { ok: true, json: async () => ({ candidates: [
+      { content: { parts: [{ thought: true, text: 'No mostrar pensamiento' }, { text: 'Te llamas ' }, { text: 'Ana.' }] }, finishReason: 'MAX_TOKENS' },
+      { content: { parts: [{ text: 'No mezclar candidatos' }] }, finishReason: 'STOP' },
+    ] }) };
+  });
+  assert.deepEqual(history, snapshot); assert.deepEqual(result, { text: 'Te llamas Ana.', truncated: true });
+});
+
+test('Gemini rechaza bloqueo, falta de texto y HTTP fallido sin leer errores privados', async () => {
+  const config = providerConfig({ LLM_PROVIDER: 'gemini', GEMINI_API_KEY: 'test-only' });
+  for (const status of [400, 401, 403, 404, 429, 500]) {
+    await assert.rejects(generateReply(config, [], 'hola', undefined, async () => ({ ok: false, status,
+      json() { throw new Error('No leer error privado de Google'); },
+    })), new RegExp(`PROVIDER_HTTP_${status}`));
+  }
+  for (const data of [{}, { candidates: [] }, { candidates: [{ content: { parts: [{ thought: true, text: 'Solo pensamiento' }] }, finishReason: 'STOP' }] }]) {
+    await assert.rejects(generateReply(config, [], 'hola', undefined, async () => ({ ok: true, json: async () => data })), /EMPTY_RESPONSE/);
+  }
+  for (const data of [{ promptFeedback: { blockReason: 'SAFETY' } }, { candidates: [{ content: { parts: [{ text: 'Parcial' }] }, finishReason: 'SAFETY' }] }]) {
+    await assert.rejects(generateReply(config, [], 'hola', undefined, async () => ({ ok: true, json: async () => data })), /BLOCKED_RESPONSE/);
+  }
+});
+
+test('diagnóstico Gemini autentica models.get sin generar y valida el método, modelo, cuota y acceso', async () => {
+  const config = providerConfig({ LLM_PROVIDER: 'gemini', GEMINI_API_KEY: 'gemini-private-test' });
+  const result = await checkProviderConnection(config, undefined, async (url, options) => {
+    assert.equal(url, `https://generativelanguage.googleapis.com/v1beta/models/${config.model}`);
+    assert.equal(options.method, 'GET'); assert.equal(options.body, undefined); assert.equal(options.redirect, 'error');
+    assert.equal(options.headers['x-goog-api-key'], 'gemini-private-test');
+    return { ok: true, json: async () => ({ name: `models/${config.model}`, supportedGenerationMethods: ['generateContent'], privateMetadata: 'hidden-test-only' }) };
+  });
+  assert.equal(result.verified, true); assert.equal(result.code, 'MODEL_AVAILABLE'); assert.match(result.detail, /cuota.*al enviar/);
+  assert.ok(!JSON.stringify(result).includes('hidden-test-only')); assert.ok(!JSON.stringify(result).includes('gemini-private-test'));
+  for (const data of [{}, { name: 'models/other', supportedGenerationMethods: ['generateContent'] }, { name: `models/${config.model}`, supportedGenerationMethods: ['embedContent'] }]) {
+    const checked = await checkProviderConnection(config, undefined, async () => ({ ok: true, json: async () => data }));
+    assert.equal(checked.code, 'MODEL_UNAVAILABLE'); assert.equal(checked.verified, false);
+  }
+  for (const [status, code] of [[400, 'AUTH_ERROR'], [401, 'AUTH_ERROR'], [403, 'ACCESS_ERROR'], [404, 'MODEL_UNAVAILABLE'], [429, 'RATE_LIMIT'], [500, 'UNAVAILABLE']]) {
+    const checked = await checkProviderConnection(config, undefined, async () => ({ ok: false, status,
+      json() { throw new Error('No leer error privado'); },
+    }));
+    assert.equal(checked.code, code); assert.equal(checked.verified, false);
+  }
 });
 
 test('diagnóstico distingue autenticación/acceso/modelo/límite sin leer cuerpos privados', async () => {

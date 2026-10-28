@@ -26,8 +26,11 @@ Crea `.env` a partir de `.env.example` si no existe. Si ya tienes uno, conserva 
 | Ollama local | `LLM_PROVIDER=ollama`, `OLLAMA_MODEL` con un nombre de `ollama list` |
 | Ollama Cloud | `LLM_PROVIDER=ollama-cloud`, `OLLAMA_CLOUD_MODEL`, `OLLAMA_API_KEY` |
 | OpenAI | `LLM_PROVIDER=openai`, `OPENAI_MODEL`, `OPENAI_API_KEY` |
+| Google Gemini | `LLM_PROVIDER=gemini`, `GEMINI_MODEL`, `GEMINI_API_KEY` |
 
 Reinicia el servidor tras cambiar `.env`. La interfaz permite seleccionar los modelos configurados o instalados y probar conexión sin generar texto. Cambiar modelo inicia una conversación nueva. No hay cambio automático de proveedor. Las claves nunca deben ir en variables `VITE_`; suscripciones y saldo API son independientes.
+
+Para Gemini, añade tu clave de [Google AI Studio](https://aistudio.google.com/api-keys) a `GEMINI_API_KEY` en `.env`. El modelo predeterminado es `gemini-3.5-flash-lite`; `GEMINI_MODEL` acepta el identificador, sin URL ni prefijo `models/`. Elige **Google Gemini** en **Proveedor y modelo** o establece `LLM_PROVIDER=gemini` para arrancar con él. `.env` es privado y está excluido de Git; `.env.example` permanece sin credenciales. **Probar conexión** consulta los metadatos del modelo: no genera texto ni certifica cuota de generación.
 
 ## Usar Cortana
 

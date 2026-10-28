@@ -42,6 +42,8 @@ Cancelar, salir, segundo plano, pérdida de foco/conexión o reinicio invalidan 
 
 ## Aceptación pendiente
 
+La prueba experimental de la voz RVC de Cortana se prepara aparte, con entornos virtuales propios y sin cambiar el motor de la aplicación: [procedimiento y estado](PRUEBA_RVC.md). El paquete `.pth`/`.index` convierte audio; no sustituye directamente un modelo Piper.
+
 La conexión física y el ensayo humano siguen aplazados. Su aceptación futura exige diez frases reales, ≥8/10 con intención/datos conservados, revisión antes de enviar, permisos, interrupciones y recuperación. La interfaz de ensayo auxiliar se retiró para concentrar el producto en conversar; este criterio se conserva y no se declara cumplido por pruebas de código.
 
 Antes de cerrar el flujo completo: cinco conversaciones, dos interrupciones con recuperación y latencias por etapa. Identificar pruebas sintéticas, motores/proveedor reales y reproducción digital. `node tools/verify-stt.mjs` usa frases públicas y escribe evidencia sintética en `.stt-models/qa`; no abre micrófono ni certifica precisión humana.

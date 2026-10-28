@@ -15,6 +15,8 @@ Actualizado: 2026-10-28. Objetivo: un prototipo conversacional mantenible con Co
 
 ## Orden de ejecución
 
+C-07 · IN_PROGRESS · Codex, 2026-10-28: prueba aislada Piper → RVC v2 con el modelo local de Cortana, solicitada por el propietario. Entornos RVC/Piper creados y verificados (`sys.prefix != sys.base_prefix`); instalador y comparación preparados, sintaxis Node/Python 3.10 y catálogo de diez versiones comprobados. Descarga/instalación en curso, aún sin inferencia ni mediciones; registro privado `.rvc-qa/setup.log`. Comparar WAV base/convertido y medir tiempos antes de cerrar; no sustituir el motor de la aplicación ni declarar calidad sin escucha. Instrucciones y límites en docs/PRUEBA_RVC.md. Recursos y cachés privados en `.rvc-qa/`; el propietario exige aislamiento del Python global.
+
 1. C-01 cerrado; consultar su evaluación antes de ampliar el alcance.
 2. C-06 cerrado en software; generación Gemini real pendiente de clave propia. Siguiente tarea disponible: C-02. No activar pagos.
 3. Trabajar C-03 en incrementos de una pose/clip; no declarar aceptación artística a partir de geometría o tests.

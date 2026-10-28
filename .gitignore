@@ -8,3 +8,4 @@ dist/
 .voice-models/
 .stt-venv/
 .stt-models/
+.rvc-qa/

@@ -1,0 +1,8 @@
+{
+  "repo": "Daswer123/RVC_Base",
+  "revision": "bbb6736b97a98df0a87fe3592c0a061c53f0a75f",
+  "files": [
+    { "name": "hubert_base.pt", "bytes": 189507909, "sha256": "f54b40fd2802423a5643779c4861af1e9ee9c1564dc9d32f54f20b5ffba7db96" },
+    { "name": "rmvpe.pt", "bytes": 181184272, "sha256": "6d62215f4306e3ca278246188607209f09af3dc77ed4232efdd069798c4ec193" }
+  ]
+}

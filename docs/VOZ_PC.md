@@ -4,7 +4,7 @@ TTS y STT funcionan en el control mediante localhost. Otra pantalla solo represe
 
 ## Instalación Linux
 
-Requiere Node ≥22.12, `uv` y `hf`. Estos comandos descargan motores/modelos públicos; después la inferencia es local en CPU.
+Requiere Node ≥22.12, `uv`, `ffmpeg` y un compilador C/C++. No requiere instalar `hf` ni paquetes Python globales. Estos comandos descargan motores/modelos públicos; después la inferencia es local en CPU.
 
 ```bash
 npm run setup:voice
@@ -12,7 +12,7 @@ npm run setup:stt
 npm run demo
 ```
 
-Los instaladores preparan Python 3.13 y dependencias fijadas, verifican revisión/tamaño/SHA-256 y conservan recursos fuera de `public` y Git: `.voice-venv`, `.voice-models`, `.stt-venv`, `.stt-models`. No modifican `.env` ni el proveedor LLM. Windows no está verificado.
+Los instaladores preparan Python 3.13 y dependencias fijadas, verifican revisión/tamaño/SHA-256 y conservan recursos fuera de `public` y Git: `.voice-venv`, `.voice-models`, `.stt-venv`, `.stt-models`. No modifican `.env` ni el proveedor LLM. Windows no está verificado. Para la voz Cortana integrada y Whisper en una sola instalación Linux x86_64 usa `npm run setup:demo`: crea `.env` desde el ejemplo solo si falta y descarga los pesos desde la Release con procedencia en [Modelo de voz](MODELO_VOZ.md).
 
 ## Uso y recuperación
 

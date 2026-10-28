@@ -1,10 +1,9 @@
 // Experimento aislado: no instala paquetes en el Python global ni cambia el backend.
 import { spawnSync } from 'node:child_process';
-import { mkdir, readFile, writeFile, stat, rename, open } from 'node:fs/promises';
-import { createReadStream } from 'node:fs';
-import { createHash } from 'node:crypto';
+import { mkdir, readFile, writeFile, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { downloadVerified } from './model-download.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 process.chdir(root);
@@ -30,28 +29,8 @@ function run(command, args) {
   const result = spawnSync(command, args, { cwd: root, env, stdio: 'inherit' });
   if (result.error || result.status !== 0) throw new Error('Preparación interrumpida; vuelve a ejecutar el mismo comando.');
 }
-async function sha256(path) {
-  const hash = createHash('sha256');
-  for await (const chunk of createReadStream(path)) hash.update(chunk);
-  return hash.digest('hex');
-}
-async function download(url, path, expected) {
-  await mkdir(resolve(path, '..'), { recursive: true });
-  if (await stat(path).catch(() => null)) {
-    if (await sha256(path) === expected) return;
-    throw new Error(`Hash incorrecto: ${path}. Conservado para inspección.`);
-  }
-  console.log(`Descargando ${new URL(url).pathname.split('/').at(-1)}`);
-  const part = `${path}.part`;
-  const previous = (await stat(part).catch(() => null))?.size || 0;
-  const response = await fetch(url, { headers: previous ? { Range: `bytes=${previous}-` } : {},
-    signal: AbortSignal.timeout(3_600_000) });
-  if (!response.ok) throw new Error(`Descarga HTTP ${response.status}`);
-  const file = await open(part, previous && response.status === 206 ? 'a' : 'w');
-  try { for await (const chunk of response.body) await file.write(chunk); }
-  finally { await file.close(); }
-  if (await sha256(part) !== expected) throw new Error(`Hash incorrecto: ${part}. No se cargará.`);
-  await rename(part, path);
+async function download(url, path, expected, bytes) {
+  await downloadVerified({ url, path, sha256: expected, bytes });
 }
 
 // RVC usa dependencias antiguas; Piper conserva su entorno moderno independiente.
@@ -72,12 +51,12 @@ run('uv', ['pip', 'install', '--python', '.rvc-qa/piper-venv/bin/python', '-r', 
 const voice = JSON.parse(await readFile('tools/voice-model.json', 'utf8'));
 for (const file of voice.files) {
   await download(`https://huggingface.co/${voice.repo}/resolve/${voice.revision}/es/es_AR/daniela/high/${file.name}`,
-    resolve(base, 'piper-model', file.name), file.sha256);
+    resolve(base, 'piper-model', file.name), file.sha256, file.bytes);
 }
 const auxiliary = JSON.parse(await readFile('tools/rvc-qa-models.json', 'utf8'));
 for (const file of auxiliary.files) {
   await download(`https://huggingface.co/${auxiliary.repo}/resolve/${auxiliary.revision}/${file.name}`,
-    resolve(base, 'base-models', file.name), file.sha256);
+    resolve(base, 'base-models', file.name), file.sha256, file.bytes);
 }
 // Copias locales en el paquete: RVC no deberá descargar archivos al convertir.
 const location = spawnSync(python, ['-c', 'import importlib.util; print(importlib.util.find_spec("rvc_python").submodule_search_locations[0])'],

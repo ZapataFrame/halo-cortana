@@ -66,7 +66,7 @@ test('WAV inválido de RVC se rechaza y reinicia el proceso; falta de configurac
   const { tts, children } = await fixture(t, 'invalid');
   for (let i = 0; i < 2; i++) await assert.rejects(tts.synthesize('hola', new AbortController().signal), /TTS_UNAVAILABLE/);
   assert.equal(children.length, 2);
-  const absent = createTts({ TTS_PROVIDER: 'rvc' }); t.after(() => absent.close());
+  const absent = createTts({ TTS_PROVIDER: 'rvc', RVC_MODEL_PATH: '/tmp/cortana-voice-absent.pth', RVC_INDEX_PATH: '/tmp/cortana-voice-absent.index' }); t.after(() => absent.close());
   assert.equal((await absent.health()).ready, false);
   await assert.rejects(absent.synthesize('hola', new AbortController().signal), /TTS_NOT_CONFIGURED/);
   assert.throws(() => createTts({ TTS_PROVIDER: 'unknown' }), /TTS_PROVIDER/);

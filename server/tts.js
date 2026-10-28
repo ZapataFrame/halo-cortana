@@ -89,5 +89,6 @@ export function createTts(env = process.env) {
   const provider = env.TTS_PROVIDER?.trim() || 'piper';
   if (provider === 'piper') return createPiper();
   if (provider !== 'rvc') throw new Error('TTS_PROVIDER debe ser piper o rvc.');
-  return createRvc({ model: env.RVC_MODEL_PATH?.trim(), index: env.RVC_INDEX_PATH?.trim() });
+  return createRvc({ model: env.RVC_MODEL_PATH?.trim() || resolve('.rvc-qa/voices/cortana/model.pth'),
+    index: env.RVC_INDEX_PATH?.trim() || resolve('.rvc-qa/voices/cortana/model.index') });
 }

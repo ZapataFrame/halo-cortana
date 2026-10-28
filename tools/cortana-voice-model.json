@@ -1,0 +1,10 @@
+{
+  "title": "Cortana Halo3/4 - (Erica Edwards) - Español Latino",
+  "release": "https://github.com/ZapataFrame/halo-cortana/releases/download/cortana-voice-v1",
+  "source": "https://models.weights.com/cm9hp3e5f06hdj815ynzyioul.zip",
+  "license": "No declarada en el paquete original; consultar docs/MODELO_VOZ.md",
+  "files": [
+    { "name": "model.pth", "bytes": 57577658, "sha256": "5bfbfab44bdb190a20fef16a2ef5eecb19a741f8cbf327b2754017b51bd681e5" },
+    { "name": "model.index", "bytes": 160871619, "sha256": "242c7f4119d40986863dbdc2d370e34be1dd6d2b2309a6d934b18e8899d455de" }
+  ]
+}

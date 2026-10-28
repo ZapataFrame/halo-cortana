@@ -6,10 +6,25 @@ Prototipo conversacional con un avatar 3D sobre negro puro. El PC controla conve
 
 Requiere Node.js ≥22.12 y npm.
 
+Para probar **voz de Cortana y micrófono** en Linux x86_64, instala también `uv`, `ffmpeg` y un compilador C/C++ (`gcc`/`g++`). Después:
+
+```bash
+git clone https://github.com/ZapataFrame/halo-cortana.git
+cd halo-cortana
+npm ci
+npm run setup:demo
+```
+
+El instalador descarga la [voz de Cortana desde Releases](https://github.com/ZapataFrame/halo-cortana/releases/tag/cortana-voice-v1), Piper, Whisper y los modelos auxiliares; verifica hashes y crea entornos virtuales locales. No necesitas descargar manualmente archivos de Weights ni copiar rutas de otro PC. La primera instalación descarga cientos de MB y compila dependencias; si se interrumpe, repite `npm run setup:demo`. Windows/macOS y otras arquitecturas no están verificados.
+
+Se crea `.env` privado solo si no existe. Para conversar, añade tu propia `GEMINI_API_KEY` o configura otro proveedor de la tabla siguiente. Sin clave puedes probar el avatar, la calibración y **Voz y micrófono → Probar voz**; el LLM no genera respuestas. Luego inicia:
+
 ```bash
 npm ci
 npm run demo
 ```
+
+Si solo quieres el visor, basta con los dos comandos anteriores. La procedencia y licencia declarada del modelo de voz se documentan en [Modelo de voz](docs/MODELO_VOZ.md).
 
 - [Control PC](http://localhost:3000/control): conversación, voz, saludo y calibración.
 - [Visor](http://localhost:3000/hologram): Cortana, controles ocultos. Toca la esquina superior izquierda para calibrar.
@@ -38,7 +53,7 @@ Escribe y pulsa **Enviar mensaje**; Enter envía y Shift+Enter agrega una línea
 
 Despliega **Voz y micrófono** para activar lectura automática, escuchar una respuesta o mantener pulsado para dictar. El resultado se añade al editor: debes revisarlo y enviarlo. Instalación y contratos: [voz PC](docs/VOZ_PC.md).
 
-La voz de Cortana puede usar Piper seguido de RVC local con `TTS_PROVIDER=rvc` y las rutas privadas `RVC_MODEL_PATH`/`RVC_INDEX_PATH`. Reutiliza los entornos aislados de [la prueba de voz](docs/PRUEBA_RVC.md); la preparación en CPU tarda varios segundos. `TTS_PROVIDER=piper` selecciona la voz base. Reinicia tras cambiar `.env`.
+La voz de Cortana usa Piper seguido de RVC local con `TTS_PROVIDER=rvc`. `npm run setup:demo` prepara la voz y el micrófono; `npm run setup:cortana` descarga solo los pesos de Cortana. Las rutas privadas `RVC_MODEL_PATH`/`RVC_INDEX_PATH` son opcionales para otra ubicación. Reutiliza entornos aislados; la preparación en CPU tarda varios segundos. `TTS_PROVIDER=piper` selecciona la voz base. Reinicia tras cambiar `.env`.
 
 **Reposo** reproduce un bucle de 4 s; **Saludar** reproduce un gesto de 3.6 s y vuelve a reposo. Son movimientos propios en desarrollo sobre el rig existente. No hay labios sincronizados. Regenerar curvas: `npm run animations:bake`.
 

@@ -17,6 +17,8 @@ Actualizado: 2026-10-28. Objetivo: un prototipo conversacional mantenible con Co
 
 ## Orden de ejecución
 
+C-09 · IN_PROGRESS · Codex, 2026-10-28: publicar código y voz RVC en el repo por petición del propietario; instalación portable con descarga verificada de pesos desde Release, sin rutas del PC ni credenciales. Probar instalación y descarga desde checkout limpio, documentar requisitos/límites y verificar publicación remota.
+
 
 1. C-01 cerrado; consultar su evaluación antes de ampliar el alcance.
 2. C-06 cerrado en software; generación Gemini real pendiente de clave propia. Siguiente tarea disponible: C-02. No activar pagos.

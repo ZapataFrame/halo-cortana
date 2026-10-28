@@ -15,7 +15,9 @@
     "qa:visual": "node tools/serve-visual-qa.mjs",
     "setup:voice": "node tools/setup-voice.mjs",
     "setup:stt": "node tools/setup-stt.mjs",
-    "animations:bake": "node tools/bake-cortana-motion.mjs"
+    "animations:bake": "node tools/bake-cortana-motion.mjs",
+    "setup:cortana": "node tools/setup-cortana.mjs",
+    "setup:demo": "node tools/setup-demo.mjs"
   },
   "dependencies": {
     "three": "0.186.1",

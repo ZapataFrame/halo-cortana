@@ -24,7 +24,7 @@ const env = { ...process.env, UV_CACHE_DIR: resolve(base, 'cache/uv'),
   UV_PYTHON_INSTALL_DIR: resolve(base, 'python'), PIP_CACHE_DIR: resolve(base, 'cache/pip'),
   XDG_CACHE_HOME: resolve(base, 'cache'), PYTHONDONTWRITEBYTECODE: '1',
   PIP_REQUIRE_VIRTUALENV: 'true', PIP_DISABLE_PIP_VERSION_CHECK: '1',
-  UV_HTTP_TIMEOUT: '3600', PIP_DEFAULT_TIMEOUT: '120' };
+  UV_HTTP_TIMEOUT: '3600', PIP_DEFAULT_TIMEOUT: '900', PIP_RETRIES: '10' };
 function run(command, args) {
   console.log(`\nPreparando entorno: ${command} ${args.join(' ')}`);
   const result = spawnSync(command, args, { cwd: root, env, stdio: 'inherit' });

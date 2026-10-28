@@ -42,6 +42,6 @@ Escuchar original y convertido al mismo volumen: comprobar parecido, claridad de
 
 ## Estado y límites
 
-Preparación en curso. Sintaxis de ambos scripts comprobada; instalación e inferencia completas todavía sin verificar. El entorno global no tiene `torch`, `piper`, `fairseq`, `librosa` ni `numpy` al iniciar la prueba. `nvidia-smi` no se comunica con el controlador, por lo que el experimento selecciona CPU explícitamente. No se ha medido aún latencia RVC ni generado un audio convertido; el parecido queda pendiente de escucha del propietario.
+Preparación en curso. Los entornos virtuales y paquetes básicos ya están creados; la primera descarga de PyTorch se interrumpió por timeout tras transferir 98.5 de 174.7 MB, sin instalar el paquete. Se aumenta la espera de red de pip a 900 s y sus reintentos de conexión a diez. Sintaxis de ambos scripts comprobada; instalación e inferencia completas todavía sin verificar. El entorno global no tiene `torch`, `piper`, `fairseq`, `librosa` ni `numpy` al iniciar la prueba. `nvidia-smi` no se comunica con el controlador, por lo que el experimento selecciona CPU explícitamente. No se ha medido aún latencia RVC ni generado un audio convertido; el parecido queda pendiente de escucha del propietario.
 
 Este experimento no modifica el contrato WAV del backend ni añade RVC a la aplicación. Incorporarlo a la conversación requiere un incremento posterior con adaptación del audio, timeout, cancelación y revisión de sus tiempos reales.

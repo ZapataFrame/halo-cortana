@@ -18,6 +18,8 @@ node tools/setup-rvc-qa.mjs --model-dir "$HOME/Downloads/Cortana Halo_ - (Erica 
 
 El instalador crea `.rvc-qa/venv` con Python 3.10 para RVC y `.rvc-qa/piper-venv` con Python 3.13 para Piper. RVC usa dependencias antiguas; se mantiene separado de Piper y del sistema. Se fijan versiones principales y, al completar la instalación, se guarda el inventario en `.rvc-qa/requirements-installed.txt`.
 
+Para RVC se fija `pyworld==0.3.4`, compatible con Cython 0.29.37. `fairseq` se instala desde el commit oficial `4a388e64cd646ed7d7ad8de8fae55df2b8eea91d` (v0.12.2): el paquete fuente de PyPI omite `clib/libbase/balanced_assignment.cpp`. Se evita así depender de una compilación incompleta.
+
 Los modelos auxiliares HuBERT/RMVPE suman unos 371 MB, además de PyTorch y Piper. Las descargas de modelos comprueban SHA-256 y revisión; una descarga interrumpida se conserva en `.part` y se intenta reanudar. No se redistribuyen los pesos de Cortana. Referencias: [rvc-python](https://github.com/daswer123/rvc-python), [auxiliares RVC](https://huggingface.co/Daswer123/RVC_Base/tree/bbb6736b97a98df0a87fe3592c0a061c53f0a75f) y [voz base](VOZ_PC.md).
 
 ## Generar la comparación
@@ -42,6 +44,17 @@ Escuchar original y convertido al mismo volumen: comprobar parecido, claridad de
 
 ## Estado y límites
 
-Preparación en curso. Los entornos virtuales y paquetes básicos ya están creados; la primera descarga de PyTorch se interrumpió por timeout tras transferir 98.5 de 174.7 MB, sin instalar el paquete. Se aumenta la espera de red de pip a 900 s y sus reintentos de conexión a diez. Sintaxis de ambos scripts comprobada; instalación e inferencia completas todavía sin verificar. El entorno global no tiene `torch`, `piper`, `fairseq`, `librosa` ni `numpy` al iniciar la prueba. `nvidia-smi` no se comunica con el controlador, por lo que el experimento selecciona CPU explícitamente. No se ha medido aún latencia RVC ni generado un audio convertido; el parecido queda pendiente de escucha del propietario.
+Prueba técnica completada el 2026-10-28 en Linux x86_64, Intel Core i5-12450H, RVC con cuatro hilos de PyTorch y CPU explícita. Instalación aislada, importación de RVC/fairseq/PyWORLD y comprobaciones de dependencias correctas. Los modelos auxiliares y Piper pasan SHA-256; la voz de Cortana se abre con `weights_only=True`. Su índice se pudo leer: 768 dimensiones y 50 926 vectores.
+
+| Medición | Resultado |
+|---|---|
+| Síntesis Piper, sin carga inicial | 0.97 s para 4.16 s de audio, mono PCM16 a 22 050 Hz |
+| Primera conversión RVC | 8.37 s para 4.14 s de audio, mono PCM16 a 48 000 Hz |
+| Segunda conversión, modelos cargados | 6.27 s; factor de tiempo real 1.51 |
+| Señal convertida | Pico 0.990, RMS 0.128/0.133; sin silencio completo |
+
+La conversión en esta configuración CPU tarda más que la duración del audio; estas cifras no incluyen LLM, transferencia ni reproducción y corresponden a una sola frase. No son un benchmark de GPU ni una garantía de latencia conversacional. El parecido, la naturalidad y la claridad siguen pendientes de escuchar los dos WAV; no se declara aceptación perceptual, humana ni física.
+
+Audios e informes completos en `.rvc-qa/output/`; entorno instalado registrado en `.rvc-qa/requirements-installed.txt` y proceso en `.rvc-qa/setup.log`. Los pesos originales permanecen en Descargas.
 
 Este experimento no modifica el contrato WAV del backend ni añade RVC a la aplicación. Incorporarlo a la conversación requiere un incremento posterior con adaptación del audio, timeout, cancelación y revisión de sus tiempos reales.

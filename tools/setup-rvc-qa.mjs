@@ -61,8 +61,11 @@ run('uv', ['pip', 'install', '--python', python, 'pip==24.0', 'setuptools==69.5.
   'wheel==0.43.0', 'Cython==0.29.37', 'numpy==1.23.5']);
 run(python, ['-m', 'pip', 'install', 'torch==2.5.1+cpu', 'torchaudio==2.5.1+cpu',
   '--index-url', 'https://download.pytorch.org/whl/cpu']);
+// El sdist de fairseq en PyPI omite clib/libbase; usar la revisión oficial completa.
+run(python, ['-m', 'pip', 'install', '--no-build-isolation',
+  'https://github.com/facebookresearch/fairseq/archive/4a388e64cd646ed7d7ad8de8fae55df2b8eea91d.tar.gz']);
 run(python, ['-m', 'pip', 'install', '--no-build-isolation', 'rvc-python==0.1.5',
-  'librosa==0.9.2', 'numba==0.57.1', 'scipy==1.10.1', 'torchcrepe==0.0.23']);
+  'librosa==0.9.2', 'numba==0.57.1', 'scipy==1.10.1', 'torchcrepe==0.0.23', 'pyworld==0.3.4']);
 run('uv', ['venv', '.rvc-qa/piper-venv', '--python', '3.13', '--allow-existing']);
 run('uv', ['pip', 'install', '--python', '.rvc-qa/piper-venv/bin/python', '-r', 'tools/voice-requirements.txt']);
 

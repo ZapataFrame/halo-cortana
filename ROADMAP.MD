@@ -12,10 +12,10 @@ Actualizado: 2026-10-28. Objetivo: un prototipo conversacional mantenible con Co
 | C-04 | DEFERRED | Propietario | — | Ensayo humano: diez frases reales, ≥8/10 útiles y revisión/cancelación. Aplazado por el propietario; no bloquea software. |
 | C-05 | DEFERRED | Propietario | — | Conexión en pantalla real, reflector, cinco minutos, orientación y recuperación física. Aplazado; no solicitar como siguiente paso de desarrollo. |
 | C-06 | DONE | Codex, 2026-10-28 | C-01 | Gemini API solicitada por el propietario: REST nativo, clave solo backend, modelo configurable, selector/diagnóstico Vue, cancelación/errores/pruebas y build; conservar Piper/Whisper y proveedores existentes. 96 pruebas y build correctos; revisión visual escritorio/390×844 y errores sin clave comprobados. Evidencia y límites en docs/ARQUITECTURA.md. Generación real pendiente de clave propia; sin fallback ni pagos. |
+| C-07 | DONE | Codex, 2026-10-28 | C-01 | Prueba técnica aislada Piper → RVC v2 con el modelo local de Cortana. Dependencias instaladas en dos entornos virtuales; fairseq oficial y pyworld 0.3.4 corrigen los fallos de compilación. SHA-256, imports y dependencias comprobados; tres WAV válidos con señal y métricas reales: conversión CPU 8.37/6.27 s para 4.14 s de audio. Evidencia, reproducción y límites en docs/PRUEBA_RVC.md. Evaluación auditiva pendiente del propietario; aún sin integración RVC en la aplicación ni aceptación humana/física. |
 
 ## Orden de ejecución
 
-C-07 · IN_PROGRESS · Codex, 2026-10-28: prueba aislada Piper → RVC v2 con el modelo local de Cortana, solicitada por el propietario. Entornos RVC/Piper creados y verificados (`sys.prefix != sys.base_prefix`); instalador y comparación preparados, sintaxis Node/Python 3.10 y catálogo de diez versiones comprobados. Descarga/instalación en curso, aún sin inferencia ni mediciones; registro privado `.rvc-qa/setup.log`. Comparar WAV base/convertido y medir tiempos antes de cerrar; no sustituir el motor de la aplicación ni declarar calidad sin escucha. Instrucciones y límites en docs/PRUEBA_RVC.md. Recursos y cachés privados en `.rvc-qa/`; el propietario exige aislamiento del Python global.
 
 1. C-01 cerrado; consultar su evaluación antes de ampliar el alcance.
 2. C-06 cerrado en software; generación Gemini real pendiente de clave propia. Siguiente tarea disponible: C-02. No activar pagos.

@@ -1,9 +1,11 @@
 """Muestra local Piper/RVC, sin LLM, micrófono ni cambios en la aplicación."""
 import argparse
+import array
 import hashlib
 import json
 import os
 from pathlib import Path
+import sys
 import time
 import wave
 
@@ -23,8 +25,17 @@ def digest(path):
 
 def audio_info(path):
     with wave.open(str(path), "rb") as audio:
+        if audio.getsampwidth() != 2 or audio.getnframes() == 0:
+            raise RuntimeError("Se esperaba un WAV PCM16 con muestras")
+        samples = array.array("h", audio.readframes(audio.getnframes()))
+        if sys.byteorder != "little":
+            samples.byteswap()
+        peak = max(abs(sample) for sample in samples) / 32768
+        if peak == 0:
+            raise RuntimeError("El audio generado contiene solo silencio")
         return {"seconds": audio.getnframes() / audio.getframerate(),
-                "sample_rate": audio.getframerate(), "channels": audio.getnchannels()}
+                "sample_rate": audio.getframerate(), "channels": audio.getnchannels(),
+                "peak": peak, "rms": (sum(sample * sample for sample in samples) / len(samples)) ** 0.5 / 32768}
 
 
 def main():

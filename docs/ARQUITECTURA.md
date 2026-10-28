@@ -41,6 +41,12 @@ El diagnóstico autenticado consulta `models.get`; confirma metadatos y soporte 
 
 Verificación: 96 pruebas y build correctos. Las pruebas HTTP usan respuestas controladas de Google para validar contrato, errores, privacidad, cambios de proveedor, cancelación y recuperación; no acreditan generación real. Control renderizado en escritorio y 390×844, diagnóstico y envío sin clave comprobados: [escritorio](evidence/C-06-gemini-desktop.jpg), [vertical](evidence/C-06-gemini-vertical.jpg). Falta clave propia para probar conversación real con Gemini; la validación humana y física continúa aplazada.
 
+## Voz Cortana · C-08, 2026-10-28
+
+La petición explícita de integrar la muestra RVC añade `createTts` como selección de backend (`piper|rvc`). RVC compone el adaptador Piper existente y un worker Python con su propio entorno, sin incorporar paquetes al Python global. El segundo worker llama a la conversión sobre arrays en memoria; resamplea a PCM16 mono/22 050 Hz y valida duración/salida. Las rutas de pesos e índice se configuran solo en `.env`; no se exponen a Vue ni se aceptan desde peticiones.
+
+El worker verifica los hashes de HuBERT/RMVPE, usa carga restringida para los pesos de voz y no descarga recursos en ejecución. La exclusión TTS/STT, cancelación, descarte de resultados y cierre de procesos reutilizan el transporte existente. RVC amplía la preparación a 90 s por su coste CPU; el control acota su espera a 93 s. Un fallo conserva el texto y el control manual, sin fallback automático. Contratos, configuración y evidencia real en [voz PC](VOZ_PC.md).
+
 ## Alcance posterior
 
 Escucha atenta, reflexión, explicación, asentimiento y presentación lateral son poses propuestas, aún no generadas. El avatar no tiene morph targets faciales. Retargeting, lipsync y arte final requieren otro incremento. Los LLM conversan; no reciben herramientas ni controlan dispositivos.

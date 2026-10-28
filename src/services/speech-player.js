@@ -31,7 +31,7 @@ export function createSpeechPlayer({ request = fetch, createAudio = () => new Au
     current = job; report('preparing', 'Preparando voz en español…');
     await pending;
     if (current !== job) return;
-    job.deadline = setTimeout(() => job.controller.abort(), 23000);
+    job.deadline = setTimeout(() => job.controller.abort(), 93000);
     try {
       const response = await request('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requestId, speechId: job.id }), signal: job.controller.signal });

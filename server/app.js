@@ -4,7 +4,7 @@ import { resolve, extname, sep } from 'node:path';
 import { networkInterfaces } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { generateReply, providerHealth, localModels, checkProviderConnection, PROVIDERS } from './providers.js';
-import { createPiper, speechText } from './tts.js';
+import { createTts, speechText } from './tts.js';
 import { createWhisper, AUDIO_LIMIT, validateAudioType, validateAudio } from './stt.js';
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.glb': 'model/gltf-binary', '.json': 'application/json', '.md': 'text/plain; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml' };
@@ -49,7 +49,7 @@ function readAudio(req, signal) {
   });
 }
 
-export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile, tts = createPiper(), ttsTimeoutMs = 20000, speechLeaseMs = 15000, stt = createWhisper(), sttTimeoutMs = 30000, captureLeaseMs = 35000, animationMs = 3600 } = {}) {
+export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile, tts = createTts(), ttsTimeoutMs = tts.timeoutMs || 20000, speechLeaseMs = 15000, stt = createWhisper(), sttTimeoutMs = 30000, captureLeaseMs = 35000, animationMs = 3600 } = {}) {
   const sessionId = randomUUID();
   let revision = 0, chatGeneration = 0, phase = 'idle', animation = 'idle', active = null, history = [];
   const completed = new Map();
@@ -222,7 +222,7 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
             const missing = error.message === 'TTS_NOT_CONFIGURED';
             if (!res.destroyed) json(res, timedOut ? 504 : cancelled ? 499 : missing ? 503 : 502,
               { error: timedOut ? 'La voz tardó demasiado. El texto sigue disponible.' : missing
-                ? 'Falta instalar la voz local. Ejecuta npm run setup:voice en el PC.' : 'No se pudo generar la voz. El texto sigue disponible.' });
+                ? 'Falta preparar la voz local seleccionada. Revisa la configuración del PC y reinicia el servidor.' : 'No se pudo generar la voz. El texto sigue disponible.' });
           } finally { clearTimeout(timer); res.off('close', disconnected); }
           return;
         }

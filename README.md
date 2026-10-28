@@ -38,6 +38,8 @@ Escribe y pulsa **Enviar mensaje**; Enter envía y Shift+Enter agrega una línea
 
 Despliega **Voz y micrófono** para activar lectura automática, escuchar una respuesta o mantener pulsado para dictar. El resultado se añade al editor: debes revisarlo y enviarlo. Instalación y contratos: [voz PC](docs/VOZ_PC.md).
 
+La voz de Cortana puede usar Piper seguido de RVC local con `TTS_PROVIDER=rvc` y las rutas privadas `RVC_MODEL_PATH`/`RVC_INDEX_PATH`. Reutiliza los entornos aislados de [la prueba de voz](docs/PRUEBA_RVC.md); la preparación en CPU tarda varios segundos. `TTS_PROVIDER=piper` selecciona la voz base. Reinicia tras cambiar `.env`.
+
 **Reposo** reproduce un bucle de 4 s; **Saludar** reproduce un gesto de 3.6 s y vuelve a reposo. Son movimientos propios en desarrollo sobre el rig existente. No hay labios sincronizados. Regenerar curvas: `npm run animations:bake`.
 
 En **Calibrar imagen** ajusta orientación, tamaño, posición, giro, espejos y contornos. El patrón temporal sirve para comprobar lateralidad. Los ajustes se guardan por navegador; calibrar el PC no cambia otra pantalla. Durante un corte el visor cargado conserva a Cortana; reconectar no reenvía mensajes.

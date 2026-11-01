@@ -14,6 +14,8 @@ El GLB conserva un clip de origen `Twerking`, que no se reproduce en la aplicaci
 
 ## Movimientos propios
 
-`cortana-motion.json`: 213,758 bytes, SHA-256 `c3be9b4114f731fb5e7676b1255bbceffdbfb733d5a8481c1eb7422c1afb31d4`. Curvas originales del proyecto sobre este rig: `idle` 4 s y `wave` 3.6 s, muestreadas a 30 FPS. Incluye hash del modelo y envolvente muestreada. Son prototipos, con refinamiento artístico pendiente.
+`cortana-motion.json`: 1,428,400 bytes, SHA-256 `8473166129cd72070a81badcbf1173e5064b930a3cc7de6c6c6bb073c8f3de6c`. Nueve clips muestreados a 30 FPS: reposo, saludo, sí/no, pensar, manos en cadera, escucha, explicación y cambio de apoyo. Base de pelvis/piernas corregida y suelas ancladas mediante IK durante el horneado. Incluye hashes de modelo/fuente de curvas y envolvente muestreada. Son animaciones de desarrollo con revisión artística pendiente.
 
-Regenerar con `npm run animations:bake`; comprobar con `npm test`. No modifica el GLB. La atribución/licencia declarada del modelo sigue vigente y las curvas no cambian los derechos sobre el personaje.
+Reposo y explicación adaptan `Idle_Loop` e `Idle_Talking_Loop` de la [Universal Animation Library de Quaternius](https://quaternius.itch.io/universal-animation-library), publicada como CC0-1.0, con contribuciones de Gonzalo Furnier agradecidas por el autor. Fuente glTF obtenida del [espejo de J-Ponzo](https://github.com/J-Ponzo/gltf-universal-animation-library), revisión `e24c23cf2a1323488a3faa226ea7ea21f644b73e` (edición de 2025). Solo se conservan curvas extraídas, no otro avatar. Referencia y hashes en `tools/animation-sources/quaternius-upper-body.json`; licencia completa en `tools/animation-sources/CC0-1.0.txt`.
+
+Regenerar sin red con `npm run animations:bake`; comprobar con `npm test`. No modifica el GLB. Las curvas adaptadas, correcciones y gestos no cambian los derechos sobre Cortana ni la licencia declarada del modelo. Catálogo, integración y límites de revisión: [animaciones](../../docs/ANIMACIONES.md).

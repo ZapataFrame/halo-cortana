@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { createApp } from '../server/app.js';
 import { providerConfig, generateReply } from '../server/providers.js';
+import { animationForPhase } from '../src/services/animation-catalog.js';
 
 const gemini = providerConfig({ GEMINI_API_KEY: 'private-gemini-fixture' }, 'gemini');
 const openai = providerConfig({ OPENAI_API_KEY: 'private-openai-fixture' }, 'openai');
@@ -17,6 +18,40 @@ async function fixture(t, options = {}) {
   return { base, post, state };
 }
 const googleText = text => ({ ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text }] }, finishReason: 'STOP' }] }) });
+
+test('Gemini, voz y gestos conservan timeout del motor, recuperación y exclusión del micrófono', { timeout: 2000 }, async t => {
+  let fail = true;
+  const { post, state } = await fixture(t, {
+    reply: async () => ({ text: 'Respuesta sintética para probar la integración.' }),
+    tts: { timeoutMs: 25, health: async () => ({ ready: true }), close() {},
+      synthesize: async (_text, signal) => {
+        if (!fail) return Buffer.from('audio sintético de contrato');
+        return new Promise((_resolve, reject) => signal.addEventListener('abort', () => reject(new Error('TTS_CANCELLED')), { once: true }));
+      } },
+    stt: { health: async () => ({ ready: true }), close() {} },
+  });
+  const requestId = 'unified-gemini-chat', speechId = 'unified-voice-test', captureId = 'unified-capture-test';
+  assert.equal((await post('/api/animation', { animation: 'think' })).status, 200);
+  assert.equal((await post('/api/chat', { requestId, message: 'Hola' })).status, 200);
+  assert.equal((await post('/api/tts', { requestId, speechId })).status, 504);
+  assert.equal((await state()).phase, 'responded');
+  fail = false;
+  assert.equal((await post('/api/tts', { requestId, speechId })).status, 200);
+  await post('/api/tts/playback', { speechId, playing: true });
+  assert.equal((await state()).phase, 'speaking');
+  assert.equal((await state()).animation, 'think', 'El gesto manual conserva su prioridad durante la voz');
+  assert.equal((await post('/api/stt/session', { captureId, action: 'reserve' })).status, 409);
+  await post('/api/animation', { animation: 'idle' });
+  assert.equal(animationForPhase((await state()).phase), 'explain');
+  await post('/api/tts/playback', { speechId, playing: false });
+  assert.equal((await post('/api/stt/session', { captureId, action: 'reserve' })).status, 200);
+  assert.equal((await state()).phase, 'responded', 'Reservar no simula captura real');
+  await post('/api/stt/session', { captureId, action: 'start' });
+  assert.equal(animationForPhase((await state()).phase), 'listen');
+  assert.equal((await post('/api/tts', { requestId, speechId })).status, 409);
+  await post('/api/stt/session', { captureId, action: 'cancel' });
+  assert.equal((await state()).phase, 'responded');
+});
 
 test('Gemini privado: catálogo/diagnóstico/selección no divulgan claves ni permiten modelos o destinos arbitrarios', async t => {
   let checks = 0;

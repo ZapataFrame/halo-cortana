@@ -25,7 +25,7 @@ async function refresh() {
 }
 watch(() => props.info, info => { if (info?.localControl && props.connected) refresh(); }, { immediate: true });
 async function apply() {
-  if (!enabled.value || props.locked || working || loading.value || !model.value) return;
+  if (!enabled.value || props.locked || working.value || loading.value || !model.value) return;
   working.value = true;
   try {
     await props.beforeChange?.();

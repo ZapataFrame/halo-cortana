@@ -1,12 +1,12 @@
+import { hasAnimation } from './animation-catalog.js';
 const PHASES = new Set(['idle', 'processing', 'responded', 'error', 'speaking', 'listening']);
-const ANIMATIONS = new Set(['idle', 'wave']);
 
 export function validatePresentation(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)
     || Object.keys(value).sort().join(',') !== 'animation,phase,revision,sessionId'
     || typeof value.sessionId !== 'string' || !/^[a-zA-Z0-9-]{8,80}$/.test(value.sessionId)
     || !Number.isSafeInteger(value.revision) || value.revision < 0
-    || !PHASES.has(value.phase) || !ANIMATIONS.has(value.animation)) {
+    || !PHASES.has(value.phase) || !hasAnimation(value.animation)) {
     throw new Error('INVALID_PRESENTATION');
   }
   return Object.freeze({ sessionId: value.sessionId, revision: value.revision, phase: value.phase, animation: value.animation });

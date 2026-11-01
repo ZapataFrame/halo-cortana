@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DEFAULT_CALIBRATION, normalizeCalibration } from './calibration.js';
 import { applyProjection, effectiveRotation } from './projection.js';
+import { createMotionPlayer } from './motion-player.js';
+import { hasAnimation } from '../services/animation-catalog.js';
 
 // Solo representa Cortana. Vue es propietario de controles, mensajes y persistencia.
 export function createViewer(container, { onStatus = () => {}, onLayout = () => {} } = {}) {
@@ -16,9 +18,10 @@ export function createViewer(container, { onStatus = () => {}, onLayout = () => 
   scene.add(new THREE.HemisphereLight(0xffffff, 0x555555, 2.4));
   const key = new THREE.DirectionalLight(0xffffff, 3.5); key.position.set(-3, 4, 6); scene.add(key);
   const rim = new THREE.DirectionalLight(0xffffff, 2); rim.position.set(3, 2, -4); scene.add(rim);
-  let settings = { ...DEFAULT_CALIBRATION }, mixer, avatar, current, selected = 'idle', phase = 'idle';
+  let settings = { ...DEFAULT_CALIBRATION }, motionPlayer, avatar, selected = 'idle', phase = 'idle';
   let width = 1.2, destroyed = false, raf, last = performance.now(), start = last, frames = 0;
-  const actions = new Map(), materials = new Map();
+  const materials = new Map();
+  let paused = false;
   function resize() {
     const w = Math.max(container.clientWidth, 1), h = Math.max(container.clientHeight, 1), aspect = w / h;
     const rotation = effectiveRotation(settings, w, h), rotated = rotation === 90 || rotation === 270;
@@ -28,12 +31,6 @@ export function createViewer(container, { onStatus = () => {}, onLayout = () => 
     body.rotation.y = THREE.MathUtils.degToRad(settings.turn);
     for (const material of materials.keys()) material.wireframe = settings.wireframe;
     onLayout(`translate(calc(-50% + ${settings.x * w}px), calc(-50% + ${settings.y * h}px)) scale(${settings.scale * (settings.mirrorX ? -1 : 1)}, ${settings.scale * (settings.mirrorY ? -1 : 1)}) rotate(${rotation}deg)`);
-  }
-  function play(name) {
-    const next = actions.get(name); if (!next || next === current) return;
-    next.reset().setEffectiveWeight(1).setEffectiveTimeScale(1).play();
-    if (current) next.crossFadeFrom(current, 0.25, false);
-    current = next;
   }
   function disposeObject(root) {
     const textures = new Set();
@@ -54,14 +51,8 @@ export function createViewer(container, { onStatus = () => {}, onLayout = () => 
   ]).then(([gltf, motion]) => {
     if (destroyed) { disposeObject(gltf.scene); return; }
     avatar = gltf.scene; avatar.rotation.y += Math.PI;
-    mixer = new THREE.AnimationMixer(avatar);
-    for (const data of motion.clips) {
-      const action = mixer.clipAction(THREE.AnimationClip.parse(data));
-      action.setLoop(data.name === 'idle' ? THREE.LoopRepeat : THREE.LoopOnce, data.name === 'idle' ? Infinity : 1);
-      action.clampWhenFinished = true; actions.set(data.name, action);
-    }
-    mixer.addEventListener('finished', event => { if (event.action === actions.get('wave')) play('idle'); });
-    play('idle'); mixer.update(0); avatar.updateMatrixWorld(true);
+    motionPlayer = createMotionPlayer(avatar, motion, animation => onStatus({ animation }));
+    motionPlayer.setState(selected, phase); avatar.updateMatrixWorld(true);
     avatar.traverse(item => { if (item.isSkinnedMesh) item.computeBoundingBox(); });
     const bounds = new THREE.Box3().setFromObject(avatar), size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());
     const fit = 2 / size.y, pivot = new THREE.Group(); pivot.add(avatar);
@@ -74,14 +65,14 @@ export function createViewer(container, { onStatus = () => {}, onLayout = () => 
         materials.set(material, material.emissiveIntensity ?? 1);
       }
     } });
-    play(selected); resize(); onStatus({ state: 'ready', detail: 'Cortana cargada', texturedMaterials: materials.size });
+    resize(); onStatus({ state: 'ready', detail: 'Cortana cargada', texturedMaterials: materials.size });
   }).catch(() => { if (!destroyed) onStatus({ state: 'error', detail: 'No se pudo cargar Cortana. Comprueba los recursos y recarga.' }); });
   function frame(now) {
     if (destroyed) return;
     // Clips sin física: avanzar con tiempo real evita ralentizarlos con pocos FPS.
     raf = requestAnimationFrame(frame); const delta = Math.max(0, (now - last) / 1000); last = now;
     if (document.hidden) return;
-    mixer?.update(delta);
+    if (!paused) motionPlayer?.update(delta);
     for (const [material, intensity] of materials) material.emissiveIntensity = intensity * (phase === 'processing' ? 2 + Math.sin(now / 250) * 0.3 : phase === 'speaking' ? 1.6 + Math.sin(now / 150) * 0.2 : 1);
     renderer.render(scene, camera); frames++;
     if (now - start >= 1000) { if (avatar) onStatus({ fps: Math.round(frames * 1000 / (now - start)) }); frames = 0; start = now; }
@@ -90,10 +81,11 @@ export function createViewer(container, { onStatus = () => {}, onLayout = () => 
   return {
     ready,
     setSettings(value) { settings = normalizeCalibration(value); resize(); },
-    setPhase(value) { phase = value; },
-    setAnimation(value) { if (['idle', 'wave'].includes(value) && value !== selected) { selected = value; play(value); } },
+    setPhase(value) { phase = value; motionPlayer?.setState(selected, phase); },
+    setAnimation(value) { if (hasAnimation(value)) { selected = value; motionPlayer?.setState(selected, phase); } },
+    setPlayback({ paused: freeze, time } = {}) { paused = freeze === true; if (Number.isFinite(time)) motionPlayer?.seek(time); },
     destroy() {
-      destroyed = true; cancelAnimationFrame(raf); observer.disconnect(); mixer?.stopAllAction();
+      destroyed = true; cancelAnimationFrame(raf); observer.disconnect(); motionPlayer?.destroy();
       renderer.domElement.removeEventListener('webglcontextlost', contextLost); disposeObject(avatar); materials.clear(); renderer.dispose(); renderer.domElement.remove();
     },
   };

@@ -1,3 +1,4 @@
+import { ANIMATIONS } from '../src/services/animation-catalog.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
@@ -363,4 +364,27 @@ test('diagnóstico no empieza durante chat y recupera timeout/error sin exponer 
   const recovered = await (await post('/api/provider/check', {})).json();
   assert.equal(recovered.health.verified, true);
   assert.deepEqual(await (await fetch(base + '/api/presentation')).json(), before);
+});
+
+
+test('catálogo gestual privado, expiración renovada e interrupciones conservan el último movimiento', async t => {
+  const { post, base } = await fixture(t, { animationMs: 100 });
+  for (const animation of Object.keys(ANIMATIONS)) {
+    assert.equal((await post('/api/animation', { animation }, { Origin: 'https://external.example' })).status, 403);
+    const response = await post('/api/animation', { animation });
+    assert.equal(response.status, 200); assert.equal((await response.json()).animation, animation);
+  }
+  await post('/api/animation', { animation: 'wave' });
+  await new Promise(resolve=>setTimeout(resolve,60));
+  const latest = await (await post('/api/animation', { animation: 'hands_on_hips' })).json();
+  await new Promise(resolve=>setTimeout(resolve,60));
+  assert.deepEqual(await (await fetch(base+'/api/presentation')).json(),latest, 'El plazo antiguo no interrumpe una postura nueva');
+  await new Promise(resolve=>setTimeout(resolve,60));
+  assert.equal((await (await fetch(base+'/api/presentation')).json()).animation,'idle');
+  const results = await Promise.all(['think','nod','explain'].map(animation=>post('/api/animation',{animation}).then(r=>r.json())));
+  const expected = results.reduce((a,b)=>a.revision>b.revision?a:b);
+  assert.deepEqual(await (await fetch(base+'/api/presentation')).json(),expected);
+  await post('/api/animation',{animation:'idle'});
+  await new Promise(resolve=>setTimeout(resolve,120));
+  assert.equal((await (await fetch(base+'/api/presentation')).json()).animation,'idle');
 });

@@ -1,3 +1,4 @@
+import { ANIMATIONS } from '../src/services/animation-catalog.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createPresentationSync, createPresentationTracker, validatePresentation } from '../src/services/presentation-sync.js';
@@ -11,6 +12,7 @@ test('contrato de presentación rechaza estados corruptos y campos privados', ()
     { ...state(), message: 'privado' }, { ...state(), key: 'private-test-only' }]) {
     assert.throws(() => validatePresentation(invalid), /INVALID_PRESENTATION/);
   }
+  for (const animation of Object.keys(ANIMATIONS)) assert.equal(validatePresentation(state(0, { animation })).animation, animation);
   const original = state(), checked = validatePresentation(original);
   original.phase = 'error';
   assert.equal(checked.phase, 'idle'); assert.equal(Object.isFrozen(checked), true);

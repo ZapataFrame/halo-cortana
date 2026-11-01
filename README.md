@@ -6,25 +6,23 @@ Prototipo conversacional con un avatar 3D sobre negro puro. El PC controla conve
 
 Requiere Node.js ≥22.12 y npm.
 
-Para probar **voz de Cortana y micrófono** en Linux x86_64, instala también `uv`, `ffmpeg` y un compilador C/C++ (`gcc`/`g++`). Después:
-
-```bash
-git clone https://github.com/ZapataFrame/halo-cortana.git
-cd halo-cortana
-npm ci
-npm run setup:demo
-```
-
-El instalador descarga la [voz de Cortana desde Releases](https://github.com/ZapataFrame/halo-cortana/releases/tag/cortana-voice-v1), Piper, Whisper y los modelos auxiliares; verifica hashes y crea entornos virtuales locales. No necesitas descargar manualmente archivos de Weights ni copiar rutas de otro PC. La primera instalación descarga cientos de MB y compila dependencias; si se interrumpe, repite `npm run setup:demo`. Windows/macOS y otras arquitecturas no están verificados.
-
-Se crea `.env` privado solo si no existe. Para conversar, añade tu propia `GEMINI_API_KEY` o configura otro proveedor de la tabla siguiente. Sin clave puedes probar el avatar, la calibración y **Voz y micrófono → Probar voz**; el LLM no genera respuestas. Luego inicia:
+Para abrir el visor y el control:
 
 ```bash
 npm ci
 npm run demo
 ```
 
-Si solo quieres el visor, basta con los dos comandos anteriores. La procedencia y licencia declarada del modelo de voz se documentan en [Modelo de voz](docs/MODELO_VOZ.md).
+Para instalar también **voz de Cortana y micrófono** en Linux x86_64, instala `uv`, `ffmpeg` y un compilador C/C++ (`gcc`/`g++`), detén el servidor y ejecuta:
+
+```bash
+npm run setup:demo
+npm run demo
+```
+
+El instalador descarga la [voz de Cortana desde Releases](https://github.com/ZapataFrame/halo-cortana/releases/tag/cortana-voice-v1), Piper, Whisper y los modelos auxiliares; verifica hashes y crea entornos virtuales locales. La primera instalación descarga cientos de MB y compila dependencias; si se interrumpe, repite `npm run setup:demo`. Windows/macOS y otras arquitecturas no están verificados. Consulta [modelo de voz](docs/MODELO_VOZ.md) para su procedencia y licencia declarada.
+
+Se crea `.env` privado solo si no existe. Añade tu propia `GEMINI_API_KEY` o configura otro proveedor de la tabla siguiente y reinicia el servidor. Sin clave puedes probar el avatar, la calibración y, con los motores instalados, **Voz y micrófono → Probar voz**.
 
 - [Control PC](http://localhost:3000/control): conversación, voz, saludo y calibración.
 - [Visor](http://localhost:3000/hologram): Cortana, controles ocultos. Toca la esquina superior izquierda para calibrar.
@@ -55,19 +53,25 @@ Despliega **Voz y micrófono** para activar lectura automática, escuchar una re
 
 La voz de Cortana usa Piper seguido de RVC local con `TTS_PROVIDER=rvc`. `npm run setup:demo` prepara la voz y el micrófono; `npm run setup:cortana` descarga solo los pesos de Cortana. Las rutas privadas `RVC_MODEL_PATH`/`RVC_INDEX_PATH` son opcionales para otra ubicación. Reutiliza entornos aislados; la preparación en CPU tarda varios segundos. `TTS_PROVIDER=piper` selecciona la voz base. Reinicia tras cambiar `.env`.
 
-**Reposo** reproduce un bucle de 4 s; **Saludar** reproduce un gesto de 3.6 s y vuelve a reposo. Son movimientos propios en desarrollo sobre el rig existente. No hay labios sincronizados. Regenerar curvas: `npm run animations:bake`.
+Cortana acompaña la escucha, la espera y la reproducción de voz con movimientos de atención, reflexión y explicación. El reposo incluye balanceo y cambios periódicos de apoyo. En **Movimiento** puedes elegir saludo, sí, no, pensar, manos en cadera, escucha, explicación o cambio de postura. **Automático** libera el gesto manual; los gestos también terminan por sí solos.
+
+Los nueve clips funcionan sobre el rig existente; reposo y explicación adaptan curvas CC0 de Quaternius. No hay sincronización labial ni expresiones faciales nuevas. Detalles, procedencia y límites de revisión en [animaciones](docs/ANIMACIONES.md). Regenerar sin red: `npm run animations:bake`.
 
 En **Calibrar imagen** ajusta orientación, tamaño, posición, giro, espejos y contornos. El patrón temporal sirve para comprobar lateralidad. Los ajustes se guardan por navegador; calibrar el PC no cambia otra pantalla. Durante un corte el visor cargado conserva a Cortana; reconectar no reenvía mensajes.
 
 ## Estructura y comprobaciones
 
 ```text
-src/        Vue: componentes, composables, servicios y escena 3D
+src/
+  components/   Interfaz Vue
+  composables/  Estado y flujos reactivos
+  services/     Red y audio sin dependencia de Vue
+  scene/        Avatar, movimiento y proyección Three.js
 server/     APIs privadas, proveedores y trabajadores de voz
-tools/      Preparación de Cortana, instalación de voz y QA visual
+tools/      Instaladores/modelos de voz, horneado de movimiento y QA
 public/     Solo modelo, curvas y atribución de Cortana
 tests/      Contratos, cancelación, recuperación y geometría
-docs/       Arquitectura, voz y evaluación de la reorganización
+docs/       Arquitectura, voz, animaciones y evidencia de verificación
 ```
 
 ```bash

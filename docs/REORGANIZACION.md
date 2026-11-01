@@ -50,6 +50,23 @@ Inventario de código, herramientas, pruebas, recursos, documentación y configu
 
 La carga inicial JS queda en unos 105 kB sin comprimir; Three/visor se cargan aparte, unos 627 kB. El total JS aumenta por Vue respecto al bundle previo: la mejora es desacoplar el arranque de los controles y la mantenibilidad, no una reducción del total descargado. Vite conserva una advertencia de tamaño del chunk 3D. No se certifican FPS ni rendimiento móvil con esta prueba de escritorio.
 
+## Integración de ramas · C-10, 2026-11-01
+
+Se unifica `origin/main` en `32ede1d` (Gemini, Piper → RVC, instalación portable y descarga verificada) con `codex/cortana-vue-cleanup` en `30724e1` (nueve clips conversacionales). La fusión conserva ambos historiales y se registra en `main` local. La reversión de la rama remota de limpieza no se aplica: retiraría la adaptación Vue solicitada. Antes de integrar se guardó el historial completo en `/tmp/cortana-before-unify-20261101.bundle`; es una copia temporal, no un respaldo permanente.
+
+Se conserva Vue 3 con Composition API y `<script setup>`, un único punto de entrada y npm como único gestor. La raíz contiene arranque/configuración; `src/components`, `src/composables`, `src/services` y `src/scene` separan interfaz, estado, servicios y Three.js; `server`, `tools`, `tests`, `public/models` y `docs` mantienen sus responsabilidades. No se recuperan el simulador, avatares alternativos ni documentos históricos retirados.
+
+La resolución del servidor conserva `createTts()` y el timeout propio de RVC, junto con duraciones por gesto del catálogo compartido. El selector Vue conserva Gemini y corrige una lectura de `working` que evaluaba el objeto ref en lugar de su valor e impedía aplicar cualquier cambio de proveedor. El README presenta primero el inicio mínimo y después la instalación opcional de voz.
+
+Verificación actual:
+
+- `npm ci`: instalación correcta desde el lockfile; sin dependencias nuevas.
+- `npm test`: **107/107**, incluidos origen privado, cancelación, concurrencia, recuperación, Gemini, RVC y rig real. Una prueba adicional cruza Gemini con gestos, plazo propio del motor de voz, recuperación tras timeout y exclusión del micrófono. Son contratos con fixtures; no inferencia real.
+- `npm run animations:bake`: nueve clips regenerados sin red; SHA-256 idénticos de curvas y GLB antes/después.
+- `npm run build`: correcto; se mantiene la advertencia de tamaño del chunk Three/visor, aproximadamente 628 kB sin comprimir.
+- Navegador sobre la entrega compilada y backend aislado sin `.env`: cambio OpenAI → Gemini aplicado desde Vue, envío explícito, respuesta sintética y cancelación confirmada. Control renderizado en escritorio y viewport vertical solicitado de 390×844, sin desbordamiento horizontal. Avatar con materiales reales y cuerpo completo; visor con controles ocultos y fondo negro.
+- Capturas: [control escritorio](evidence/C-10-unificacion-desktop.png) y [control vertical](evidence/C-10-unificacion-vertical.png). El navegador de QA muestra pocos FPS; esta revisión no certifica fluidez ni rendimiento en un dispositivo físico.
+
 ## Pendiente y siguiente paso
 
-La reorganización no cierra el recorrido completo de voz, aprobación artística, precisión humana ni óptica. La siguiente tarea es C-02 (antes H-17): cinco conversaciones, dos interrupciones y latencias por etapa. Los ensayos físicos y humanos permanecen aplazados; el resto del catálogo corporal sigue pendiente. El proyecto no incorpora herramientas de juego ni control de dispositivos.
+C-02 conserva la batería completa del circuito real de voz. C-03 mantiene pendiente la evaluación artística completa de los nueve movimientos; las capturas y pruebas de rig no la sustituyen. C-09 conserva pendiente verificar la instalación completa desde checkout limpio y la publicación de pesos en Release. El commit solicitado se limita a `main` local. Los ensayos humanos y físicos continúan aplazados y no bloquean el software.

@@ -3,11 +3,13 @@ import { computed, onMounted, onUnmounted, shallowRef, useTemplateRef, watch } f
 import CalibrationPanel from './CalibrationPanel.vue';
 import { loadCalibration, saveCalibration } from '../scene/calibration.js';
 import { requestJson } from '../services/api.js';
+import { ANIMATIONS } from '../services/animation-catalog.js';
 const props = defineProps({ projection: Boolean, presentation: Object, connected: Boolean, localControl: Boolean });
 const surface = useTemplateRef('surface'), settings = shallowRef(loadCalibration(localStorage));
 const pattern = shallowRef(false), open = shallowRef(false), transform = shallowRef('');
 const diagnostic = shallowRef({ state: 'loading', detail: 'Cargando Cortana…' }), notice = shallowRef('');
-const moving = shallowRef(false);
+const moving = shallowRef(false), gesture = shallowRef('wave');
+const gestures = Object.entries(ANIMATIONS).filter(([name]) => name !== 'idle');
 let viewer, disposed = false, wakeLock;
 const phase = computed(() => props.connected ? props.presentation?.phase || 'idle' : 'idle');
 watch(settings, value => {
@@ -51,14 +53,18 @@ onUnmounted(() => { disposed = true; viewer?.destroy(); wakeLock?.release(); doc
 <template>
   <section :class="projection ? 'projection' : 'avatar-section'" aria-label="Cortana">
     <div class="viewport">
-      <div v-show="!pattern" ref="surface" class="render-surface" aria-label="Avatar de Cortana" :data-status="diagnostic.state" :data-textured-materials="diagnostic.texturedMaterials" :data-phase="phase" />
+      <div v-show="!pattern" ref="surface" class="render-surface" aria-label="Avatar de Cortana" :data-status="diagnostic.state" :data-textured-materials="diagnostic.texturedMaterials" :data-phase="phase" :data-animation="diagnostic.animation" />
       <svg v-show="pattern" class="pattern" viewBox="0 0 200 200" aria-label="Patrón de calibración" :style="{ transform }"><path d="M45 160V40h85M45 95h60" fill="none" stroke="white" stroke-width="10"/><circle cx="157" cy="155" r="9" fill="white"/></svg>
       <button v-if="projection" class="hotspot" aria-label="Abrir calibración" @click="open = true" />
     </div>
     <div v-if="!projection" class="avatar-controls">
       <p role="status">{{ diagnostic.detail }}<span v-if="diagnostic.fps"> · {{ diagnostic.fps }} FPS</span></p>
-      <div class="actions"><button :disabled="!localControl || !connected || moving" @click="move('idle')">Reposo</button><button :disabled="!localControl || !connected || moving || diagnostic.state !== 'ready' || presentation?.animation === 'wave'" @click="move('wave')">Saludar</button></div>
-      <p class="muted">Reposo y saludo sobre el rig de Cortana. Movimientos en desarrollo.</p>
+      <div class="actions">
+        <button :disabled="!localControl || !connected || moving" @click="move('idle')">Automático</button>
+        <label class="gesture-select">Movimiento<select v-model="gesture"><option v-for="[name, motion] in gestures" :key="name" :value="name">{{ motion.label }}</option></select></label>
+        <button :disabled="!localControl || !connected || moving || diagnostic.state !== 'ready' || presentation?.animation === gesture" @click="move(gesture)">{{ ANIMATIONS[gesture].label }}</button>
+      </div>
+      <p class="muted">{{ ANIMATIONS[diagnostic.animation]?.label || 'Preparando movimiento' }}. Escucha, reflexión y explicación acompañan a la conversación. Los gestos manuales tienen prioridad temporal.</p>
     </div>
     <details v-if="!projection" class="calibration">
       <summary>Calibrar imagen</summary><CalibrationPanel v-model="settings" v-model:pattern="pattern" />
@@ -83,6 +89,8 @@ onUnmounted(() => { disposed = true; viewer?.destroy(); wakeLock?.release(); doc
 .pattern { position:absolute; width:60%; height:60%; left:50%; top:50%; transform-origin:center; }
 .hotspot { position:absolute; top:0; left:0; width:64px; height:64px; border:0; background:transparent; padding:0; }
 .hotspot:focus-visible { outline-offset:-5px; }
+.gesture-select { display:grid; gap:4px; font-size:.8rem; }
+.avatar-controls .actions { align-items:end; flex-wrap:wrap; }
 .avatar-controls { padding:12px 0 20px; }
 .calibration { border-top:1px solid var(--line); padding:20px 0; }
 .calibration :deep(.calibration-fields) { margin-top:20px; }

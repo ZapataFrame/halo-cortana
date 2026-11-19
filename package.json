@@ -19,6 +19,7 @@
     "setup:cortana": "node tools/setup-cortana.mjs",
     "setup:demo": "node tools/setup-demo.mjs",
     "setup:rvc": "node tools/setup-rvc-qa.mjs",
+    "setup:https": "node tools/setup-https.mjs",
     "qa:voice": "node --env-file-if-exists=.env tools/benchmark-voice.mjs"
   },
   "dependencies": {

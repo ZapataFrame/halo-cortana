@@ -12,9 +12,16 @@ export function createVoiceRelay({ now = Date.now, delayMs = 800, readyTimeoutMs
     const candidate = Buffer.from((req.headers.authorization || '').replace(/^Bearer /, ''));
     return candidate.length === token.length && timingSafeEqual(candidate, Buffer.from(token));
   };
+  const sameOrigin = req => {
+    if (!req.headers.origin) return true;
+    const host = req.headers.host || '';
+    return req.headers.origin === `http://${host}` || req.headers.origin === `https://${host}`;
+  };
+  const authorize = req => authorized(req) && sameOrigin(req);
   const json = (res, status, data) => { res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(data)); };
   return {
     token,
+    authorize,
     prepare(id, bytes) {
       if (current) this.stop();
       current = { id, bytes, phase: 'prepared', durationMs: Math.max(0, (bytes.length - 44) / 44.1), ready: new Set() };
@@ -43,7 +50,7 @@ export function createVoiceRelay({ now = Date.now, delayMs = 800, readyTimeoutMs
     },
     async handle(req, res, pathname) {
       if (!pathname.startsWith('/api/voice/')) return false;
-      if (!authorized(req) || req.headers.origin && req.headers.origin !== `http://${req.headers.host}`) {
+      if (!authorize(req)) {
         json(res, 403, { error: 'Abre el enlace de visor con voz desde el control del PC.' }); return true;
       }
       if (req.method === 'GET' && pathname === '/api/voice/time') { json(res, 200, { serverNow: now() }); return true; }

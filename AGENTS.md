@@ -15,7 +15,7 @@ Prototipo conversacional: Vue 3 + Three.js en navegador, Node en PC, voz local P
 - Vue Composition API y `<script setup>`; JavaScript ESM. Componentes en `src/components`, flujos reactivos en `src/composables`, servicios sin Vue en `src/services`, representación 3D en `src/scene`.
 - Texto e interfaz en español. Fondo negro puro del visor; controles fuera de la presentación y calibración por navegador.
 - Una tarea principal activa; registrar estado y responsable en la roadmap. Verificar dependencias antes de ampliar funciones.
-- Claves y modelos de voz solo en PC. Dictado revisable y envío explícito; ningún LLM ejecuta acciones ni código.
+- Claves y modelos de voz solo en PC. El dictado manual en PC permanece revisable con envío explícito; en el visor `/hologram` existe un modo manos libres opcional (**«Ey Cortana»**, activado explícitamente por el usuario en el visor y autorizado por token de sesión, por HTTPS en LAN) con pausa anti-eco mientras habla Cortana. Ningún LLM ejecuta acciones ni código.
 - Conservar cancelación, límites, exclusión micrófono/TTS y descarte de resultados antiguos. No agregar fallback automático ni pagos.
 - No reintroducir placeholders, otro avatar, nuevas capas o archivos históricos sin necesidad concreta.
 

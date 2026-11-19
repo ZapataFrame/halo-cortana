@@ -9,3 +9,4 @@ dist/
 .stt-venv/
 .stt-models/
 .rvc-qa/
+.certs/

@@ -8,6 +8,7 @@ import { generateReply, providerHealth, localModels, checkProviderConnection, PR
 import { createTts, speechText } from './tts.js';
 import { createVoiceRelay } from './voice-relay.js';
 import { createWhisper, AUDIO_LIMIT, validateAudioType, validateAudio } from './stt.js';
+import { matchWakeWord } from './wake-word.js';
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.glb': 'model/gltf-binary', '.json': 'application/json', '.md': 'text/plain; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml' };
 const LOCAL = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
@@ -51,7 +52,7 @@ function readAudio(req, signal) {
   });
 }
 
-export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile, tts = createTts(), ttsTimeoutMs = tts.timeoutMs || 20000, speechLeaseMs = 15000, stt = createWhisper(), sttTimeoutMs = 30000, captureLeaseMs = 35000, animationMs, relayOptions } = {}) {
+export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, httpsPort = null, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile, tts = createTts(), ttsTimeoutMs = tts.timeoutMs || 20000, speechLeaseMs = 15000, stt = createWhisper(), sttTimeoutMs = 30000, captureLeaseMs = 35000, wakeLeaseMs = 15000, animationMs, relayOptions } = {}) {
   const sessionId = randomUUID();
   let revision = 0, chatGeneration = 0, phase = 'idle', animation = 'idle', active = null, history = [];
   const completed = new Map();
@@ -63,25 +64,89 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
     if (!speech) return;
     speech.controller.abort(); clearTimeout(speech.timer); speech = undefined; revision++;
   }
-  function renewSpeech() {
+  function renewSpeech(ms = speechLeaseMs) {
     clearTimeout(speech.timer);
-    speech.timer = setTimeout(stopSpeech, speechLeaseMs); speech.timer.unref();
+    speech.timer = setTimeout(stopSpeech, ms); speech.timer.unref();
   }
   let capture;
+  let viewerListening;
+  function stopViewerListening() {
+    if (!viewerListening) return;
+    clearTimeout(viewerListening.timer); viewerListening = undefined; revision++;
+  }
+  function startViewerListening() {
+    clearTimeout(viewerListening?.timer);
+    const created = !viewerListening;
+    viewerListening = { timer: setTimeout(stopViewerListening, wakeLeaseMs) };
+    viewerListening.timer.unref();
+    if (created) revision++;
+  }
   function stopCapture() {
+    stopViewerListening();
     if (!capture) return;
     capture.controller.abort(); clearTimeout(capture.timer); capture = undefined; revision++;
   }
-  const state = () => ({ sessionId, revision, phase: capture?.stage === 'recording' ? 'listening'
+  const state = () => ({ sessionId, revision, phase: capture?.stage === 'recording' || viewerListening ? 'listening'
     : capture?.stage === 'transcribing' ? 'processing' : speech?.playing ? 'speaking' : phase, animation });
   const setPhase = value => { phase = value; revision++; };
   const localWrite = (req, res) => {
     if (!LOCAL.has(req.socket.remoteAddress)) { json(res, 403, { error: 'El chat se controla desde el PC en localhost.' }); return false; }
     const host = req.headers.host || '';
     if (!/^(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/.test(host)) { json(res, 403, { error: 'Abre el control mediante localhost.' }); return false; }
-    if (req.headers.origin && req.headers.origin !== `http://${host}`) { json(res, 403, { error: 'Origen no permitido.' }); return false; }
+    if (req.headers.origin && req.headers.origin !== `http://${host}` && req.headers.origin !== `https://${host}`) { json(res, 403, { error: 'Origen no permitido.' }); return false; }
     return true;
   };
+  function sttFailure(error, timedOut, cancelled) {
+    const details = {
+      STT_NOT_CONFIGURED: [503, 'Falta instalar reconocimiento local. Ejecuta npm run setup:stt en el PC.'],
+      STT_AUDIO_TOO_LARGE: [413, 'La grabación supera 2 MiB. Graba una frase más corta.'],
+      STT_AUDIO_TOO_LONG: [413, 'La grabación supera 16 segundos. Graba una frase más corta.'],
+      STT_INVALID_AUDIO: [400, 'El audio no es válido. Graba de nuevo desde el micrófono.'],
+      STT_NO_SPEECH: [422, 'No se detectó voz. Acércate al micrófono y vuelve a grabar.'],
+    }[error.message];
+    return {
+      status: timedOut ? 504 : cancelled ? 499 : details?.[0] || 502,
+      body: {
+        error: timedOut ? 'La transcripción tardó demasiado. Puedes escribir o volver a grabar.'
+          : cancelled ? 'Transcripción cancelada.' : details?.[1] || 'No se pudo transcribir. Puedes escribir el mensaje.',
+        code: timedOut ? 'STT_TIMEOUT' : cancelled ? 'STT_CANCELLED' : details ? error.message : 'STT_UNAVAILABLE',
+      },
+    };
+  }
+  function providerFailure(requestConfig, error, timedOut, cancelled) {
+    const cloud = requestConfig.provider === 'ollama-cloud';
+    const gemini = requestConfig.provider === 'gemini';
+    const providerError = gemini ? {
+      PROVIDER_NOT_CONFIGURED: [503, 'NOT_CONFIGURED', 'Falta GEMINI_API_KEY. Guárdala en .env del PC y reinicia el servidor.'],
+      PROVIDER_HTTP_400: [502, 'INVALID_REQUEST', 'Gemini rechazó la solicitud. Revisa GEMINI_API_KEY y GEMINI_MODEL en el PC.'],
+      PROVIDER_HTTP_401: [502, 'AUTH_ERROR', 'Gemini rechazó la clave API. Comprueba GEMINI_API_KEY en el PC.'],
+      PROVIDER_HTTP_403: [502, 'ACCESS_ERROR', 'La clave o proyecto no tiene acceso a Gemini. Revisa permisos, restricciones y disponibilidad.'],
+      PROVIDER_HTTP_404: [502, 'MODEL_UNAVAILABLE', 'El modelo Gemini no está disponible. Comprueba GEMINI_MODEL en el PC.'],
+      PROVIDER_HTTP_429: [503, 'RATE_LIMIT', 'Gemini alcanzó un límite de solicitudes o cuota. Revisa tu cuenta e intenta más tarde.'],
+      PROVIDER_BLOCKED_RESPONSE: [502, 'BLOCKED_RESPONSE', 'Gemini no pudo entregar esa respuesta. Reformula el mensaje; el visor continúa.'],
+      PROVIDER_EMPTY_RESPONSE: [502, 'EMPTY_RESPONSE', 'Gemini no devolvió texto. Reformula el mensaje o revisa el modelo y vuelve a intentar.'],
+    }[error.message] : cloud ? {
+      PROVIDER_NOT_CONFIGURED: [503, 'NOT_CONFIGURED', 'Falta OLLAMA_API_KEY. Guárdala en .env del PC y reinicia el servidor.'],
+      PROVIDER_HTTP_401: [502, 'AUTH_ERROR', 'Ollama Cloud rechazó la clave. Comprueba OLLAMA_API_KEY en el PC.'],
+      PROVIDER_HTTP_402: [503, 'USAGE_LIMIT', 'Ollama Cloud requiere créditos o acceso adicional para este modelo. Revisa tu cuenta; no se activan pagos desde la aplicación.'],
+      PROVIDER_HTTP_403: [502, 'ACCESS_ERROR', 'Tu cuenta de Ollama Cloud no tiene acceso al modelo. Revisa sus permisos y el plan gratuito disponible.'],
+      PROVIDER_HTTP_404: [502, 'MODEL_UNAVAILABLE', 'El modelo cloud no está disponible. Comprueba OLLAMA_CLOUD_MODEL con el catálogo de Ollama.'],
+      PROVIDER_HTTP_429: [503, 'RATE_LIMIT', 'Ollama Cloud alcanzó un límite de uso o solicitudes. Revisa tu cuota e intenta más tarde.'],
+    }[error.message] : {
+      PROVIDER_NOT_CONFIGURED: [503, 'NOT_CONFIGURED', 'Falta la clave de GPT. Añade OPENAI_API_KEY al archivo .env del PC y reinicia el servidor.'],
+      PROVIDER_HTTP_401: [502, 'AUTH_ERROR', 'GPT rechazó la clave API. Comprueba OPENAI_API_KEY en el PC.'],
+      PROVIDER_HTTP_403: [502, 'ACCESS_ERROR', 'La cuenta API no tiene acceso al modelo seleccionado. Revisa su configuración en OpenAI Platform.'],
+      PROVIDER_HTTP_429: [503, 'RATE_LIMIT', 'GPT alcanzó un límite de solicitudes o de saldo API. Revisa los límites de tu cuenta e intenta más tarde.'],
+    }[error.message];
+    return {
+      status: timedOut ? 504 : cancelled ? 499 : providerError?.[0] || 502,
+      body: {
+        error: timedOut ? `El modelo tardó más de ${Math.round(timeoutMs / 1000)} s. Puedes reintentar; el visor continúa.`
+          : cancelled ? 'Solicitud cancelada.' : providerError?.[2] || 'El proveedor no pudo responder. Revisa su configuración o disponibilidad.',
+        code: timedOut ? 'TIMEOUT' : cancelled ? 'CANCELLED' : providerError?.[1] || 'PROVIDER_ERROR',
+      },
+    };
+  }
 
   const server = createServer(async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -94,6 +159,142 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
       if (req.method === 'GET' && pathname === '/api/voice/link') {
         if (!localWrite(req, res)) return;
         json(res, 200, { token: relay.token }); return;
+      }
+      if (req.method === 'POST' && ['/api/voice/state', '/api/voice/wake', '/api/voice/ask'].includes(pathname)) {
+        if (!relay.authorize(req)) {
+          json(res, 403, { error: 'Abre el enlace de visor con voz desde el control del PC.' }); return;
+        }
+        if (pathname === '/api/voice/state') {
+          const body = await readJson(req);
+          if (!body || Array.isArray(body) || Object.keys(body).join(',') !== 'listening' || typeof body.listening !== 'boolean') {
+            json(res, 400, { error: 'Estado de escucha inválido.' }); return;
+          }
+          if (body.listening) {
+            if (active || speech || capture) { json(res, 409, { error: 'Cortana está ocupada en este momento.' }); return; }
+            startViewerListening();
+          } else stopViewerListening();
+          json(res, 200, state()); return;
+        }
+        if (pathname === '/api/voice/wake') {
+          if (active || speech || capture) { json(res, 409, { busy: true, matched: false, error: 'Cortana está ocupada.' }); return; }
+          const token = { id: randomUUID(), stage: 'wake', controller: new AbortController() };
+          capture = token;
+          let timedOut = false;
+          token.timer = setTimeout(() => { timedOut = true; token.controller.abort(); }, sttTimeoutMs);
+          const disconnected = () => { if (!res.writableEnded && capture === token) stopCapture(); };
+          res.on('close', disconnected);
+          try {
+            const mime = validateAudioType(req.headers['content-type']);
+            if (Number(req.headers['content-length']) > AUDIO_LIMIT) throw new Error('STT_AUDIO_TOO_LARGE');
+            const bytes = await readAudio(req, token.controller.signal); validateAudio(bytes, mime);
+            const result = await stt.transcribe(bytes, token.controller.signal);
+            if (token.controller.signal.aborted || capture !== token) throw new Error('STT_CANCELLED');
+            stopCapture();
+            const detected = matchWakeWord(result.text);
+            if (detected.matched && !detected.command && !active && !speech) startViewerListening();
+            json(res, 200, { matched: detected.matched, command: detected.command, transcript: result.text, ...state() });
+          } catch (error) {
+            const cancelled = token.controller.signal.aborted;
+            if (capture === token) stopCapture();
+            if (error.message === 'STT_NO_SPEECH') {
+              if (!res.destroyed) json(res, 200, { matched: false, command: '', transcript: '', ...state() });
+            } else {
+              const fail = sttFailure(error, timedOut, cancelled);
+              if (!res.destroyed) json(res, fail.status, fail.body);
+            }
+          } finally { clearTimeout(token.timer); res.off('close', disconnected); }
+          return;
+        }
+        // POST /api/voice/ask — flujo manos libres autorizado desde el visor (STT opcional -> LLM -> TTS sincronizado).
+        stopViewerListening();
+        if (active || speech || capture) { json(res, 409, { error: 'Cortana está ocupada. Espera a que termine.' }); return; }
+        let question = '';
+        if (req.headers['content-type']?.startsWith('application/json')) {
+          const body = await readJson(req);
+          if (!body || Array.isArray(body) || Object.keys(body).join(',') !== 'text' || typeof body.text !== 'string' || !body.text.trim() || body.text.length > 2000) {
+            json(res, 400, { error: 'Envía una pregunta válida de 1 a 2000 caracteres.' }); return;
+          }
+          question = body.text.trim();
+        } else {
+          const sttToken = { id: randomUUID(), stage: 'transcribing', controller: new AbortController() };
+          capture = sttToken; revision++;
+          let timedOut = false;
+          sttToken.timer = setTimeout(() => { timedOut = true; sttToken.controller.abort(); }, sttTimeoutMs);
+          const disconnected = () => { if (!res.writableEnded && capture === sttToken) stopCapture(); };
+          res.on('close', disconnected);
+          try {
+            const mime = validateAudioType(req.headers['content-type']);
+            if (Number(req.headers['content-length']) > AUDIO_LIMIT) throw new Error('STT_AUDIO_TOO_LARGE');
+            const bytes = await readAudio(req, sttToken.controller.signal); validateAudio(bytes, mime);
+            const result = await stt.transcribe(bytes, sttToken.controller.signal);
+            if (sttToken.controller.signal.aborted || capture !== sttToken) throw new Error('STT_CANCELLED');
+            stopCapture();
+            question = result.text.trim().slice(0, 2000);
+          } catch (error) {
+            const cancelled = sttToken.controller.signal.aborted;
+            if (capture === sttToken) stopCapture();
+            const fail = sttFailure(error, timedOut, cancelled);
+            if (!res.destroyed) json(res, fail.status, fail.body);
+            return;
+          } finally { clearTimeout(sttToken.timer); res.off('close', disconnected); }
+        }
+        if (active || speech || capture) { json(res, 409, { error: 'Cortana está ocupada. Espera a que termine.' }); return; }
+        const requestId = randomUUID();
+        const controller = new AbortController();
+        const requestConfig = config;
+        const chatToken = { requestId, controller };
+        active = chatToken; chatGeneration++; setPhase('processing');
+        let timedOut = false;
+        const chatTimer = setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
+        const disconnectedChat = () => { if (!res.writableEnded && active === chatToken) controller.abort(); };
+        res.on('close', disconnectedChat);
+        const started = performance.now();
+        let generated, result;
+        try {
+          generated = await reply(requestConfig, history.slice(), question, controller.signal);
+          if (controller.signal.aborted || active !== chatToken) throw new Error('CANCELLED');
+          history.push({ role: 'user', content: question }, { role: 'assistant', content: generated.text });
+          history = history.slice(-12);
+          setPhase('responded');
+          result = { transcript: question, reply: generated.text, truncated: generated.truncated, provider: requestConfig.provider, model: requestConfig.model, elapsedMs: Math.round(performance.now() - started), ...state() };
+          completed.set(requestId, { message: question, result });
+          if (completed.size > 20) completed.delete(completed.keys().next().value);
+        } catch (error) {
+          if (active === chatToken) setPhase(controller.signal.aborted && !timedOut ? 'idle' : 'error');
+          const fail = providerFailure(requestConfig, error, timedOut, controller.signal.aborted);
+          if (!res.destroyed) json(res, fail.status, fail.body);
+          return;
+        } finally {
+          clearTimeout(chatTimer); res.off('close', disconnectedChat);
+          if (active === chatToken) active = null;
+        }
+        // Sintetizar y programar la misma voz en los visores conectados.
+        const spoken = speechText(generated.text);
+        if (!spoken) { if (!res.destroyed) json(res, 200, { ...result, spoken: false }); return; }
+        const speechToken = { id: randomUUID(), controller: new AbortController(), playing: false, prepared: false };
+        speech = speechToken;
+        let ttsTimedOut = false;
+        const ttsTimer = setTimeout(() => { ttsTimedOut = true; speechToken.controller.abort(); }, ttsTimeoutMs);
+        const disconnectedTts = () => { if (!res.writableEnded && speech === speechToken) stopSpeech(); };
+        res.on('close', disconnectedTts);
+        try {
+          const audio = await tts.synthesize(spoken, speechToken.controller.signal);
+          if (speechToken.controller.signal.aborted || speech !== speechToken) throw new Error('TTS_CANCELLED');
+          speechToken.prepared = true; relay.prepare(speechToken.id, audio);
+          const scheduled = await relay.schedule(speechToken.id);
+          if (speechToken.controller.signal.aborted || speech !== speechToken) throw new Error('TTS_CANCELLED');
+          speechToken.playing = true; revision++;
+          const remainingMs = Math.max(1000, Math.ceil(Math.max(0, scheduled.startAt - scheduled.serverNow) + scheduled.durationMs + 500));
+          renewSpeech(remainingMs);
+          if (!res.destroyed) json(res, 200, { ...result, spoken: true, speechId: speechToken.id, ...state() });
+        } catch (error) {
+          if (speech === speechToken) stopSpeech();
+          const detail = ttsTimedOut ? 'La voz tardó demasiado.' : error.message === 'TTS_NOT_CONFIGURED'
+            ? 'Falta preparar la voz local en el PC.' : error.message === 'TTS_TOO_LONG'
+              ? 'La respuesta supera dos minutos de audio.' : 'No se pudo reproducir la voz.';
+          if (!res.destroyed) json(res, 200, { ...result, spoken: false, voiceError: detail, ...state() });
+        } finally { clearTimeout(ttsTimer); res.off('close', disconnectedTts); }
+        return;
       }
       if (await relay.handle(req, res, pathname)) return;
       if (req.method === 'GET' && pathname === '/api/presentation') { json(res, 200, state()); return; }
@@ -116,8 +317,10 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
           localModels: installed, detail }); return;
       }
       if (req.method === 'GET' && pathname === '/api/info') {
-        const addresses = Object.values(networkInterfaces()).flat().filter(item => item && !item.internal && item.family === 'IPv4').map(item => `http://${item.address}:${port}/hologram`);
-        json(res, 200, { provider: config.provider, model: config.model, health: await health(config), localControl: LOCAL.has(req.socket.remoteAddress), viewerUrls: addresses, limits: { input: 2000, historyPairs: 6, timeoutMs } }); return;
+        const ipv4 = Object.values(networkInterfaces()).flat().filter(item => item && !item.internal && item.family === 'IPv4');
+        const addresses = ipv4.map(item => `http://${item.address}:${port}/hologram`);
+        const secureViewerUrls = httpsPort ? ipv4.map(item => `https://${item.address}:${httpsPort}/hologram`) : [];
+        json(res, 200, { provider: config.provider, model: config.model, health: await health(config), localControl: LOCAL.has(req.socket.remoteAddress), viewerUrls: addresses, secureViewerUrls, limits: { input: 2000, historyPairs: 6, timeoutMs } }); return;
       }
       if (req.method === 'POST' && pathname.startsWith('/api/')) {
         if (!localWrite(req, res)) return;

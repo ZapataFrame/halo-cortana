@@ -73,7 +73,10 @@ export function createViewer(container, { onStatus = () => {}, onLayout = () => 
     raf = requestAnimationFrame(frame); const delta = Math.max(0, (now - last) / 1000); last = now;
     if (document.hidden) return;
     if (!paused) motionPlayer?.update(delta);
-    for (const [material, intensity] of materials) material.emissiveIntensity = intensity * (phase === 'processing' ? 2 + Math.sin(now / 250) * 0.3 : phase === 'speaking' ? 1.6 + Math.sin(now / 150) * 0.2 : 1);
+    const pulse = phase === 'listening' ? 2.4 + Math.sin(now / 160) * 0.5
+      : phase === 'processing' ? 2 + Math.sin(now / 250) * 0.3
+      : phase === 'speaking' ? 1.6 + Math.sin(now / 150) * 0.2 : 1;
+    for (const [material, intensity] of materials) material.emissiveIntensity = intensity * pulse;
     renderer.render(scene, camera); frames++;
     if (now - start >= 1000) { if (avatar) onStatus({ fps: Math.round(frames * 1000 / (now - start)) }); frames = 0; start = now; }
   }

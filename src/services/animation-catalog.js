@@ -8,6 +8,8 @@ export const ANIMATIONS = Object.freeze({
   hands_on_hips: { label: 'Manos en cadera', duration: 6, loop: true, manualSeconds: 8 },
   listen: { label: 'Escuchar', duration: 6, loop: true, manualSeconds: 8 },
   explain: { label: 'Explicar', duration: 7, loop: true, manualSeconds: 8 },
+  gangnam_style: { label: 'Gangnam Style', duration: 7.8, loop: false, manualSeconds: 7.8 },
+  twerk: { label: 'Twerk', duration: 15.2, loop: false, manualSeconds: 15.2, nativeClip: 'Twerking' },
   shift_weight: { label: 'Cambiar de postura', duration: 6, loop: false, manualSeconds: 6 },
 });
 export const hasAnimation = value => typeof value === 'string' && Object.hasOwn(ANIMATIONS, value);

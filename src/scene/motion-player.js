@@ -2,13 +2,20 @@ import { AnimationClip, AnimationMixer, LoopOnce, LoopRepeat } from 'three';
 import { ANIMATIONS, animationForPhase, hasAnimation } from '../services/animation-catalog.js';
 
 // Un solo propietario del mixer. Los estados de voz no interrumpen un gesto manual.
-export function createMotionPlayer(root, pack, onChange = () => {}) {
+export function createMotionPlayer(root, pack, onChange = () => {}, nativeClips = []) {
   const mixer = new AnimationMixer(root), actions = new Map();
   let current, manual = 'idle', phase = 'idle', phaseAge = 0, finished = false, idleAge = 0, ambient;
-  for (const data of pack.clips) {
+  const clips = pack.clips.map(data => AnimationClip.parse(data));
+  for (const [name, definition] of Object.entries(ANIMATIONS)) {
+    if (!definition.nativeClip) continue;
+    const native = nativeClips.find(clip => clip.name === definition.nativeClip);
+    if (!native) throw new Error(`MOTION_MISSING_${name}`);
+    const clip = native.clone(); clip.name = name; clips.push(clip);
+  }
+  for (const data of clips) {
     if (!hasAnimation(data.name)) continue;
     const { loop } = ANIMATIONS[data.name];
-    const action = mixer.clipAction(AnimationClip.parse(data));
+    const action = mixer.clipAction(data);
     action.setLoop(loop ? LoopRepeat : LoopOnce, loop ? Infinity : 1);
     action.clampWhenFinished = true; actions.set(data.name, action);
   }

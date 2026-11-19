@@ -4,7 +4,7 @@ Prototipo conversacional: Vue 3 + Three.js en navegador, Node en PC, voz local P
 
 ## Contexto vigente
 
-- Solo Cortana. El simulador, avatares alternativos y baile se retiraron por decisión del propietario el 2026-10-23.
+- Solo Cortana. El simulador y los avatares alternativos se retiraron por decisión del propietario el 2026-10-23; el 2026-11-19 autorizó mantener los bailes manuales **Gangnam Style** y **Twerk** (clip original `Twerking` del GLB) sobre el rig de Cortana.
 - Leer [README](README.md), [roadmap](ROADMAP.MD) y [arquitectura](docs/ARQUITECTURA.md) antes de cambiar contratos.
 - Voz/instalación/atribución: [docs/VOZ_PC.md](docs/VOZ_PC.md). Procedencia del avatar: [public/models/README.md](public/models/README.md).
 - Conexión física y ensayo humano están aplazados. No bloquear software ni solicitarlos como siguiente paso; conservar aceptación futura.

@@ -51,7 +51,7 @@ export function createViewer(container, { onStatus = () => {}, onLayout = () => 
   ]).then(([gltf, motion]) => {
     if (destroyed) { disposeObject(gltf.scene); return; }
     avatar = gltf.scene; avatar.rotation.y += Math.PI;
-    motionPlayer = createMotionPlayer(avatar, motion, animation => onStatus({ animation }));
+    motionPlayer = createMotionPlayer(avatar, motion, animation => onStatus({ animation }), gltf.animations);
     motionPlayer.setState(selected, phase); avatar.updateMatrixWorld(true);
     avatar.traverse(item => { if (item.isSkinnedMesh) item.computeBoundingBox(); });
     const bounds = new THREE.Box3().setFromObject(avatar), size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());

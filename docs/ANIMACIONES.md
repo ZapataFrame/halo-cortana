@@ -20,6 +20,8 @@ Ahora se recuperan orientaciones relativas de las matrices de bind, conservando 
 | `hands_on_hips` | 6 s, bucle | Manos a la cintura, codos abiertos y movimiento sutil de cabeza |
 | `listen` | 6 s, bucle | Cabeza inclinada y orientación atenta |
 | `explain` | 7 s, bucle | Gesticulación de brazos/manos durante voz |
+| `gangnam_style` | 7.8 s, una vez | Baile manual adaptado desde captura Mixamo (52 huesos, centrado y apoyo al suelo); vuelve al estado vigente |
+| `twerk` | 15.2 s, una vez | Clip `Twerking` original del GLB, activado manualmente; vuelve al estado vigente |
 | `shift_weight` | 6 s | Cambio de apoyo sin pasos, con compensación de columna y mirada |
 
 Las posturas mantenidas entran y salen mediante mezcla de 0.35 s. Elegidas manualmente duran 8 s; los gestos finitos usan su propia duración. **Automático** libera el gesto manual y recupera el comportamiento de conversación; no fuerza reposo mientras Cortana habla o escucha.
@@ -37,28 +39,32 @@ Se adaptaron `Idle_Loop` e `Idle_Talking_Loop` de la **Universal Animation Libra
 
 `tools/animation-sources/quaternius-upper-body.json` conserva solo rotaciones globales de la referencia T y de dos clips de torso/cabeza/brazos/dedos, con hashes de los archivos glTF/bin de origen. No incluye geometría, texturas ni otro avatar. La licencia completa está en `tools/animation-sources/CC0-1.0.txt`. El generador mapea los huesos y transfiere sus rotaciones respecto de esa referencia a Cortana; conserva las piernas del rig destino y corrige manos/contactos. Saludo, sí/no, pensar, cintura, escucha y cambio de apoyo combinan esa base con curvas propias e IK.
 
-La CC0 de las curvas fuente no cambia la atribución ni las restricciones declaradas del modelo de Cortana. Véase [modelo y atribución](../public/models/README.md).
+Para `gangnam_style` (2026-11-19, por petición del propietario) se extrajeron únicamente las curvas de 52 huesos y trayectoria de cadera del archivo `Gangnam Style.fbx` de [Mixamo](https://www.mixamo.com/) incluido en el repositorio de ejemplo [V-Sekai/three-vrm-1-sandbox-mixamo](https://github.com/V-Sekai/three-vrm-1-sandbox-mixamo) (licencia MIT del repositorio, revisión `9c13ee8eeefcbf18a0bcc80cd49ac59cd4af73e4`, SHA-256 del FBX `119f68a45ad10afec2facdef4f3f9a85e25659c46a368fb1555d6c116b9ae2d7`; la animación original permanece sujeta a los términos de Mixamo). `tools/animation-sources/mixamo-gangnam-style.json` conserva solo las curvas muestreadas a 30 FPS sin malla ni avatar fuente. El generador transfiere las rotaciones respecto de una referencia T completa (incluyendo manos alineadas en X), escala y centra horizontalmente la cadera y apoya la suela más baja sobre el plano del suelo preservando los saltos del baile.
+
+`twerk` reutiliza directamente el clip nativo `Twerking` (15.2 s) contenido en `public/models/cortana.glb`, sin duplicar sus curvas en `cortana-motion.json` ni modificar el GLB.
+
+Las curvas adaptadas no cambian la atribución ni las restricciones declaradas del modelo de Cortana. Véase [modelo y atribución](../public/models/README.md).
 
 ## Archivos y reproducción
 
 - `src/services/animation-catalog.js`: catálogo cerrado compartido, duraciones y asociación con fases.
 - `src/scene/motion-player.js`: un mixer, prioridades, mezcla, bucles, retorno y limpieza.
-- `tools/bake-cortana-motion.mjs`: adaptación y autoría; `npm run animations:bake` regenera los nueve clips desde recursos locales, sin red.
-- `public/models/cortana-motion.json`: curvas listas para la aplicación, hash del GLB, hash de la fuente extraída y envolvente muestreada.
+- `tools/bake-cortana-motion.mjs`: adaptación y autoría; `npm run animations:bake` regenera los diez clips horneados desde recursos locales, sin red.
+- `public/models/cortana-motion.json`: curvas listas para la aplicación, hash del GLB, hashes de fuentes extraídas y envolvente muestreada.
 - `tools/motion-preview.html`: herramienta de desarrollo con selección, pausa, tiempo y frente/perfil/espalda. Con `npm run dev`, abrir `/tools/motion-preview.html`; no forma parte de la entrega compilada ni usa voz/LLM.
 
-Para reconstruir la fuente extraída desde la misma distribución: `node tools/bake-cortana-motion.mjs --import /ruta/glTF/AnimationLibrary_Godot_Standard.gltf e24c23cf2a1323488a3faa226ea7ea21f644b73e`. El uso normal del proyecto no necesita descargarla ni ejecutar esta opción.
+Para reconstruir las fuentes extraídas: `node tools/bake-cortana-motion.mjs --import /ruta/glTF/AnimationLibrary_Godot_Standard.gltf e24c23cf2a1323488a3faa226ea7ea21f644b73e` y `node tools/bake-cortana-motion.mjs --import-gangnam /ruta/Gangnam\ Style.fbx 9c13ee8eeefcbf18a0bcc80cd49ac59cd4af73e4`. El uso normal del proyecto no necesita descargarlas ni ejecutar estas opciones.
 
 ## Verificación y límites
 
-Verificación final: `npm test`, **90/90**; `npm run build` y `git diff --check`, correctos. Permanece la advertencia de tamaño del chunk 3D.
+2026-11-19 (`C-13`): `npm run animations:bake`, `npm test` (**125/125**) y `npm run build` correctos. Se verificó en pruebas de rig real que `gangnam_style` deforma el cuerpo completo con cuaterniones normalizados, escala acotada, elevación de pies/brazo derecho (paso del lazo), apoyo al suelo sin hundimiento, prioridad sobre voz, retorno automático a `explain`/`idle` e interrupción limpia por otro gesto; y que `twerk` reproduce el clip original `Twerking` sin mutar el GLB, conservando escala, interrupción y retorno automático. Se inspeccionaron seis fotogramas geométricos 3D de la malla deformada para Gangnam Style ([muestra de malla 3D](evidence/C-13-gangnam-style-mesh.png)); esta vista usa malla deformada con sombreado simple y no sustituye la revisión en navegador con texturas reales ni la aceptación artística/humana.
 
-- Pruebas del rig real: nueve clips vinculados, cuaterniones normalizados, escala/envolvente, deformación distribuida de malla, continuidad de extremos, suelas estables, saludo visible, posturas de contacto y movimientos de cabeza.
+- Pruebas del rig real: nueve clips de conversación con continuidad de extremos y suelas fijas, más `gangnam_style` con pies libres y apoyo al suelo; cuaterniones normalizados, escala/envolvente, deformación distribuida de malla, saludo visible, posturas de contacto y movimientos de cabeza.
 - Pruebas del reproductor: espera breve, estados de voz, prioridad manual, interrupciones repetidas, vuelta al estado actual y cambio de apoyo periódico.
 - API: catálogo cerrado, origen privado, expiración, renovación e interrupción de temporizadores, solicitudes concurrentes y conservación del último movimiento. Se conserva el contrato de cuatro campos de presentación.
-- Revisión visual: primer reposo frontal con materiales reales en navegador; vistas geométricas locales de frente/perfil/espalda para reposo, saludo, pensar, cintura y explicación. Estas vistas locales usan malla deformada y sombreado simple, **no** las texturas/iluminación del navegador.
+- Revisión visual: primer reposo frontal con materiales reales en navegador; vistas geométricas locales de frente/perfil/espalda para reposo, saludo, pensar, cintura, explicación y seis poses de Gangnam Style. Estas vistas locales usan malla deformada y sombreado simple, **no** las texturas/iluminación del navegador.
 
-En la revisión original la herramienta de navegador bloqueó el acceso al visor local. El 2026-11-01 se comprobó la interfaz integrada y muestras del avatar con materiales reales en escritorio/vertical; evidencia en [reorganización](REORGANIZACION.md). Sigue pendiente la inspección artística completa de los nueve movimientos y sus transiciones. Las pruebas geométricas no certifican ausencia de todas las intersecciones, actuación natural ni aceptación artística. El ensayo humano y físico sigue aplazado y no bloquea software. La comprobación completa del circuito real de voz sigue en C-02.
+En la revisión original la herramienta de navegador bloqueó el acceso al visor local. El 2026-11-01 se comprobó la interfaz integrada y muestras del avatar con materiales reales en escritorio/vertical; evidencia en [reorganización](REORGANIZACION.md). Sigue pendiente la inspección artística completa de los movimientos y sus transiciones. Las pruebas geométricas no certifican ausencia de todas las intersecciones, actuación natural ni aceptación artística. El ensayo humano y físico sigue aplazado y no bloquea software. La comprobación completa del circuito real de voz sigue en C-02.
 
 ## Skills
 

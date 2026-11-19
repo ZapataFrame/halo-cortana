@@ -1,6 +1,6 @@
 # Cortana — Plan y roadmap
 
-Actualizado: 2026-11-18. Objetivo: un prototipo conversacional mantenible con Cortana, Vue y presentación 3D. El propietario retiró el simulador, avatares alternativos, placeholders y documentación histórica redundante. Esta es la única planificación vigente.
+Actualizado: 2026-11-19. Objetivo: un prototipo conversacional mantenible con Cortana, Vue y presentación 3D. El propietario retiró el simulador, avatares alternativos, placeholders y documentación histórica redundante. Esta es la única planificación vigente.
 
 ## Trabajo actual
 
@@ -18,6 +18,7 @@ Actualizado: 2026-11-18. Objetivo: un prototipo conversacional mantenible con Co
 | C-10 | DONE | Codex, 2026-11-01 | C-01, C-03, C-06, C-08 | Integración de ambas puntas remotas en main: Gemini/RVC/instaladores y nueve animaciones sobre Vue 3. npm ci, 107 pruebas y build correctos; control y visor revisados en escritorio/vertical con fixtures. Publicación en la rama principal autorizada por el propietario el 2026-11-01. Comparación de ramas, comandos y límites en docs/REORGANIZACION.md. |
 | C-11 | DONE | Codex, 2026-11-14 | C-10 | Actualización por avance directo a origin/main 3331469; 107 pruebas y build correctos. Guion Markdown de visita web de 25 minutos y siete temas, con papeles de investigadores, navegación, diálogos y continuidad. Fuente corporativa master 4824b2d consultada desde copia temporal remota; no se modifica el proyecto vecino. URL de exhibición, reparto y ensayo cronometrado pendientes. Entregable: docs/PRESENTATION_SCRIPT.md. |
 | C-12 | PARTIAL | Codex, 2026-11-18 | C-08, C-10 | Remoto comprobado en 3331469 y guion conservado. Pesos Cortana recuperados/verificados, RVC instalado y seleccionado sin índice explícitamente; WAV real y reproducción digital en control/visor comprobados. Audio autorizado con fecha común, cancelación y recuperación; Whisper CPU int8/beam 1 y perfiles CUDA configurables. 123 pruebas/build y revisión renderizada escritorio/vertical correctos. Pendiente acreditar latencia estable con RVC bajo carga reducida/Linux con RTX 3060 (destino confirmado por el propietario) y batería de preguntas: cloud devuelve 402, local agotó timeout. Evidencia, mediciones y límites en docs/VOZ_PC.md. |
+| C-13 | DONE | Antigravity, 2026-11-19 | C-03, C-12 | Repositorio actualizado a origin/main a41ee0a (respaldo local de 2026-11-12 en git stash). Bailes manuales **Gangnam Style** (7.8 s, una vez; retargeting de 52 huesos Mixamo con centrado horizontal y apoyo al suelo en `cortana-motion.json`) y **Twerk** (15.2 s, una vez; clip `Twerking` original del GLB sin duplicar) habilitados por petición del propietario, sin modificar `cortana.glb` ni alterar la envolvente ni los nueve clips de conversación. 125 pruebas/build correctos y verificación geométrica 3D de 6 fotogramas (`docs/evidence/C-13-gangnam-style-mesh.png`); sigue pendiente inspección visual en navegador real con texturas y aceptación artística/humana. |
 
 ## Orden de ejecución
 

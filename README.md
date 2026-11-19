@@ -81,4 +81,4 @@ npm run build
 
 `npm run qa:visual -- loading` retiene el GLB hasta pulsar Enter en terminal; `-- error` provoca un fallo de carga. Sirve el visor compilado en loopback 3001 sin cargar `.env` ni consultar al LLM.
 
-[Roadmap y plan](ROADMAP.MD) · [Arquitectura](docs/ARQUITECTURA.md) · [Evaluación de la reorganización](docs/REORGANIZACION.md) · [Modelo y atribución](public/models/README.md).
+[Guion de visita web · 25 minutos](docs/PRESENTATION_SCRIPT.md) · [Roadmap y plan](ROADMAP.MD) · [Arquitectura](docs/ARQUITECTURA.md) · [Evaluación de la reorganización](docs/REORGANIZACION.md) · [Modelo y atribución](public/models/README.md).

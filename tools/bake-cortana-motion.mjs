@@ -6,6 +6,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { ANIMATIONS } from '../src/services/animation-catalog.js';
 const sourceURL = new URL('./animation-sources/quaternius-upper-body.json', import.meta.url);
 const gangnamURL = new URL('./animation-sources/mixamo-gangnam-style.json', import.meta.url);
+const hipHopURL = new URL('./animation-sources/mixamo-hip-hop.json', import.meta.url);
+const macarenaURL = new URL('./animation-sources/mixamo-macarena.json', import.meta.url);
 const footBones = ['LeftFoot', 'RightFoot', 'LeftToeBase', 'RightToeBase'];
 const mapping = { Spine: 'DEF-spine001', Spine1: 'DEF-spine002', Spine2: 'DEF-spine003', Neck: 'DEF-neck', Head: 'DEF-head' };
 for (const [side, suffix] of [['Left', 'L'], ['Right', 'R']]) {
@@ -46,9 +48,14 @@ if (process.argv[2] === '--import') {
     mirror: 'https://github.com/J-Ponzo/gltf-universal-animation-library',
     gltfSha256: sha(originalJSON), bufferSha256: sha(buffer), reference, clips, mirrorRevision: process.argv[4] || null }) + '\n');
 }
-// Opcional: extraer solo curvas del clip Mixamo Gangnam Style; no conservar malla ni avatar fuente.
-if (process.argv[2] === '--import-gangnam') {
-  const path = process.argv[3]; if (!path) throw new Error('Indica el .fbx de Gangnam Style.');
+// Opcional: extraer solo curvas de un clip Mixamo FBX; no conservar malla ni avatar fuente.
+if (process.argv[2] === '--import-gangnam' || process.argv[2] === '--import-mixamo') {
+  const isGangnam = process.argv[2] === '--import-gangnam';
+  const targetURL = isGangnam ? gangnamURL : new URL(`./animation-sources/${process.argv[3]}.json`, import.meta.url);
+  const path = isGangnam ? process.argv[3] : process.argv[4];
+  const clipLabel = isGangnam ? 'Gangnam Style' : (process.argv[5] || process.argv[3]);
+  const revision = isGangnam ? (process.argv[4] || null) : (process.argv[6] || null);
+  if (!path) throw new Error('Indica la ruta del .fbx de Mixamo.');
   const { FBXLoader } = await import('three/addons/loaders/FBXLoader.js');
   globalThis.ProgressEvent ??= class { constructor(type, data) { this.type = type; Object.assign(this, data); } };
   const raw = await readFile(path);
@@ -72,14 +79,14 @@ if (process.argv[2] === '--import-gangnam') {
   }
   const xs = frames.map(f => f.hips[0]), zs = frames.map(f => f.hips[2]);
   await mkdir(new URL('./animation-sources/', import.meta.url), { recursive: true });
-  await writeFile(gangnamURL, JSON.stringify({
-    author: 'Mixamo (ejemplo distribuido en V-Sekai/three-vrm-1-sandbox-mixamo)',
-    license: 'MIT (repositorio de ejemplo); captura original sujeta a los términos de Mixamo',
+  await writeFile(targetURL, JSON.stringify({
+    author: isGangnam ? 'Mixamo (ejemplo distribuido en V-Sekai/three-vrm-1-sandbox-mixamo)' : 'Mixamo (descarga directa del propietario)',
+    license: isGangnam ? 'MIT (repositorio de ejemplo); captura original sujeta a los términos de Mixamo' : 'Captura original sujeta a los términos de Mixamo',
     origin: 'https://www.mixamo.com/',
-    mirror: 'https://github.com/V-Sekai/three-vrm-1-sandbox-mixamo',
-    mirrorRevision: process.argv[4] || null,
+    mirror: isGangnam ? 'https://github.com/V-Sekai/three-vrm-1-sandbox-mixamo' : null,
+    mirrorRevision: revision,
     fbxSha256: sha(raw),
-    clipName: 'Gangnam Style',
+    clipName: clipLabel,
     duration: +clip.duration.toFixed(4),
     fps: 30,
     boneNames,
@@ -89,7 +96,11 @@ if (process.argv[2] === '--import-gangnam') {
   }) + '\n');
 }
 const source = JSON.parse(await readFile(sourceURL));
-const gangnam = JSON.parse(await readFile(gangnamURL));
+const mixamoDances = {
+  gangnam_style: JSON.parse(await readFile(gangnamURL)),
+  hip_hop: JSON.parse(await readFile(hipHopURL)),
+  macarena: JSON.parse(await readFile(macarenaURL)),
+};
 const bytes = await readFile(new URL('../public/models/cortana.glb', import.meta.url));
 const { scene } = await loader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
 scene.rotation.y = Math.PI;
@@ -130,8 +141,7 @@ const targetReference = Object.fromEntries(Object.keys(mapping).map(name => [nam
 const base = bones.map(b => ({ q: b.quaternion.clone(), p: b.position.clone() }));
 // Referencia T completa para retargeting Mixamo (incluye manos alineadas en X y tren inferior).
 for (const [side, sign] of [['Left',1], ['Right',-1]]) aim(`${side}Hand`, `${side}HandMiddle1`, new Vector3(sign, 0, 0));
-const mixamoReference = Object.fromEntries(gangnam.boneNames.map(name => [name, worldQ(bone(name))]));
-const gangnamScale = restHipsPos.y / gangnam.reference.hips[1];
+const mixamoReference = Object.fromEntries(mixamoDances.gangnam_style.boneNames.map(name => [name, worldQ(bone(name))]));
 function reset() { bones.forEach((b, i) => { b.quaternion.copy(base[i].q); b.position.copy(base[i].p); }); scene.updateMatrixWorld(true); }
 reset();
 function retarget(name, time, strength = 1) {
@@ -142,14 +152,15 @@ function retarget(name, time, strength = 1) {
     applyWorldQ(bone(key), new Quaternion().slerp(delta, strength).multiply(targetReference[key]));
   }
 }
-function retargetGangnam(cycle) {
+function retargetMixamo(dance, cycle) {
   reset();
-  const at = Math.max(0, Math.min(1, cycle)) * (gangnam.frames.length - 1);
-  const i = Math.min(Math.floor(at), gangnam.frames.length - 2), f = at - i;
-  const a = gangnam.frames[i], b = gangnam.frames[i + 1];
-  for (const key of gangnam.boneNames) {
+  const danceScale = restHipsPos.y / dance.reference.hips[1];
+  const at = Math.max(0, Math.min(1, cycle)) * (dance.frames.length - 1);
+  const i = Math.min(Math.floor(at), dance.frames.length - 2), f = at - i;
+  const a = dance.frames[i], b = dance.frames[i + 1];
+  for (const key of dance.boneNames) {
     const q = new Quaternion().fromArray(a.q[key]).slerp(new Quaternion().fromArray(b.q[key]), f);
-    const delta = q.multiply(new Quaternion().fromArray(gangnam.reference.q[key]).invert());
+    const delta = q.multiply(new Quaternion().fromArray(dance.reference.q[key]).invert());
     applyWorldQ(bone(key), delta.multiply(mixamoReference[key]));
   }
   const hx = a.hips[0] + (b.hips[0] - a.hips[0]) * f;
@@ -157,14 +168,14 @@ function retargetGangnam(cycle) {
   const hz = a.hips[2] + (b.hips[2] - a.hips[2]) * f;
   const srcFootY = a.minFootY + (b.minFootY - a.minFootY) * f;
   bone('Hips').position.set(
-    restHipsPos.x + (hx - gangnam.centerXZ[0]) * gangnamScale,
-    restHipsPos.y + (hy - gangnam.reference.hips[1]) * gangnamScale,
-    restHipsPos.z + (hz - gangnam.centerXZ[1]) * gangnamScale,
+    restHipsPos.x + (hx - dance.centerXZ[0]) * danceScale,
+    restHipsPos.y + (hy - dance.reference.hips[1]) * danceScale,
+    restHipsPos.z + (hz - dance.centerXZ[1]) * danceScale,
   );
   scene.updateMatrixWorld(true);
   // Apoyar la suela más baja sobre el plano del suelo preservando los saltos del clip fuente.
   const actualMinFootY = Math.min(...footBones.map(n => world(bone(n)).y));
-  const targetMinFootY = restMinFootY + Math.max(0, srcFootY - gangnam.reference.minFootY) * 0.01 * gangnamScale;
+  const targetMinFootY = restMinFootY + Math.max(0, srcFootY - dance.reference.minFootY) * 0.01 * danceScale;
   bone('Hips').position.y += (targetMinFootY - actualMinFootY) / 0.01;
   scene.updateMatrixWorld(true);
 }
@@ -190,7 +201,7 @@ function pinFeet() {
 }
 function arm(side, hand, elbow) { reach(`${side}Arm`, `${side}ForeArm`, `${side}Hand`, hand, elbow); }
 function pose(name, time, duration) {
-  if (name === 'gangnam_style') { retargetGangnam(time / duration); return; }
+  if (mixamoDances[name]) { retargetMixamo(mixamoDances[name], time / duration); return; }
   reset(); const cycle = time / duration, w = Math.PI * 2 * cycle;
   retarget('idle', cycle);
   // Respiración y desplazamiento pequeño de pelvis; tobillos y suelas anclados.
@@ -256,7 +267,7 @@ function pose(name, time, duration) {
 const clips = [], bounds = new Box3();
 for (const [name, { duration, nativeClip }] of Object.entries(ANIMATIONS)) {
   if (nativeClip) continue; // Se reproduce directamente del GLB, sin duplicar ni rehornear curvas.
-  const isDance = name === 'gangnam_style';
+  const isDance = Boolean(mixamoDances[name]);
   const frames = Math.round(duration*30), times = [], samples = bones.map(() => []), positions = [];
   for (let frame=0; frame<=frames; frame++) {
     const time = frame/frames*duration; times.push(time); pose(name, !isDance && frame === frames ? 0 : time, duration);
@@ -277,10 +288,14 @@ for (const [name, { duration, nativeClip }] of Object.entries(ANIMATIONS)) {
   for (const track of data.tracks) { track.values = track.values.map(v => +v.toFixed(7)); track.times = track.times.map(v => +v.toFixed(7)); }
   clips.push(data);
 }
+const gangnam = mixamoDances.gangnam_style, hipHop = mixamoDances.hip_hop, macarena = mixamoDances.macarena;
 await writeFile(new URL('../public/models/cortana-motion.json',import.meta.url),JSON.stringify({version:2,status:'development',
   sourceSha256:sha(bytes), adaptationSha256:sha(await readFile(sourceURL)), danceSha256:sha(await readFile(gangnamURL)),
+  hipHopSha256:sha(await readFile(hipHopURL)), macarenaSha256:sha(await readFile(macarenaURL)),
   author:'Cortana / Codex, 2026-10-23',fps:30,
   adaptedSource:{author:source.author,license:source.license,origin:source.origin,clips:['Idle_Loop','Idle_Talking_Loop']},
   danceSource:{author:gangnam.author,license:gangnam.license,origin:gangnam.origin,mirror:gangnam.mirror,mirrorRevision:gangnam.mirrorRevision,clip:'Gangnam Style'},
+  hipHopSource:{author:hipHop.author,license:hipHop.license,origin:hipHop.origin,clip:hipHop.clipName},
+  macarenaSource:{author:macarena.author,license:macarena.license,origin:macarena.origin,clip:macarena.clipName},
   envelope:{min:bounds.min.toArray(),max:bounds.max.toArray()},clips})+'\n');
 console.log(JSON.stringify({clips:clips.map(c=>({name:c.name,duration:c.duration})),envelope:{min:bounds.min.toArray(),max:bounds.max.toArray()}}));

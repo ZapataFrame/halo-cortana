@@ -21,6 +21,8 @@ Ahora se recuperan orientaciones relativas de las matrices de bind, conservando 
 | `listen` | 6 s, bucle | Cabeza inclinada y orientación atenta |
 | `explain` | 7 s, bucle | Gesticulación de brazos/manos durante voz |
 | `gangnam_style` | 7.8 s, una vez | Baile manual adaptado desde captura Mixamo (52 huesos, centrado y apoyo al suelo); vuelve al estado vigente |
+| `hip_hop` | 15.77 s, una vez | Baile manual *Hip Hop Dancing* adaptado desde captura Mixamo (52 huesos, centrado y apoyo al suelo); vuelve al estado vigente |
+| `macarena` | 8.23 s, una vez | Baile manual *Macarena Dance* adaptado desde captura Mixamo (52 huesos, centrado y apoyo al suelo); vuelve al estado vigente |
 | `twerk` | 15.2 s, una vez | Clip `Twerking` original del GLB, activado manualmente; vuelve al estado vigente |
 | `shift_weight` | 6 s | Cambio de apoyo sin pasos, con compensación de columna y mirada |
 
@@ -39,7 +41,7 @@ Se adaptaron `Idle_Loop` e `Idle_Talking_Loop` de la **Universal Animation Libra
 
 `tools/animation-sources/quaternius-upper-body.json` conserva solo rotaciones globales de la referencia T y de dos clips de torso/cabeza/brazos/dedos, con hashes de los archivos glTF/bin de origen. No incluye geometría, texturas ni otro avatar. La licencia completa está en `tools/animation-sources/CC0-1.0.txt`. El generador mapea los huesos y transfiere sus rotaciones respecto de esa referencia a Cortana; conserva las piernas del rig destino y corrige manos/contactos. Saludo, sí/no, pensar, cintura, escucha y cambio de apoyo combinan esa base con curvas propias e IK.
 
-Para `gangnam_style` (2026-11-19, por petición del propietario) se extrajeron únicamente las curvas de 52 huesos y trayectoria de cadera del archivo `Gangnam Style.fbx` de [Mixamo](https://www.mixamo.com/) incluido en el repositorio de ejemplo [V-Sekai/three-vrm-1-sandbox-mixamo](https://github.com/V-Sekai/three-vrm-1-sandbox-mixamo) (licencia MIT del repositorio, revisión `9c13ee8eeefcbf18a0bcc80cd49ac59cd4af73e4`, SHA-256 del FBX `119f68a45ad10afec2facdef4f3f9a85e25659c46a368fb1555d6c116b9ae2d7`; la animación original permanece sujeta a los términos de Mixamo). `tools/animation-sources/mixamo-gangnam-style.json` conserva solo las curvas muestreadas a 30 FPS sin malla ni avatar fuente. El generador transfiere las rotaciones respecto de una referencia T completa (incluyendo manos alineadas en X), escala y centra horizontalmente la cadera y apoya la suela más baja sobre el plano del suelo preservando los saltos del baile.
+Para `gangnam_style`, `hip_hop` y `macarena` (2026-11-19, por petición del propietario) se extrajeron únicamente las curvas de 52 huesos y trayectoria de cadera de archivos FBX de [Mixamo](https://www.mixamo.com/): `Gangnam Style.fbx` del repositorio [V-Sekai/three-vrm-1-sandbox-mixamo](https://github.com/V-Sekai/three-vrm-1-sandbox-mixamo) (revisión `9c13ee8eeefcbf18a0bcc80cd49ac59cd4af73e4`) y `Hip Hop Dancing.fbx` / `Macarena Dance.fbx` aportados por el propietario (`tools/animation-sources/mixamo-gangnam-style.json`, `mixamo-hip-hop.json` y `mixamo-macarena.json`, sin malla ni avatar fuente; la animación original permanece sujeta a los términos de Mixamo). El generador transfiere las rotaciones respecto de una referencia T completa (incluyendo manos alineadas en X), escala y centra horizontalmente la cadera y apoya la suela más baja sobre el plano del suelo preservando los saltos del baile.
 
 `twerk` reutiliza directamente el clip nativo `Twerking` (15.2 s) contenido en `public/models/cortana.glb`, sin duplicar sus curvas en `cortana-motion.json` ni modificar el GLB.
 
@@ -49,15 +51,15 @@ Las curvas adaptadas no cambian la atribución ni las restricciones declaradas d
 
 - `src/services/animation-catalog.js`: catálogo cerrado compartido, duraciones y asociación con fases.
 - `src/scene/motion-player.js`: un mixer, prioridades, mezcla, bucles, retorno y limpieza.
-- `tools/bake-cortana-motion.mjs`: adaptación y autoría; `npm run animations:bake` regenera los diez clips horneados desde recursos locales, sin red.
+- `tools/bake-cortana-motion.mjs`: adaptación y autoría; `npm run animations:bake` regenera los doce clips horneados desde recursos locales, sin red.
 - `public/models/cortana-motion.json`: curvas listas para la aplicación, hash del GLB, hashes de fuentes extraídas y envolvente muestreada.
 - `tools/motion-preview.html`: herramienta de desarrollo con selección, pausa, tiempo y frente/perfil/espalda. Con `npm run dev`, abrir `/tools/motion-preview.html`; no forma parte de la entrega compilada ni usa voz/LLM.
 
-Para reconstruir las fuentes extraídas: `node tools/bake-cortana-motion.mjs --import /ruta/glTF/AnimationLibrary_Godot_Standard.gltf e24c23cf2a1323488a3faa226ea7ea21f644b73e` y `node tools/bake-cortana-motion.mjs --import-gangnam /ruta/Gangnam\ Style.fbx 9c13ee8eeefcbf18a0bcc80cd49ac59cd4af73e4`. El uso normal del proyecto no necesita descargarlas ni ejecutar estas opciones.
+Para reconstruir las fuentes extraídas: `node tools/bake-cortana-motion.mjs --import /ruta/glTF/AnimationLibrary_Godot_Standard.gltf e24c23cf2a1323488a3faa226ea7ea21f644b73e` y `node tools/bake-cortana-motion.mjs --import-mixamo <nombre-json> /ruta/archivo.fbx "<Nombre>"`. El uso normal del proyecto no necesita descargarlas ni ejecutar estas opciones.
 
 ## Verificación y límites
 
-2026-11-19 (`C-13`): `npm run animations:bake`, `npm test` (**125/125**) y `npm run build` correctos. Se verificó en pruebas de rig real que `gangnam_style` deforma el cuerpo completo con cuaterniones normalizados, escala acotada, elevación de pies/brazo derecho (paso del lazo), apoyo al suelo sin hundimiento, prioridad sobre voz, retorno automático a `explain`/`idle` e interrupción limpia por otro gesto; y que `twerk` reproduce el clip original `Twerking` sin mutar el GLB, conservando escala, interrupción y retorno automático. Se inspeccionaron seis fotogramas geométricos 3D de la malla deformada para Gangnam Style ([muestra de malla 3D](evidence/C-13-gangnam-style-mesh.png)); esta vista usa malla deformada con sombreado simple y no sustituye la revisión en navegador con texturas reales ni la aceptación artística/humana.
+2026-11-19 (`C-13`): `npm run animations:bake`, `npm test` (**132/132**) y `npm run build` correctos. Se verificó en pruebas de rig real que `gangnam_style`, `hip_hop` y `macarena` deforman el cuerpo completo con cuaterniones normalizados, escala acotada, apoyo al suelo sin hundimiento, prioridad sobre voz, retorno automático a `explain`/`idle` e interrupción limpia; y que `twerk` reproduce el clip original `Twerking` sin mutar el GLB. Se inspeccionaron fotogramas geométricos 3D de la malla deformada ([muestra Gangnam Style](evidence/C-13-gangnam-style-mesh.png)); esta vista usa sombreado simple y no sustituye la revisión en navegador con texturas reales ni la aceptación artística/humana.
 
 - Pruebas del rig real: nueve clips de conversación con continuidad de extremos y suelas fijas, más `gangnam_style` con pies libres y apoyo al suelo; cuaterniones normalizados, escala/envolvente, deformación distribuida de malla, saludo visible, posturas de contacto y movimientos de cabeza.
 - Pruebas del reproductor: espera breve, estados de voz, prioridad manual, interrupciones repetidas, vuelta al estado actual y cambio de apoyo periódico.

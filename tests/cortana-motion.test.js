@@ -24,7 +24,7 @@ test('nueve clips de conversación deforman la malla real, cierran sus curvas y 
   const { scene, pack, bone, skin } = await fixture(), mixer = new AnimationMixer(scene);
   const clips = pack.clips.map(data => AnimationClip.parse(data));
   assert.deepEqual(clips.map(c => c.name).sort(), Object.keys(ANIMATIONS).filter(name => !ANIMATIONS[name].nativeClip).sort());
-  const conversationClips = clips.filter(c => c.name !== 'gangnam_style');
+  const conversationClips = clips.filter(c => !['gangnam_style', 'hip_hop', 'macarena'].includes(c.name));
   const p = name => bone(name).getWorldPosition(new Vector3());
   function sample(clip, time) {
     mixer.stopAllAction(); const action = mixer.clipAction(clip).reset().setLoop(LoopOnce, 1); action.clampWhenFinished = true;
@@ -123,6 +123,76 @@ test('Gangnam Style deforma el cuerpo completo con apoyo al suelo, eleva brazo y
   player.setState('gangnam_style', 'idle'); advance(0.5); assert.equal(changes.at(-1), 'gangnam_style');
   player.setState('wave', 'idle'); advance(0.5); assert.equal(changes.at(-1), 'wave');
   advance(4); assert.equal(changes.at(-1), 'idle');
+  for (const b of bones) assert.ok([...b.position.toArray(), ...b.quaternion.toArray(), ...b.scale.toArray()].every(Number.isFinite));
+  player.destroy();
+});
+
+test('Hip Hop deforma el cuerpo completo con apoyo al suelo y vuelve a voz/reposo', async () => {
+  const { scene, pack, bones, bone, skin, animations } = await fixture(), mixer = new AnimationMixer(scene);
+  const hipHopSource = await readFile(new URL('../tools/animation-sources/mixamo-hip-hop.json', import.meta.url));
+  assert.equal(pack.hipHopSha256, createHash('sha256').update(hipHopSource).digest('hex'));
+  const clip = AnimationClip.parse(pack.clips.find(c => c.name === 'hip_hop'));
+  assert.equal(clip.duration, ANIMATIONS.hip_hop.duration);
+  const p = name => bone(name).getWorldPosition(new Vector3());
+  const sample = time => {
+    mixer.stopAllAction(); const action = mixer.clipAction(clip).reset().setLoop(LoopOnce, 1); action.clampWhenFinished = true;
+    action.play(); mixer.setTime(time); scene.updateMatrixWorld(true);
+    scene.traverse(o => { if (o.isSkinnedMesh) o.computeBoundingBox(); });
+    const feetY = ['LeftFoot', 'RightFoot', 'LeftToeBase', 'RightToeBase'].map(n => p(n).y);
+    return { minFootY: Math.min(...feetY), bounds: new Box3().setFromObject(scene),
+      vertex: skin.getVertexPosition(120, new Vector3()).applyMatrix4(skin.matrixWorld) };
+  };
+  const start = sample(0);
+  let maxVertexMove = 0;
+  for (let i = 0; i <= 30; i++) {
+    const pose = sample(clip.duration * i / 30);
+    maxVertexMove = Math.max(maxVertexMove, pose.vertex.distanceTo(start.vertex));
+    const size = pose.bounds.getSize(new Vector3());
+    assert.ok(size.y > 1.25 && size.y < 1.95, `altura Hip Hop ${size.y}`);
+    assert.ok(pose.minFootY >= start.minFootY - 0.03, `suela sin hundirse ${pose.minFootY}`);
+  }
+  assert.ok(maxVertexMove > 0.05, 'Hip Hop deforma la malla');
+  const changes = [];
+  const player = createMotionPlayer(scene, pack, name => changes.push(name), animations);
+  const advance = seconds => { for (let t = 0; t < seconds; t += 0.02) player.update(0.02); };
+  player.setState('hip_hop', 'speaking'); advance(1);
+  assert.equal(changes.at(-1), 'hip_hop');
+  advance(15.2); assert.equal(changes.at(-1), 'explain');
+  for (const b of bones) assert.ok([...b.position.toArray(), ...b.quaternion.toArray(), ...b.scale.toArray()].every(Number.isFinite));
+  player.destroy();
+});
+
+test('Macarena deforma el cuerpo completo con apoyo al suelo y vuelve a voz/reposo', async () => {
+  const { scene, pack, bones, bone, skin, animations } = await fixture(), mixer = new AnimationMixer(scene);
+  const macarenaSource = await readFile(new URL('../tools/animation-sources/mixamo-macarena.json', import.meta.url));
+  assert.equal(pack.macarenaSha256, createHash('sha256').update(macarenaSource).digest('hex'));
+  const clip = AnimationClip.parse(pack.clips.find(c => c.name === 'macarena'));
+  assert.equal(clip.duration, ANIMATIONS.macarena.duration);
+  const p = name => bone(name).getWorldPosition(new Vector3());
+  const sample = time => {
+    mixer.stopAllAction(); const action = mixer.clipAction(clip).reset().setLoop(LoopOnce, 1); action.clampWhenFinished = true;
+    action.play(); mixer.setTime(time); scene.updateMatrixWorld(true);
+    scene.traverse(o => { if (o.isSkinnedMesh) o.computeBoundingBox(); });
+    const feetY = ['LeftFoot', 'RightFoot', 'LeftToeBase', 'RightToeBase'].map(n => p(n).y);
+    return { minFootY: Math.min(...feetY), bounds: new Box3().setFromObject(scene),
+      vertex: skin.getVertexPosition(120, new Vector3()).applyMatrix4(skin.matrixWorld) };
+  };
+  const start = sample(0);
+  let maxVertexMove = 0;
+  for (let i = 0; i <= 30; i++) {
+    const pose = sample(clip.duration * i / 30);
+    maxVertexMove = Math.max(maxVertexMove, pose.vertex.distanceTo(start.vertex));
+    const size = pose.bounds.getSize(new Vector3());
+    assert.ok(size.y > 1.1 && size.y < 1.95, `altura Macarena ${size.y}`);
+    assert.ok(pose.minFootY >= start.minFootY - 0.03, `suela sin hundirse ${pose.minFootY}`);
+  }
+  assert.ok(maxVertexMove > 0.05, 'Macarena deforma la malla');
+  const changes = [];
+  const player = createMotionPlayer(scene, pack, name => changes.push(name), animations);
+  const advance = seconds => { for (let t = 0; t < seconds; t += 0.02) player.update(0.02); };
+  player.setState('macarena', 'speaking'); advance(1);
+  assert.equal(changes.at(-1), 'macarena');
+  advance(7.8); assert.equal(changes.at(-1), 'explain');
   for (const b of bones) assert.ok([...b.position.toArray(), ...b.quaternion.toArray(), ...b.scale.toArray()].every(Number.isFinite));
   player.destroy();
 });

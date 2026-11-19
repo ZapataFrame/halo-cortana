@@ -8,9 +8,10 @@ const DEFAULT_MODEL = `.voice-models/es/es_AR/daniela/high/${VOICE}.onnx`;
 export function createPiper({ python = resolve('.voice-venv/bin/python'), model = resolve(DEFAULT_MODEL),
   worker = resolve('server/piper_worker.py'), spawnProcess, idleMs } = {}) {
   const engine = createVoiceWorker({ command: python, args: [worker, resolve(model)],
-    env: { PATH: process.env.PATH, HF_HUB_OFFLINE: '1', PYTHONDONTWRITEBYTECODE: '1' }, prefix: 'TTS',
+    env: { PATH: process.env.PATH, HF_HUB_OFFLINE: '1', PYTHONDONTWRITEBYTECODE: '1', VOICE_CPU_THREADS: process.env.VOICE_CPU_THREADS || '2' }, prefix: 'TTS',
     maxInput: 16000, maxOutput: 12 * 1024 * 1024, spawnProcess, idleMs });
   return {
+    timeoutMs: 45000,
     async health() {
       try { await access(python, constants.X_OK); await access(model); await access(model + '.json'); }
       catch { return { ready: false, voice: VOICE, detail: 'Falta instalar la voz local. Ejecuta npm run setup:voice en el PC.' }; }
@@ -51,22 +52,25 @@ export function validVoiceWav(audio) {
 export function createRvc({ python = resolve('.rvc-qa/venv/bin/python'), model = '', index = '',
   piper = createPiper({ python: resolve('.rvc-qa/piper-venv/bin/python'), model: resolve('.rvc-qa/piper-model/es_AR-daniela-high.onnx') }),
   worker = resolve('server/rvc_worker.py'), manifest = resolve('tools/rvc-qa-models.json'),
-  cache = resolve('.rvc-qa/cache'), spawnProcess, idleMs } = {}) {
-  const engine = createVoiceWorker({ command: python, args: [worker, resolve(model || '.'), resolve(index || '.'), manifest],
+  cache = resolve('.rvc-qa/cache'), spawnProcess, idleMs, indexRate = .5, device = 'cpu', threads = 2 } = {}) {
+  if (!['cpu', 'cuda:0'].includes(device) || !Number.isFinite(indexRate) || indexRate < 0 || indexRate > 1
+    || !Number.isInteger(threads) || threads < 1 || threads > 16) throw new Error('Configuración RVC inválida.');
+  const engine = createVoiceWorker({ command: python, args: [worker, resolve(model || '.'), index ? resolve(index) : '', manifest],
     env: { PATH: process.env.PATH, HF_HUB_OFFLINE: '1', PYTHONDONTWRITEBYTECODE: '1',
-      XDG_CACHE_HOME: cache, NUMBA_CACHE_DIR: resolve(cache, 'numba'), OMP_NUM_THREADS: '4', OPENBLAS_NUM_THREADS: '4' },
+      XDG_CACHE_HOME: cache, NUMBA_CACHE_DIR: resolve(cache, 'numba'), OMP_NUM_THREADS: String(threads), OPENBLAS_NUM_THREADS: String(threads), VOICE_CPU_THREADS: String(threads),
+      RVC_DEVICE: device, RVC_INDEX_RATE: String(indexRate), LD_LIBRARY_PATH: process.env.LD_LIBRARY_PATH || '' },
     prefix: 'TTS', maxInput: 12 * 1024 * 1024, maxOutput: 12 * 1024 * 1024, spawnProcess, idleMs });
   return {
     timeoutMs: 90000,
     async health() {
       let ready = false;
       try {
-        if (!model || !index) throw new Error('MISSING_MODEL');
-        await access(python, constants.X_OK); await access(model); await access(index); await access(worker); await access(manifest);
+        if (!model || indexRate > 0 && !index) throw new Error('MISSING_MODEL');
+        await access(python, constants.X_OK); await access(model); if (indexRate > 0) await access(index); await access(worker); await access(manifest);
         ready = (await piper.health()).ready;
       } catch { /* Diagnóstico público sin rutas del PC. */ }
       return { ready, voice: 'cortana-rvc-v2', detail: ready
-        ? 'Cortana · español latino · voz local en CPU. Prepararla puede tardar varios segundos.'
+        ? `Cortana · español latino · ${device}${indexRate === 0 ? ' · sin índice (configuración explícita)' : ''}. Prepararla puede tardar varios segundos.`
         : 'Falta preparar la voz Cortana. Revisa la instalación RVC y RVC_MODEL_PATH/RVC_INDEX_PATH en .env del PC.' };
     },
     async synthesize(text, signal) {
@@ -85,10 +89,41 @@ export function createRvc({ python = resolve('.rvc-qa/venv/bin/python'), model =
   };
 }
 
+export function splitSpeech(text, limit = 200) {
+  const chunks = []; let chunk = '';
+  for (const word of text.split(/\s+/)) {
+    if (word.length > limit) throw new Error('TTS_INVALID_INPUT');
+    if (chunk && chunk.length + word.length + 1 > limit) { chunks.push(chunk); chunk = ''; }
+    chunk += (chunk ? ' ' : '') + word;
+  }
+  if (chunk) chunks.push(chunk);
+  return chunks;
+}
+
+export function joinVoiceWavs(parts) {
+  if (!parts.length || parts.some(part => !validVoiceWav(part))) throw new Error('TTS_UNAVAILABLE');
+  const size = parts.reduce((sum, part) => sum + part.length - 44, 0);
+  if (size > 120 * 44100) throw new Error('TTS_TOO_LONG');
+  const header = Buffer.from(parts[0].subarray(0, 44)); header.writeUInt32LE(36 + size, 4); header.writeUInt32LE(size, 40);
+  return Buffer.concat([header, ...parts.map(part => part.subarray(44))]);
+}
+
 export function createTts(env = process.env) {
   const provider = env.TTS_PROVIDER?.trim() || 'piper';
-  if (provider === 'piper') return createPiper();
-  if (provider !== 'rvc') throw new Error('TTS_PROVIDER debe ser piper o rvc.');
-  return createRvc({ model: env.RVC_MODEL_PATH?.trim() || resolve('.rvc-qa/voices/cortana/model.pth'),
-    index: env.RVC_INDEX_PATH?.trim() || resolve('.rvc-qa/voices/cortana/model.index') });
+  if (!['piper', 'rvc'].includes(provider)) throw new Error('TTS_PROVIDER debe ser piper o rvc.');
+  const indexRate = Number(env.RVC_INDEX_RATE ?? .5);
+  const engine = provider === 'piper' ? createPiper() : createRvc({
+    model: env.RVC_MODEL_PATH?.trim() || resolve('.rvc-qa/voices/cortana/model.pth'),
+    index: indexRate === 0 ? '' : env.RVC_INDEX_PATH?.trim() || resolve('.rvc-qa/voices/cortana/model.index'),
+    device: env.RVC_DEVICE || 'cpu', threads: Number(env.VOICE_CPU_THREADS || 2), indexRate });
+  return {
+    ...engine,
+    async synthesize(text, signal) {
+      if (typeof text !== 'string' || !text.trim() || text.length > 4000) throw new Error('TTS_INVALID_INPUT');
+      const parts = [];
+      for (const chunk of splitSpeech(text)) { signal.throwIfAborted(); parts.push(await engine.synthesize(chunk, signal)); }
+      return joinVoiceWavs(parts);
+    },
+    async warmup(signal) { await engine.synthesize('Hola.', signal); },
+  };
 }

@@ -1,4 +1,4 @@
-// Experimento aislado: no instala paquetes en el Python global ni cambia el backend.
+// Entornos locales de Cortana: no instala paquetes Python globales ni cambia .env.
 import { spawnSync } from 'node:child_process';
 import { mkdir, readFile, writeFile, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -10,10 +10,13 @@ process.chdir(root);
 const base = resolve('.rvc-qa');
 await mkdir(base, { recursive: true });
 const args = process.argv.slice(2);
-if (args.length && (args.length !== 2 || args[0] !== '--model-dir')) {
-  throw new Error('Uso: node tools/setup-rvc-qa.mjs [--model-dir "carpeta de la voz"]');
+let voiceDirectory = null, device = 'cpu';
+for (let i = 0; i < args.length; i += 2) {
+  if (!args[i + 1]) throw new Error('Uso: node tools/setup-rvc-qa.mjs [--model-dir carpeta] [--device cpu|cuda]');
+  if (args[i] === '--model-dir') voiceDirectory = resolve(args[i + 1]);
+  else if (args[i] === '--device' && ['cpu', 'cuda'].includes(args[i + 1])) device = args[i + 1];
+  else throw new Error('Uso: node tools/setup-rvc-qa.mjs [--model-dir carpeta] [--device cpu|cuda]');
 }
-const voiceDirectory = args.length ? resolve(args[1]) : null;
 if (voiceDirectory) {
   for (const name of ['model.pth', 'model.index']) {
     if (!(await stat(resolve(voiceDirectory, name))).isFile()) throw new Error(`Falta ${name}`);
@@ -23,6 +26,7 @@ const env = { ...process.env, UV_CACHE_DIR: resolve(base, 'cache/uv'),
   UV_PYTHON_INSTALL_DIR: resolve(base, 'python'), PIP_CACHE_DIR: resolve(base, 'cache/pip'),
   XDG_CACHE_HOME: resolve(base, 'cache'), PYTHONDONTWRITEBYTECODE: '1',
   PIP_REQUIRE_VIRTUALENV: 'true', PIP_DISABLE_PIP_VERSION_CHECK: '1',
+  MAX_JOBS: '2', CMAKE_BUILD_PARALLEL_LEVEL: '2', MAKEFLAGS: '-j2', CFLAGS: '-O2 -g0', CXXFLAGS: '-O2 -g0',
   UV_HTTP_TIMEOUT: '3600', PIP_DEFAULT_TIMEOUT: '900', PIP_RETRIES: '10' };
 function run(command, args) {
   console.log(`\nPreparando entorno: ${command} ${args.join(' ')}`);
@@ -38,11 +42,20 @@ run('uv', ['venv', '.rvc-qa/venv', '--python', '3.10', '--allow-existing']);
 const python = resolve(base, 'venv/bin/python');
 run('uv', ['pip', 'install', '--python', python, 'pip==24.0', 'setuptools==69.5.1',
   'wheel==0.43.0', 'Cython==0.29.37', 'numpy==1.23.5']);
-run(python, ['-m', 'pip', 'install', 'torch==2.5.1+cpu', 'torchaudio==2.5.1+cpu',
-  '--index-url', 'https://download.pytorch.org/whl/cpu']);
+run(python, ['-m', 'pip', 'install', ...(device === 'cuda' ? ['--force-reinstall'] : []),
+  device === 'cuda' ? 'torch==2.5.1' : 'torch==2.5.1+cpu',
+  device === 'cuda' ? 'torchaudio==2.5.1' : 'torchaudio==2.5.1+cpu',
+  '--index-url', `https://download.pytorch.org/whl/${device === 'cuda' ? 'cu124' : 'cpu'}`]);
 // El sdist de fairseq en PyPI omite clib/libbase; usar la revisión oficial completa.
-run(python, ['-m', 'pip', 'install', '--no-build-isolation',
-  'https://github.com/facebookresearch/fairseq/archive/4a388e64cd646ed7d7ad8de8fae55df2b8eea91d.tar.gz']);
+const fairseqRevision = '4a388e64cd646ed7d7ad8de8fae55df2b8eea91d';
+const fairseqUrl = `https://github.com/facebookresearch/fairseq/archive/${fairseqRevision}.tar.gz`;
+const fairseqMarker = resolve(base, 'fairseq-revision.txt');
+const installed = spawnSync(python, ['-c', 'from importlib.metadata import distribution; import json; d=distribution("fairseq"); print(d.version); print(json.loads(d.read_text("direct_url.json") or "{}").get("url", ""))'], { env, encoding: 'utf8' });
+const recorded = (await readFile(fairseqMarker, 'utf8').catch(() => '')).trim();
+if (installed.status !== 0 || !installed.stdout.startsWith('0.12.2\n') || !(installed.stdout.includes(fairseqUrl) || recorded === fairseqRevision)) {
+  run(python, ['-m', 'pip', 'install', '--no-build-isolation', fairseqUrl]);
+  await writeFile(fairseqMarker, fairseqRevision + '\n');
+} else console.log('fairseq oficial ya preparado; se omite la compilación repetida.');
 run(python, ['-m', 'pip', 'install', '--no-build-isolation', 'rvc-python==0.1.5',
   'librosa==0.9.2', 'numba==0.57.1', 'scipy==1.10.1', 'torchcrepe==0.0.23', 'pyworld==0.3.4']);
 run('uv', ['venv', '.rvc-qa/piper-venv', '--python', '3.13', '--allow-existing']);

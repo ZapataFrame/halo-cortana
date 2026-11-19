@@ -73,12 +73,13 @@ test('pulsación corta, silencio del servidor, desconexión y reinicio conservan
 });
 
 test('límite de tiempo apaga micrófono y permisos tardíos no reinician captura', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'setInterval'] });
   const f = fixture(t, { maxMs: 25 }); await f.input.start(); await flush(); f.advance();
-  await new Promise(resolve => setTimeout(resolve, 40)); await flush();
+  t.mock.timers.tick(40); await flush();
   assert.ok(f.track.stopped > 0); assert.equal(f.states.at(-1).phase, 'ready');
   let grant;
   const late = fixture(t, { permissionMs: 20, getMedia: () => new Promise(resolve => { grant = resolve; }) });
-  const pending = late.input.start(); await new Promise(resolve => setTimeout(resolve, 35));
+  const pending = late.input.start(); await flush(); t.mock.timers.tick(35); await flush();
   grant(late.stream); await pending; assert.equal(late.track.stopped, 1); assert.deepEqual(late.transcripts, []);
 });
 

@@ -1,6 +1,7 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, shallowRef, useTemplateRef, watch } from 'vue';
 import { createSpeechPlayer } from '../services/speech-player.js';
+import { createClockedAudio } from '../services/clocked-audio.js';
 import { createVoiceInput, voiceCaptureSupport } from '../services/voice-input.js';
 import { bindVoiceInputControls } from '../services/voice-input-controls.js';
 import { requestJson } from '../services/api.js';
@@ -13,17 +14,20 @@ const capture = shallowRef({ phase: 'idle', detail: 'Comprobando micrófono…' 
 const micBusy = computed(() => ['preparing', 'recording', 'transcribing'].includes(capture.value.phase));
 const voiceBusy = computed(() => ['preparing', 'playing'].includes(speech.value.phase));
 const local = computed(() => props.info?.localControl && props.connected);
-let controls, prepare;
-const player = createSpeechPlayer({ onState: value => { speech.value = value; } });
+let controls, prepare, warmup;
+const warming = shallowRef(false);
+const output = createClockedAudio();
+const player = createSpeechPlayer({ synchronize: true, createAudio: () => output, unlockAudio: () => output.unlock(), onState: value => { speech.value = value; } });
 const input = createVoiceInput({
   stopSpeech: () => player.stop(false),
   onState(value) { capture.value = value; controls?.onState(value.phase); },
   onTranscript(text) { if (text.length > props.remaining) return false; emit('transcript', text); },
 });
-watch(micBusy, value => emit('busy', value), { flush: 'sync' });
+watch([micBusy, warming], ([mic, warm]) => emit('busy', mic || warm), { flush: 'sync' });
 watch(() => Boolean(local.value && voiceReady.value && !voiceBusy.value), value => emit('ready', value), { immediate: true });
 watch(volume, value => player.setVolume(value / 100));
 watch(automatic, value => { if (!value) player.stop(); });
+function enableAutomatic() { if (automatic.value) player.unlock().catch(error => { automatic.value = false; speech.value = { phase: 'error', detail: error.message }; }); }
 watch(() => props.presentation, (value, previous) => {
   if (!value) return;
   const changed = Boolean(previous && previous.sessionId !== value.sessionId);
@@ -44,23 +48,37 @@ watch(() => props.info, async info => {
     })(),
   ]);
 }, { immediate: true });
-async function stop() { await Promise.all([player.stop(false), input.cancel(false)]); }
+async function prepareEngines() {
+  if (warming.value) return;
+  warming.value = true; warmup = new AbortController();
+  speech.value = { phase: 'preparing', detail: 'Preparando modelos locales. La primera vez puede tardar más de un minuto…' };
+  try {
+    const result = await requestJson('/api/engines/warmup', { method: 'POST', body: {}, signal: warmup.signal, timeoutMs: 183000 });
+    voiceReady.value = result.tts.ready; micReady.value = result.stt.ready;
+    speech.value = { phase: result.tts.ready ? 'idle' : 'error', detail: result.tts.ready ? `Voz preparada en ${(result.tts.elapsedMs / 1000).toFixed(1)} s.` : result.tts.detail };
+    capture.value = { phase: result.stt.ready ? 'idle' : 'error', detail: result.stt.ready ? `Reconocimiento preparado en ${(result.stt.elapsedMs / 1000).toFixed(1)} s. Puedes dictar.` : result.stt.detail };
+  } catch (error) { speech.value = { phase: 'error', detail: error.message }; }
+  finally { warming.value = false; }
+}
+async function stop() { warmup?.abort(); await Promise.all([player.stop(false), input.cancel(false)]); }
 function visibility() { if (document.hidden) input.cancel(false); }
 onMounted(() => {
   controls = bindVoiceInputControls({ button: microphone.value, discardButton: discard.value, input: { focus: () => nextTick(() => props.editor?.focus()) }, voiceInput: input, getPhase: () => capture.value.phase, isBusy: () => micBusy.value });
   document.addEventListener('visibilitychange', visibility); window.addEventListener('pagehide', stop);
 });
-onUnmounted(() => { prepare?.abort(); controls?.destroy(); stop(); document.removeEventListener('visibilitychange', visibility); window.removeEventListener('pagehide', stop); });
+onUnmounted(() => { prepare?.abort(); controls?.destroy(); stop(); output.close(); document.removeEventListener('visibilitychange', visibility); window.removeEventListener('pagehide', stop); });
 defineExpose({ stop, read: requestId => { if (voiceReady.value) player.play(requestId); }, readAutomatic: requestId => { if (automatic.value && voiceReady.value) player.play(requestId); } });
 </script>
 
 <template>
   <details class="voice-settings">
     <summary>Voz y micrófono</summary>
-    <label class="checkbox"><input v-model="automatic" type="checkbox" :disabled="!local || !voiceReady">Leer respuestas automáticamente</label>
-    <div class="actions"><button :disabled="!local || locked || !voiceReady || voiceBusy || micBusy" @click="player.play('voice-test')">Probar voz</button><button :disabled="!voiceBusy" @click="player.stop()">Detener voz</button></div>
-    <label class="volume">Volumen <input v-model.number="volume" type="range" min="0" max="100"><output>{{ volume }} %</output></label>
+    <label class="checkbox"><input v-model="automatic" type="checkbox" @change="enableAutomatic" :disabled="!local || !voiceReady">Leer respuestas automáticamente</label>
+    <div class="actions"><button :disabled="!local || locked || voiceBusy || micBusy || warming" @click="prepareEngines">Preparar motores</button><button :disabled="!local || locked || !voiceReady || voiceBusy || micBusy" @click="player.play('voice-test')">Probar voz</button><button :disabled="!voiceBusy" @click="stop">Detener voz</button></div>
+    <label class="volume">Volumen del PC <input v-model.number="volume" type="range" min="0" max="100"><output>{{ volume }} %</output></label>
     <p class="muted" role="status">{{ speech.detail }}</p>
+    <p v-if="speech.synthesisMs !== undefined" class="muted">Preparación de voz: {{ (speech.synthesisMs / 1000).toFixed(2) }} s · hasta escuchar: {{ (speech.startMs / 1000).toFixed(2) }} s</p>
+    <p class="muted">La misma lectura suena en los visores enlazados con sonido activado. Si PC y visor usan los mismos altavoces, baja a cero el volumen del PC para evitar eco.</p>
     <div class="actions"><button ref="microphone" class="microphone" :aria-pressed="capture.phase === 'recording'" :disabled="!local || locked || !micReady || capture.phase === 'transcribing'">Mantén pulsado para hablar</button><button ref="discard" :disabled="!micBusy">Descartar grabación</button></div>
     <p class="muted">Máximo 15 s. También puedes mantener Espacio o Enter con el botón enfocado. Revisa el texto antes de enviarlo.</p>
     <p role="status">{{ capture.detail }}<span v-if="capture.seconds !== undefined"> {{ capture.seconds }} / 15 s</span></p>

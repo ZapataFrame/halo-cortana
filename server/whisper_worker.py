@@ -1,5 +1,6 @@
 """Whisper local reutilizable, audio acotado en memoria, sin claves ni logs."""
 import io
+import os
 import json
 import sys
 
@@ -12,8 +13,15 @@ from voice_protocol import read_request, write_response
 model = None
 
 
-def transcribe(raw):
+def initialize():
     global model
+    if model is None:
+        model = WhisperModel(sys.argv[1], device=os.environ.get("STT_DEVICE", "cpu"),
+                             compute_type=os.environ.get("STT_COMPUTE_TYPE", "int8"),
+                             cpu_threads=int(os.environ.get("VOICE_CPU_THREADS", "2")), local_files_only=True)
+
+
+def transcribe(raw):
     samples = []
     total = 0
     try:
@@ -44,9 +52,9 @@ def transcribe(raw):
     audio = np.concatenate(samples).astype(np.float32) / 32768.0
     if float(np.sqrt(np.mean(audio ** 2))) < 0.002:
         raise ValueError("STT_NO_SPEECH")
-    if model is None:
-        model = WhisperModel(sys.argv[1], device="cpu", compute_type="int8", cpu_threads=4, local_files_only=True)
-    segments, _info = model.transcribe(audio, language="es", beam_size=5, temperature=0,
+    initialize()
+    segments, _info = model.transcribe(audio, language="es", beam_size=int(os.environ.get("STT_BEAM_SIZE", "1")), temperature=0,
+                                     initial_prompt="Cortana, UNSC, investigación, ingeniería, demostración.",
                                      condition_on_previous_text=False, vad_filter=True,
                                      vad_parameters={"min_silence_duration_ms": 400}, max_new_tokens=128)
     text = " ".join(segment.text.strip() for segment in segments).strip()
@@ -62,7 +70,11 @@ while True:
     if raw is None:
         break
     try:
-        write_response(transcribe(raw))
+        if raw == b"WARMUP":
+            initialize()
+            write_response(b'{"ready":true}')
+        else:
+            write_response(transcribe(raw))
     except ValueError as error:
         code = str(error)
         if code not in {"STT_AUDIO_TOO_LONG", "STT_INVALID_AUDIO", "STT_NO_SPEECH"}:

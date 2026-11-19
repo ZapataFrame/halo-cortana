@@ -1,8 +1,9 @@
+import { synchronizeClock } from './clocked-audio.js';
 // Una reproducción por control, protegida además por la reserva global del PC.
 export function createSpeechPlayer({ request = fetch, createAudio = () => new Audio(),
   createUrl = blob => URL.createObjectURL(blob), revokeUrl = url => URL.revokeObjectURL(url),
   onState = () => {}, now = () => performance.now(), uuid = () => crypto.randomUUID(),
-  heartbeatMs = 5000 } = {}) {
+  heartbeatMs = 5000, synchronize = false, unlockAudio = async () => {} } = {}) {
   let current, release = Promise.resolve(), volume = 0.8;
   const report = (phase, detail, extra = {}) => onState({ phase, detail, ...extra });
   async function notify(job, playing, keepalive = false) {
@@ -29,6 +30,7 @@ export function createSpeechPlayer({ request = fetch, createAudio = () => new Au
     const pending = stop(false);
     const job = { id: uuid(), requestId, controller: new AbortController(), started: now() };
     current = job; report('preparing', 'Preparando voz en español…');
+    try { await unlockAudio(); } catch (error) { if (current === job) { stop(false); report('error', error.message); } return; }
     await pending;
     if (current !== job) return;
     job.deadline = setTimeout(() => job.controller.abort(), 93000);
@@ -40,8 +42,11 @@ export function createSpeechPlayer({ request = fetch, createAudio = () => new Au
       if (current !== job || job.controller.signal.aborted) return;
       clearTimeout(job.deadline);
       job.synthesisMs = Number(response.headers.get('X-Synthesis-Ms'));
-      job.url = createUrl(blob); job.audio = createAudio();
-      job.audio.volume = volume; job.audio.src = job.url;
+      if (!synchronize) job.url = createUrl(blob);
+      job.audio = createAudio(); job.audio.volume = volume;
+      if (synchronize) await job.audio.prepare(blob, job.controller.signal);
+      else job.audio.src = job.url;
+      if (current !== job) return;
       job.audio.onended = () => { if (current === job) { stop(false); report('stopped', 'Lectura terminada.'); } };
       job.audio.onerror = () => { if (current === job) { stop(false); report('error', 'No se pudo reproducir la voz. El texto sigue disponible.'); } };
       job.audio.onplaying = async () => {
@@ -58,7 +63,18 @@ export function createSpeechPlayer({ request = fetch, createAudio = () => new Au
           }), heartbeatMs);
         } catch (error) { if (current === job) { stop(false); report('error', error.message); } }
       };
-      await job.audio.play();
+      if (synchronize) {
+        const link = await request('/api/voice/link', { signal: job.controller.signal });
+        if (!link.ok) throw new Error('No se pudo preparar el enlace de voz.');
+        const { token } = await link.json();
+        const offset = await synchronizeClock(request, { Authorization: `Bearer ${token}` });
+        const scheduled = await request('/api/tts/schedule', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ speechId: job.id }), signal: AbortSignal.any([job.controller.signal, AbortSignal.timeout(6000)]) });
+        const cue = await scheduled.json();
+        if (!scheduled.ok) throw new Error(cue.error || 'No se pudo coordinar la voz.');
+        if (current !== job) return;
+        await job.audio.playAt(cue.startAt, offset);
+      } else await job.audio.play();
     } catch (error) {
       if (current !== job) return;
       stop(false);
@@ -67,7 +83,7 @@ export function createSpeechPlayer({ request = fetch, createAudio = () => new Au
     }
   }
   return {
-    play, stop,
+    play, stop, unlock: unlockAudio,
     setVolume(value) { if (Number.isFinite(value) && value >= 0 && value <= 1) { volume = value; if (current?.audio) current.audio.volume = volume; } },
     onPresentation(state, changedSession) {
       if (current && (changedSession || current.playing && state.revision >= current.playingRevision && state.phase !== 'speaking')) stop();

@@ -81,3 +81,11 @@ test('el contrato de audio rechaza canales/frecuencia/tamaño/duración incompat
   assert.equal(validVoiceWav(Buffer.alloc(44 + 21 * 22050 * 2)), false);
   assert.equal(validVoiceWav(null), false);
 });
+
+test('RVC sin índice requiere seleccionar tasa cero explícitamente; CUDA y tasa inválida se rechazan', async t => {
+  assert.throws(() => createRvc({ device: 'auto' }), /inválida/);
+  assert.throws(() => createRvc({ indexRate: NaN }), /inválida/);
+  const { tts } = await fixture(t, 'echo', { indexRate: 0, index: '' });
+  assert.equal((await tts.health()).ready, true);
+  assert.match((await tts.health()).detail, /sin índice/);
+});

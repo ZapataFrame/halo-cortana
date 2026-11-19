@@ -6,9 +6,16 @@ export function usePresentation() {
   const presentation = shallowRef(null), connected = shallowRef(false), info = shallowRef(null);
   let pending, disposed = false;
   async function prepare() {
-    if (info.value || pending || disposed) return;
+    if (pending || disposed || info.value && (!info.value.localControl || info.value.voiceToken)) return;
     const controller = new AbortController(); pending = controller;
-    try { const result = await requestJson('/api/info', { signal: controller.signal }); if (!disposed) info.value = result; }
+    try {
+      const result = info.value || await requestJson('/api/info', { signal: controller.signal });
+      if (disposed || controller.signal.aborted) return; info.value = result;
+      if (result.localControl) {
+        const link = await requestJson('/api/voice/link', { signal: controller.signal });
+        if (!disposed && !controller.signal.aborted) info.value = { ...result, voiceToken: link.token };
+      }
+    }
     catch { /* Reintentar con polling, incluso sin nueva revisión. */ }
     finally { if (pending === controller) pending = undefined; }
   }
@@ -16,7 +23,7 @@ export function usePresentation() {
     interval: () => document.hidden ? 3000 : 1000, onAvailable: prepare,
     onConnection: value => { connected.value = value; },
     onState(value) {
-      if (presentation.value && presentation.value.sessionId !== value.sessionId) info.value = null;
+      if (presentation.value && presentation.value.sessionId !== value.sessionId) { pending?.abort(); pending = undefined; info.value = null; }
       presentation.value = value;
     },
   });

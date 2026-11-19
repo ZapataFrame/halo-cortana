@@ -1,17 +1,19 @@
 <script setup>
 import { computed, onMounted, onUnmounted, shallowRef, useTemplateRef, watch } from 'vue';
 import CalibrationPanel from './CalibrationPanel.vue';
+import ViewerAudio from './ViewerAudio.vue';
 import { loadCalibration, saveCalibration } from '../scene/calibration.js';
 import { requestJson } from '../services/api.js';
 import { ANIMATIONS } from '../services/animation-catalog.js';
-const props = defineProps({ projection: Boolean, presentation: Object, connected: Boolean, localControl: Boolean });
+const props = defineProps({ projection: Boolean, presentation: Object, connected: Boolean, localControl: Boolean, audioToken: String });
 const surface = useTemplateRef('surface'), settings = shallowRef(loadCalibration(localStorage));
 const pattern = shallowRef(false), open = shallowRef(false), transform = shallowRef('');
 const diagnostic = shallowRef({ state: 'loading', detail: 'Cargando Cortana…' }), notice = shallowRef('');
+const relaySpeaking = shallowRef(false);
 const moving = shallowRef(false), gesture = shallowRef('wave');
 const gestures = Object.entries(ANIMATIONS).filter(([name]) => name !== 'idle');
 let viewer, disposed = false, wakeLock;
-const phase = computed(() => props.connected ? props.presentation?.phase || 'idle' : 'idle');
+const phase = computed(() => relaySpeaking.value ? 'speaking' : props.connected ? props.presentation?.phase || 'idle' : 'idle');
 watch(settings, value => {
   if (!saveCalibration(localStorage, value)) notice.value = 'No se pudieron guardar los ajustes. Siguen activos en esta sesión.';
   viewer?.setSettings(value);
@@ -75,6 +77,7 @@ onUnmounted(() => { disposed = true; viewer?.destroy(); wakeLock?.release(); doc
       <CalibrationPanel v-model="settings" v-model:pattern="pattern" /><button @click="fullscreen">Pantalla completa</button>
       <p v-if="notice" role="status">{{ notice }}</p>
     </section>
+    <ViewerAudio v-if="projection" :token="audioToken" :settings-open="open" @speaking="relaySpeaking = $event" />
     <p v-if="!projection && notice" role="status">{{ notice }}</p>
   </section>
 </template>

@@ -49,9 +49,11 @@ Para Gemini, añade tu clave de [Google AI Studio](https://aistudio.google.com/a
 
 Escribe y pulsa **Enviar mensaje**; Enter envía y Shift+Enter agrega una línea. **Cancelar respuesta** detiene la espera y **Nueva conversación** vacía el contexto. La respuesta permanece disponible si falla el audio.
 
-Despliega **Voz y micrófono** para activar lectura automática, escuchar una respuesta o mantener pulsado para dictar. El resultado se añade al editor: debes revisarlo y enviarlo. Instalación y contratos: [voz PC](docs/VOZ_PC.md).
+Despliega **Voz y micrófono** para preparar los motores, activar lectura automática, escuchar una respuesta o mantener pulsado para dictar. El resultado se añade al editor: debes revisarlo y enviarlo. Instalación y contratos: [voz PC](docs/VOZ_PC.md).
 
-La voz de Cortana usa Piper seguido de RVC local con `TTS_PROVIDER=rvc`. `npm run setup:demo` prepara la voz y el micrófono; `npm run setup:cortana` descarga solo los pesos de Cortana. Las rutas privadas `RVC_MODEL_PATH`/`RVC_INDEX_PATH` son opcionales para otra ubicación. Reutiliza entornos aislados; la preparación en CPU tarda varios segundos. `TTS_PROVIDER=piper` selecciona la voz base. Reinicia tras cambiar `.env`.
+Para que suene también en otra pantalla, abre **Abrir visor con voz** o los enlaces de **Conectar otra pantalla** y pulsa **Activar sonido del visor** una vez. La lectura se prepara una sola vez y se programa en PC y visores enlazados. **Detener voz** cancela todas las salidas; si comparten altavoces, baja a cero el **Volumen del PC** para evitar eco.
+
+La voz de Cortana usa Piper seguido de RVC local con `TTS_PROVIDER=rvc`. `npm run setup:demo` prepara la voz y el micrófono; `npm run setup:cortana` descarga solo los pesos de Cortana. Las rutas privadas `RVC_MODEL_PATH`/`RVC_INDEX_PATH` son opcionales para otra ubicación. Reutiliza entornos aislados; la primera preparación en CPU puede superar un minuto. `TTS_PROVIDER=piper` selecciona la voz base. Reinicia tras cambiar `.env`. La Release actual está en borrador y sin índice; el procedimiento de recuperación para su propietario y la selección explícita sin índice están en [voz PC](docs/VOZ_PC.md).
 
 Cortana acompaña la escucha, la espera y la reproducción de voz con movimientos de atención, reflexión y explicación. El reposo incluye balanceo y cambios periódicos de apoyo. En **Movimiento** puedes elegir saludo, sí, no, pensar, manos en cadera, escucha, explicación o cambio de postura. **Automático** libera el gesto manual; los gestos también terminan por sí solos.
 

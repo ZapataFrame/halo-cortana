@@ -56,7 +56,9 @@ export function providerConfig(env = process.env, provider = env.LLM_PROVIDER ||
   if (!['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname) || !['http:', 'https:'].includes(url.protocol)) {
     throw new Error('OLLAMA_URL debe apuntar al servicio local del PC.');
   }
-  return { provider, model: env.OLLAMA_MODEL || 'phi4-mini:latest', url: url.origin };
+  const threads = Number(env.OLLAMA_NUM_THREADS || env.VOICE_CPU_THREADS || 2);
+  if (!Number.isInteger(threads) || threads < 1 || threads > 16) throw new Error('OLLAMA_NUM_THREADS debe ser un entero de 1 a 16.');
+  return { provider, model: env.OLLAMA_MODEL || 'phi4-mini:latest', url: url.origin, threads };
 }
 
 function catalogNames(data) {
@@ -173,7 +175,7 @@ export async function generateReply(config, history, message, signal, request = 
       body = { model: config.model, messages, stream: false, think: false,
         options: { num_predict: 256, temperature: 1, top_p: 0.95, top_k: 64 } };
     } else {
-      body = { model: config.model, messages, stream: false, options: { num_ctx: 4096, num_predict: 48, temperature: 0.5 } };
+      body = { model: config.model, messages, stream: false, options: { num_ctx: 4096, num_predict: 48, num_thread: config.threads || 2, temperature: 0.5 } };
     }
   } else {
     if (!config.key || !config.model) throw new Error('PROVIDER_NOT_CONFIGURED');

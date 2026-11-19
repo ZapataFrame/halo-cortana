@@ -6,6 +6,7 @@ import { networkInterfaces } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { generateReply, providerHealth, localModels, checkProviderConnection, PROVIDERS } from './providers.js';
 import { createTts, speechText } from './tts.js';
+import { createVoiceRelay } from './voice-relay.js';
 import { createWhisper, AUDIO_LIMIT, validateAudioType, validateAudio } from './stt.js';
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.glb': 'model/gltf-binary', '.json': 'application/json', '.md': 'text/plain; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml' };
@@ -50,13 +51,15 @@ function readAudio(req, signal) {
   });
 }
 
-export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile, tts = createTts(), ttsTimeoutMs = tts.timeoutMs || 20000, speechLeaseMs = 15000, stt = createWhisper(), sttTimeoutMs = 30000, captureLeaseMs = 35000, animationMs } = {}) {
+export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile, tts = createTts(), ttsTimeoutMs = tts.timeoutMs || 20000, speechLeaseMs = 15000, stt = createWhisper(), sttTimeoutMs = 30000, captureLeaseMs = 35000, animationMs, relayOptions } = {}) {
   const sessionId = randomUUID();
   let revision = 0, chatGeneration = 0, phase = 'idle', animation = 'idle', active = null, history = [];
   const completed = new Map();
   let animationTimer;
+  const relay = createVoiceRelay(relayOptions);
   let speech;
   function stopSpeech() {
+    relay.stop();
     if (!speech) return;
     speech.controller.abort(); clearTimeout(speech.timer); speech = undefined; revision++;
   }
@@ -88,6 +91,11 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
     try { pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname); }
     catch { json(res, 400, { error: 'Ruta inválida.' }); return; }
     try {
+      if (req.method === 'GET' && pathname === '/api/voice/link') {
+        if (!localWrite(req, res)) return;
+        json(res, 200, { token: relay.token }); return;
+      }
+      if (await relay.handle(req, res, pathname)) return;
       if (req.method === 'GET' && pathname === '/api/presentation') { json(res, 200, state()); return; }
       if (req.method === 'GET' && pathname === '/api/tts') {
         if (!localWrite(req, res)) return;
@@ -182,6 +190,41 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
           }
           json(res, 200, state()); return;
         }
+        if (pathname === '/api/engines/warmup') {
+          if (!body || Array.isArray(body) || Object.keys(body).length) { json(res, 400, { error: 'Envía un objeto vacío.' }); return; }
+          if (active || speech || capture) { json(res, 409, { error: 'Detén la voz, grabación o respuesta antes de preparar motores.' }); return; }
+          const token = { id: randomUUID(), controller: new AbortController() }; speech = token;
+          let timedOut = false;
+          const timer = setTimeout(() => { timedOut = true; token.controller.abort(); }, 180000);
+          const disconnected = () => { if (!res.writableEnded && speech === token) stopSpeech(); };
+          res.on('close', disconnected);
+          const result = {};
+          try {
+            for (const [name, engine] of [['stt', stt], ['tts', tts]]) {
+              const started = performance.now();
+              try { token.controller.signal.throwIfAborted(); await engine.warmup(token.controller.signal); result[name] = { ready: true, elapsedMs: Math.round(performance.now() - started) }; }
+              catch { result[name] = { ready: false, elapsedMs: Math.round(performance.now() - started), detail: 'No se pudo preparar este motor. Revisa su instalación/configuración y vuelve a intentar.' }; }
+            }
+            if (!res.destroyed) json(res, timedOut ? 504 : token.controller.signal.aborted ? 499 : 200,
+              timedOut ? { ...result, error: 'La preparación superó tres minutos. Reduce la carga del PC y vuelve a intentar.' } : result);
+          } finally { clearTimeout(timer); res.off('close', disconnected); if (speech === token) stopSpeech(); }
+          return;
+        }
+        if (pathname === '/api/tts/schedule') {
+          if (!body || Object.keys(body).join(',') !== 'speechId' || !speech?.prepared || speech.id !== body.speechId) {
+            json(res, 409, { error: 'La voz ya no está disponible.' }); return;
+          }
+          const token = speech;
+          const disconnected = () => { if (!res.writableEnded && speech === token) stopSpeech(); };
+          res.on('close', disconnected);
+          try {
+            const scheduled = await relay.schedule(body.speechId);
+            if (speech !== token) throw new Error('Reproducción cancelada.');
+            renewSpeech(); json(res, 200, scheduled);
+          } catch (error) { if (speech === token) stopSpeech(); if (!res.destroyed) json(res, 409, { error: error.message }); }
+          finally { res.off('close', disconnected); }
+          return;
+        }
         if (pathname === '/api/tts' || pathname === '/api/tts/playback') {
           const playback = pathname.endsWith('/playback');
           if (!body || Array.isArray(body) || typeof body.speechId !== 'string' || !/^[a-zA-Z0-9-]{8,80}$/.test(body.speechId)
@@ -213,16 +256,16 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
           try {
             const audio = await tts.synthesize(speechText(text), token.controller.signal);
             if (token.controller.signal.aborted || speech !== token) throw new Error('TTS_CANCELLED');
-            token.prepared = true; renewSpeech();
+            token.prepared = true; relay.prepare(token.id, audio); renewSpeech();
             res.writeHead(200, { 'Content-Type': 'audio/wav', 'Cache-Control': 'no-store',
               'X-Synthesis-Ms': String(Math.round(performance.now() - started)) });
             res.end(audio);
           } catch (error) {
             const cancelled = token.controller.signal.aborted;
             if (speech === token) stopSpeech();
-            const missing = error.message === 'TTS_NOT_CONFIGURED';
-            if (!res.destroyed) json(res, timedOut ? 504 : cancelled ? 499 : missing ? 503 : 502,
-              { error: timedOut ? 'La voz tardó demasiado. El texto sigue disponible.' : missing
+            const missing = error.message === 'TTS_NOT_CONFIGURED', tooLong = error.message === 'TTS_TOO_LONG';
+            if (!res.destroyed) json(res, timedOut ? 504 : cancelled ? 499 : tooLong ? 422 : missing ? 503 : 502,
+              { error: tooLong ? 'La lectura supera dos minutos. Pide una respuesta más breve; el texto sigue disponible.' : timedOut ? 'La voz tardó demasiado. El texto sigue disponible.' : missing
                 ? 'Falta preparar la voz local seleccionada. Revisa la configuración del PC y reinicia el servidor.' : 'No se pudo generar la voz. El texto sigue disponible.' });
           } finally { clearTimeout(timer); res.off('close', disconnected); }
           return;
@@ -369,6 +412,6 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
       json(res, clientError ? 400 : 404, { error: clientError ? error.message : 'Archivo no disponible.' });
     }
   });
-  server.on('close', () => { clearTimeout(animationTimer); active?.controller.abort(); stopSpeech(); stopCapture(); tts.close?.(); stt.close?.(); });
+  server.on('close', () => { clearTimeout(animationTimer); active?.controller.abort(); stopSpeech(); stopCapture(); relay.close(); tts.close?.(); stt.close?.(); });
   return server;
 }

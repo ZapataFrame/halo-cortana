@@ -10,7 +10,8 @@ Decisión vigente, 2026-10-23: concentrar el prototipo en Cortana y migrar la in
 | `AvatarView.vue` / `CalibrationPanel.vue` | Ciclo de vida del canvas, ajustes por navegador y controles de representación. |
 | `ConversationPanel.vue` | Borrador, historial visible, coordinación de proveedor/voz y envío explícito. |
 | `ProviderSettings.vue` | Catálogo, selección validada y diagnóstico. Su consulta inicial no bloquea enlaces ni voz. |
-| `VoiceControls.vue` | Captura manual, permisos, reproducción, volumen y limpieza al salir. |
+| `VoiceControls.vue` | Captura manual, preparación de motores, reproducción coordinada, volumen del PC y limpieza al salir. |
+| `ViewerAudio.vue` | Activación explícita del sonido en un visor autorizado y estado de reproducción local. |
 | `usePresentation` | Estado público, reconexión y preparación inicial acotada; sin reenvíos de chat. |
 | `useConversation` | Peticiones, idempotencia, cancelación y descarte de entregas antiguas. |
 | `src/services` | Servicios de red/audio independientes del render de Vue. |
@@ -21,7 +22,7 @@ Vue 3 + Composition API con SFC; se mantiene JavaScript ESM para reutilizar serv
 
 ## Contratos que deben conservarse
 
-- `GET /api/presentation`: solo `{sessionId,revision,phase,animation}`; público en LAN. Fases `idle|processing|responded|error|speaking|listening`; movimientos del catálogo cerrado compartido `src/services/animation-catalog.js`: `idle|wave|nod|shake_head|think|hands_on_hips|listen|explain|shift_weight`. `animation` representa la selección manual; el visor deriva su postura automática de `phase` cuando vale `idle`. No publica conversación, audio ni claves.
+- `GET /api/presentation`: solo `{sessionId,revision,phase,animation}`; público en LAN. Fases `idle|processing|responded|error|speaking|listening`; movimientos del catálogo cerrado compartido `src/services/animation-catalog.js`: `idle|wave|nod|shake_head|think|hands_on_hips|listen|explain|shift_weight`. `animation` representa la selección manual; el visor deriva su postura automática de `phase` cuando vale `idle`. No publica conversación, audio ni claves. El audio del visor usa un canal autorizado independiente; no amplía estos cuatro campos.
 - `POST /api/animation {animation}`: privado; catálogo cerrado, sin campos adicionales. Los gestos finitos expiran según su duración; posturas manuales, tras 8 s. `idle` libera la prioridad manual y el visor sigue la fase actual. Cada nueva solicitud sustituye el temporizador anterior; no se exige sincronía exacta de frames entre pantallas.
 - Chat/proveedor/TTS/STT: loopback, Host y Origin local. Límite de entrada 2000 caracteres; seis pares de contexto; timeout LLM 60 s, cancelación e IDs idempotentes. Cambiar proveedor limpia historial y caché; no fallback automático.
 - `GET /api/providers` enumera modelos permitidos. `POST /api/provider` valida contra ese catálogo; diagnóstico `POST /api/provider/check {}` no genera texto ni certifica cuota mediante un catálogo público.
@@ -45,7 +46,7 @@ Verificación: 96 pruebas y build correctos. Las pruebas HTTP usan respuestas co
 
 La petición explícita de integrar la muestra RVC añade `createTts` como selección de backend (`piper|rvc`). RVC compone el adaptador Piper existente y un worker Python con su propio entorno, sin incorporar paquetes al Python global. El segundo worker llama a la conversión sobre arrays en memoria; resamplea a PCM16 mono/22 050 Hz y valida duración/salida. Las rutas de pesos e índice se configuran solo en `.env`; no se exponen a Vue ni se aceptan desde peticiones.
 
-El worker verifica los hashes de HuBERT/RMVPE, usa carga restringida para los pesos de voz y no descarga recursos en ejecución. La exclusión TTS/STT, cancelación, descarte de resultados y cierre de procesos reutilizan el transporte existente. RVC amplía la preparación a 90 s por su coste CPU; el control acota su espera a 93 s. Un fallo conserva el texto y el control manual, sin fallback automático. Contratos, configuración y evidencia real en [voz PC](VOZ_PC.md).
+El worker admite CPU o CUDA explícitos e índice opcional solo con tasa cero configurada. Verifica los hashes de HuBERT/RMVPE, usa carga restringida para los pesos de voz y no descarga recursos en ejecución. La exclusión TTS/STT, cancelación, descarte de resultados y cierre de procesos reutilizan el transporte existente. RVC amplía la preparación a 90 s por su coste CPU; el control acota su espera a 93 s. Un fallo conserva el texto y el control manual, sin fallback automático. Contratos, configuración y evidencia real en [voz PC](VOZ_PC.md).
 
 ## Movimiento corporal
 
@@ -54,3 +55,11 @@ El worker verifica los hashes de HuBERT/RMVPE, usa carga restringida para los pe
 El generador adapta dos clips CC0 de torso de Quaternius y añade curvas propias/IK sobre el rig existente. Se conservan el GLB, las texturas, la calibración y el fondo negro. Diagnóstico, catálogo, procedencia y límites de revisión: [animaciones](ANIMACIONES.md). El modelo no tiene morph targets faciales; sincronización labial y arte final siguen fuera de este incremento. Los LLM conversan; no reciben herramientas ni controlan dispositivos.
 
 Referencias de implementación: [SFC de Vue](https://vuejs.org/guide/scaling-up/sfc.html), [composables](https://vuejs.org/guide/reusability/composables.html), [sistema de animación de Three](https://threejs.org/manual/en/animation-system.html).
+
+## Voz en el visor · C-12, 2026-11-18
+
+`server/voice-relay.js` conserva únicamente el WAV de la lectura activa. Un token por sesión, obtenido por loopback y trasladado en el fragmento del enlace de visor, autoriza sus rutas de tiempo, SSE, preparación y audio. No publica historial ni da control del chat al visor. Reiniciar invalida el token; detener elimina el WAV y cancela las salidas.
+
+El PC y cada visor decodifican la misma lectura antes de programar una fecha común. La espera por participantes es acotada; conexiones nuevas no reanudan una lectura pasada. Web Audio estima el desfase con el servidor y programa `AudioBufferSourceNode`; una entrega demasiado tardía se descarta. `speaking` depende del inicio de reproducción, no de la síntesis ni del mero horario. No se garantiza sincronía acústica entre dispositivos distintos.
+
+La preparación explícita evita cargar Whisper/RVC por primera vez en medio de la pregunta; conserva exclusión y cancelación. Los workers retienen modelos tres minutos. La lectura extensa se segmenta con límite por worker y se concatena como PCM, manteniendo las claves y modelos en el PC. Configuración, alternativas gratuitas, instalación y límites de medición: [voz PC](VOZ_PC.md).

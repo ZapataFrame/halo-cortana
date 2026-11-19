@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 
 // Un proceso local y una petición activa; los modelos sobreviven entre turnos.
 export function createVoiceWorker({ command, args, env, prefix, maxInput, maxOutput,
-  idleMs = 60000, spawnProcess = spawn }) {
+  idleMs = 180000, spawnProcess = spawn }) {
   let processState, job, idleTimer;
   const failure = suffix => new Error(`${prefix}_${suffix}`);
 

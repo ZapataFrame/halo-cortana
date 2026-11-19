@@ -1,0 +1,129 @@
+{
+  "date": "2026-11-18",
+  "remoteMain": "333146990c7881513805089c05e4213a81d6ba77",
+  "hardware": {
+    "cpu": "Intel Core i5-1334U",
+    "logicalCpus": 12,
+    "ramGiB": 15,
+    "gpu": "Sin NVIDIA disponible en esta sesión"
+  },
+  "conditions": "CPU 100%; cola >40 procesos, swap activa. Sin ensayo humano/físico, sin RTX 3060. Cifras observacionales; no comparación causal controlada.",
+  "voice": {
+    "modelSha256": "5bfbfab44bdb190a20fef16a2ef5eecb19a741f8cbf327b2754017b51bd681e5",
+    "indexRate": 0,
+    "modelIndex": "Asset ausente de Release en borrador; modo sin índice explícito",
+    "selectedDevice": "cpu",
+    "selectedThreads": 2,
+    "firstPreparationMs": 124638,
+    "sample": {
+      "text": "Hola Cortana.",
+      "bytes": 34442,
+      "durationMs": 780,
+      "sampleRate": 22050,
+      "channels": 1,
+      "bits": 16,
+      "rms": 0.1459761745583705,
+      "peak": 0.985015869140625
+    },
+    "preparationUnderHigherLoad": {
+      "status": 499,
+      "elapsedMs": 180630,
+      "stt": {
+        "ready": true,
+        "elapsedMs": 10984
+      },
+      "tts": {
+        "ready": false,
+        "elapsedMs": 169108,
+        "detail": "No se pudo preparar este motor. Revisa su instalación/configuración y vuelve a intentar."
+      }
+    },
+    "experiment4Threads": {
+      "adopted": false,
+      "scope": "Diagnóstico aislado con un hilo interop; mismo texto. No sustituye el perfil de dos hilos.",
+      "runs": [
+        {
+          "cold": true,
+          "elapsedMs": 227669
+        },
+        {
+          "cold": false,
+          "elapsedMs": 107955
+        }
+      ]
+    }
+  },
+  "recognition": {
+    "input": "Frase pública sintetizada, 2717 ms: Hola Cortana. Ayúdame a preparar una exposición.",
+    "profile": "faster-whisper CPU int8, beam=1, threads=2",
+    "runs": [
+      {
+        "model": "base",
+        "run": 0,
+        "text": "Hola Cortana, ayúame a preparar una exposición.",
+        "durationMs": 2717,
+        "elapsedMs": 6316
+      },
+      {
+        "model": "base",
+        "run": 1,
+        "text": "Hola Cortana, ayúame a preparar una exposición.",
+        "durationMs": 2717,
+        "elapsedMs": 3295
+      },
+      {
+        "model": "small",
+        "error": "STT_CANCELLED"
+      }
+    ],
+    "earlierRuns": [
+      {
+        "run": 0,
+        "text": "Hola Cortana, ayudame a preparar una exposición.",
+        "durationMs": 2717,
+        "elapsedMs": 4725
+      },
+      {
+        "run": 1,
+        "text": "Hola Cortana, ayudame a preparar una exposición.",
+        "durationMs": 2717,
+        "elapsedMs": 2528
+      },
+      {
+        "run": 2,
+        "text": "Hola Cortana, ayudame a preparar una exposición.",
+        "durationMs": 2717,
+        "elapsedMs": 2550
+      }
+    ],
+    "decision": "Conservar base. Small superó 60 s bajo carga; sin comparación de precisión humana."
+  },
+  "llm": {
+    "selected": "ollama-cloud / gemma4:31b",
+    "catalogOnly": "ACCESS_UNVERIFIED",
+    "actualGeneration": "PROVIDER_HTTP_402",
+    "localExperiment": "phi4-mini:latest: timeout 90 s bajo carga; selección persistente no modificada",
+    "questionsValidated": 0
+  },
+  "digitalPlayback": {
+    "control": "Web Audio inició y confirmó Cortana está hablando con la muestra real previamente sintetizada.",
+    "viewer": "Mismo WAV descargado por canal autorizado, preparación/fecha compartida y Lectura terminada observados en navegador.",
+    "transport": "Para aislar reproducción del coste de inferencia, servidor QA devolvió WAV real grabado; no certifica nueva síntesis en ese recorrido ni respuesta LLM real.",
+    "scope": "Control y visor comprobados secuencialmente en un navegador; coincidencia de fecha/bytes y cancelación cubiertas por pruebas HTTP. Sin medición acústica entre dos dispositivos.",
+    "viewports": [
+      "escritorio",
+      "390x844"
+    ]
+  },
+  "verification": {
+    "tests": 123,
+    "passed": 123,
+    "build": "passed; aviso previo de chunk Three.js >500kB",
+    "uiDetector": "sin incidencias",
+    "limits": [
+      "Generación LLM configurada sin acceso/cuota",
+      "Cortana CPU sin latencia aceptable acreditada bajo carga actual",
+      "RTX 3060 y calidad perceptual sin verificar"
+    ]
+  }
+}

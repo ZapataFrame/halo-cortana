@@ -2,6 +2,7 @@
 import contextlib
 import hashlib
 import io
+import os
 import json
 from pathlib import Path
 import sys
@@ -9,7 +10,9 @@ import wave
 
 from voice_protocol import read_request, write_response
 
-model_path, index_path = Path(sys.argv[1]).resolve(), Path(sys.argv[2]).resolve()
+model_path = Path(sys.argv[1]).resolve()
+index_path = Path(sys.argv[2]).resolve() if sys.argv[2] else None
+index_rate = float(os.environ.get("RVC_INDEX_RATE", "0.5"))
 manifest_path = Path(sys.argv[3]).resolve()
 rvc = None
 
@@ -18,7 +21,10 @@ def initialize():
     global rvc
     import os
     import torch
-    torch.set_num_threads(min(4, os.cpu_count() or 1))
+    torch.set_num_threads(int(os.environ.get("VOICE_CPU_THREADS", "2")))
+    device = os.environ.get("RVC_DEVICE", "cpu")
+    if device != "cpu" and not torch.cuda.is_available():
+        raise ValueError("CUDA_UNAVAILABLE")
     original_load = torch.load
     def load(path, *args, **kwargs):
         if isinstance(path, (str, Path)) and Path(path).resolve() == model_path:
@@ -36,14 +42,17 @@ def initialize():
             if digest.hexdigest() != file["sha256"]:
                 raise ValueError("INVALID_AUXILIARY")
     inference.download_rvc_models = verify
-    rvc = inference.RVCInference(device="cpu", models_dir=str(model_path.parent),
-                                 model_path=str(model_path), index_path=str(index_path), version="v2")
+    rvc = inference.RVCInference(device=device, models_dir=str(model_path.parent),
+                                 model_path=str(model_path), index_path=str(index_path) if index_path else "", version="v2")
     if rvc.vc.version != "v2" or rvc.vc.tgt_sr != 48000 or rvc.vc.if_f0 != 1:
         raise ValueError("INVALID_MODEL")
     import faiss
-    index = faiss.read_index(str(index_path))
-    if index.d != 768 or index.ntotal == 0:
-        raise ValueError("INVALID_INDEX")
+    if index_rate > 0:
+        if index_path is None:
+            raise ValueError("INVALID_INDEX")
+        index = faiss.read_index(str(index_path))
+        if index.d != 768 or index.ntotal == 0:
+            raise ValueError("INVALID_INDEX")
     from rvc_python.modules.vc.utils import load_hubert
     rvc.vc.hubert_model = load_hubert(rvc.config, rvc.lib_dir)
 
@@ -71,7 +80,7 @@ while True:
                 initialize()
             vc = rvc.vc
             converted = vc.pipeline.pipeline(vc.hubert_model, vc.net_g, 0, audio, "memory", [0, 0, 0],
-                0, "rmvpe", str(index_path), 0.5, vc.if_f0, 3, vc.tgt_sr, 0, 0.25, "v2", 0.33)
+                0, "rmvpe", str(index_path) if index_path else "", index_rate, vc.if_f0, 3, vc.tgt_sr, 0, 0.25, "v2", 0.33)
             converted = resample_poly(converted.astype(np.float32) / 32768, 147, 320)
             if not np.isfinite(converted).all() or not np.abs(converted).max() > 0:
                 raise ValueError("EMPTY_AUDIO")

@@ -1,6 +1,6 @@
 # Cortana — Plan y roadmap
 
-Actualizado: 2026-11-01. Objetivo: un prototipo conversacional mantenible con Cortana, Vue y presentación 3D. El propietario retiró el simulador, avatares alternativos, placeholders y documentación histórica redundante. Esta es la única planificación vigente.
+Actualizado: 2026-11-18. Objetivo: un prototipo conversacional mantenible con Cortana, Vue y presentación 3D. El propietario retiró el simulador, avatares alternativos, placeholders y documentación histórica redundante. Esta es la única planificación vigente.
 
 ## Trabajo actual
 
@@ -17,12 +17,13 @@ Actualizado: 2026-11-01. Objetivo: un prototipo conversacional mantenible con Co
 | C-09 | PARTIAL | Codex, 2026-10-28 | C-08 | Instaladores portables y descarga con hash implementados en main. Se conserva pendiente la comprobación completa desde checkout limpio y de la publicación de pesos en Release; esta integración no acredita ese cierre. |
 | C-10 | DONE | Codex, 2026-11-01 | C-01, C-03, C-06, C-08 | Integración de ambas puntas remotas en main: Gemini/RVC/instaladores y nueve animaciones sobre Vue 3. npm ci, 107 pruebas y build correctos; control y visor revisados en escritorio/vertical con fixtures. Publicación en la rama principal autorizada por el propietario el 2026-11-01. Comparación de ramas, comandos y límites en docs/REORGANIZACION.md. |
 | C-11 | DONE | Codex, 2026-11-14 | C-10 | Actualización por avance directo a origin/main 3331469; 107 pruebas y build correctos. Guion Markdown de visita web de 25 minutos y siete temas, con papeles de investigadores, navegación, diálogos y continuidad. Fuente corporativa master 4824b2d consultada desde copia temporal remota; no se modifica el proyecto vecino. URL de exhibición, reparto y ensayo cronometrado pendientes. Entregable: docs/PRESENTATION_SCRIPT.md. |
+| C-12 | PARTIAL | Codex, 2026-11-18 | C-08, C-10 | Remoto comprobado en 3331469 y guion conservado. Pesos Cortana recuperados/verificados, RVC instalado y seleccionado sin índice explícitamente; WAV real y reproducción digital en control/visor comprobados. Audio autorizado con fecha común, cancelación y recuperación; Whisper CPU int8/beam 1 y perfiles CUDA configurables. 123 pruebas/build y revisión renderizada escritorio/vertical correctos. Pendiente acreditar latencia estable con RVC bajo carga reducida/Linux con RTX 3060 (destino confirmado por el propietario) y batería de preguntas: cloud devuelve 402, local agotó timeout. Evidencia, mediciones y límites en docs/VOZ_PC.md. |
 
 ## Orden de ejecución
 
 1. C-01 cerrado; consultar su evaluación antes de ampliar el alcance.
 2. C-06 y C-08 conservan su implementación y evidencia previa; esta integración no acredita generación Gemini real ni calidad auditiva.
-3. C-02 sigue pendiente de la batería completa de conversaciones, interrupciones y latencias. C-03 conserva los nueve clips; la revisión técnica no equivale a aceptación artística.
+3. C-12 es la prioridad técnica: repetir mediciones con carga reducida y un proveedor con acceso, antes de cerrar la batería de C-02. C-03 conserva los nueve clips; la revisión técnica no equivale a aceptación artística. C-04/C-05 siguen aplazados y no bloquean software.
 
 Se conservan LLM intercambiables, TTS/STT locales, cancelación, reserva exclusiva de audio y calibración v1. No hay herramientas de juego, autonomía de dispositivos, escucha continua, sincronización labial ni exportación instalada en el alcance actual.
 

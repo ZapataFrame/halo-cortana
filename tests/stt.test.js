@@ -62,11 +62,12 @@ test('cancelación, timeout y reset liberan STT, descartan resultados tardíos y
   const stt = { health: async () => ({ ready: true }), transcribe: (_bytes, signal) => new Promise((resolve, reject) => {
     finish = resolve; began?.(); signal.addEventListener('abort', () => reject(new Error('STT_CANCELLED')), { once: true });
   }) };
-  const f = await fixture(t, { stt, sttTimeoutMs: 200 });
+  const f = await fixture(t, { stt, sttTimeoutMs: 2000 });
   await f.record(); let wait = started(); const cancelled = f.audio(); await wait;
   assert.equal((await f.state()).phase, 'processing'); await f.session('cancel');
   assert.equal((await cancelled).status, 499); assert.equal((await f.state()).phase, 'idle');
-  await f.record(); const timeout = await f.audio(); assert.equal(timeout.status, 504);
+  const bounded = await fixture(t, { stt, sttTimeoutMs: 30 });
+  await bounded.record(); const timeout = await bounded.audio(); assert.equal(timeout.status, 504);
   await f.record(); wait = started(); const reset = f.audio(); await wait;
   await f.post('/api/reset', {}); finish({ text: 'tardío', durationMs: 1000 });
   assert.equal((await reset).status, 499); assert.equal((await f.state()).phase, 'idle');

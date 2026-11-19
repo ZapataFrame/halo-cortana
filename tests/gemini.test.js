@@ -132,7 +132,7 @@ test('errores Gemini, clave ausente y bloqueo mantienen visor/contexto sin fallb
 test('cancelación y timeout Gemini abortan la petición y descartan texto tardío antes de recuperar', async t => {
   let release, started;
   const ready = new Promise(resolve => { started = resolve; });
-  const { post, state } = await fixture(t, { timeoutMs: 40,
+  const { post, state } = await fixture(t, { timeoutMs: 250,
     reply: (config, history, message, signal) => generateReply(config, history, message, signal, async (_url, options) => {
       if (message === 'cancelar') return new Promise(resolve => { release = () => resolve(googleText('No entregar.')); started(options.signal); });
       if (message === 'timeout') return new Promise((_resolve, reject) => options.signal.addEventListener('abort', () => reject(options.signal.reason), { once: true }));

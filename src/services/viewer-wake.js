@@ -90,8 +90,8 @@ export function createViewerWake({
         err ? reject(err) : resolve(value);
       };
       stopCurrentCapture = () => {
-        try { if (recorder.state !== 'inactive') recorder.stop(); } catch {}
         finish(null);
+        try { if (recorder.state !== 'inactive') recorder.stop(); } catch {}
       };
       recorder.ondataavailable = event => { if (event.data?.size) chunks.push(event.data); };
       recorder.onerror = () => finish(null, new Error('Error al capturar micrófono.'));
@@ -105,6 +105,7 @@ export function createViewerWake({
       recorder.start(150);
       maxTimer = setTimeout(endRecording, maxMs);
       checkTimer = setInterval(() => {
+        if (isBusy()) { stopCurrentCapture?.(); return; }
         if (ownRun !== run) { endRecording(); return; }
         const t = now(), level = rmsLevel(), threshold = Math.max(minThreshold, noiseFloor * 2.6);
         if (level >= threshold) {
@@ -147,7 +148,10 @@ export function createViewerWake({
         return;
       }
       onPhase(null);
-      if (data.spoken) {
+      if (data.command) {
+        report('standby', `${data.reply} Di «Hey Cortana» para continuar.`);
+        busyUntil = now() + postSpeechGuardMs;
+      } else if (data.spoken) {
         report('standby', 'Cortana está respondiendo…');
         busyUntil = now() + postSpeechGuardMs;
       } else {
@@ -177,7 +181,7 @@ export function createViewerWake({
       if (ownRun !== run) return;
       if (!response.ok) {
         mode = 'standby';
-        if (response.status === 403 || response.status === 503) report('error', data.error || 'No se pudo comprobar «Ey Cortana».');
+        if (response.status === 403 || response.status === 503) { stop(false); report('error', data.error || 'No se pudo comprobar «Hey Cortana».'); }
         return;
       }
       if (!data.matched) { mode = 'standby'; return; }
@@ -196,7 +200,7 @@ export function createViewerWake({
       });
       if (ownRun !== run) return;
       if (!questionBlob) {
-        chime(audioCtx, 'cancel');
+        if (!isBusy()) chime(audioCtx, 'cancel');
         onPhase(null); await postState(false, signal);
         mode = 'standby'; report('standby', 'No escuché pregunta. Di «Ey Cortana» cuando quieras hablar.');
         return;
@@ -239,8 +243,9 @@ export function createViewerWake({
     try {
       audioCtx = createContext();
       if (audioCtx.state === 'suspended' && typeof audioCtx.resume === 'function') await audioCtx.resume();
-      stream = await getMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
-      if (ownRun !== run) { stream.getTracks().forEach(t => t.stop()); return false; }
+      const acquired = await getMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+      if (ownRun !== run) { acquired.getTracks().forEach(t => t.stop()); return false; }
+      stream = acquired;
       const src = audioCtx.createMediaStreamSource(stream);
       analyser = audioCtx.createAnalyser(); analyser.fftSize = 1024;
       src.connect(analyser);

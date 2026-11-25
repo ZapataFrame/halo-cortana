@@ -1,6 +1,6 @@
 # Cortana — Plan y roadmap
 
-Actualizado: 2026-11-19. Objetivo: un prototipo conversacional mantenible con Cortana, Vue y presentación 3D. El propietario retiró el simulador, avatares alternativos, placeholders y documentación histórica redundante. Esta es la única planificación vigente.
+Actualizado: 2026-11-25. Objetivo: un prototipo conversacional mantenible con Cortana, Vue y presentación 3D. El propietario retiró el simulador, avatares alternativos, placeholders y documentación histórica redundante. Esta es la única planificación vigente.
 
 ## Trabajo actual
 
@@ -21,11 +21,14 @@ Actualizado: 2026-11-19. Objetivo: un prototipo conversacional mantenible con Co
 | C-13 | DONE | Antigravity, 2026-11-19 | C-03, C-12 | Repositorio actualizado a origin/main a41ee0a (respaldo local de 2026-11-12 en git stash). Bailes manuales **Gangnam Style** (7.8 s), **Hip Hop** (15.77 s) y **Macarena** (8.23 s) con retargeting de 52 huesos Mixamo, centrado horizontal y apoyo al suelo en `cortana-motion.json`, más **Twerk** (15.2 s; clip `Twerking` original del GLB sin duplicar), habilitados por petición del propietario sin modificar `cortana.glb` ni alterar la envolvente ni los nueve clips de conversación. 132 pruebas/build correctos y verificación geométrica 3D (`docs/evidence/C-13-gangnam-style-mesh.png`); sigue pendiente inspección visual en navegador real con texturas y aceptación artística/humana. |
 | C-14 | DONE | Antigravity, 2026-11-19 | C-12 | Modo manos libres opcional **«Ey Cortana»** en el visor `/hologram` (incluyendo otra laptop por Wi-Fi mediante HTTPS local opcional con `npm run setup:https` en puerto 3443). VAD en navegador (`src/services/viewer-wake.js`) con pausa anti-eco mientras Cortana habla, detección local de palabra de activación (`server/wake-word.js`), chime + postura `listen` + pulso luminoso en `src/scene/viewer.js`, y rutas autorizadas por token (`POST /api/voice/state`, `/api/voice/wake`, `/api/voice/ask`). 130 pruebas/build correctos; pendiente prueba en vivo entre dos laptops por Wi-Fi. |
 
+| C-15 | DONE | Codex, 2026-11-25 | C-13, C-14 | Remoto contrastado con la base 431b6c3. Activación «Hey/Ey Cortana» desde standby, cuatro bailes por comandos locales, alias «baile coreano»/«perreo» y canto con WAV/MP3 privado seleccionado en PC. Audio sincronizado, exclusión, cancelación, recuperación y reproducción PC conservada al cerrar un visor. 143 pruebas y build correctos; revisión renderizada escritorio/390×844 y panel del visor sin superposición. Piper/Whisper reales con frases sintéticas: llamado y alias reconocidos, STT caliente ~1.3 s. Persisten errores posibles con nombres ingleses; canción definitiva sin seleccionar. Evidencia en docs/ARQUITECTURA.md y docs/VOZ_PC.md. Ensayo humano/físico aplazado. |
+
 ## Orden de ejecución
 
 1. C-01 cerrado; consultar su evaluación antes de ampliar el alcance.
 2. C-06 y C-08 conservan su implementación y evidencia previa; esta integración no acredita generación Gemini real ni calidad auditiva.
-3. C-12 es la prioridad técnica: repetir mediciones con carga reducida y un proveedor con acceso, antes de cerrar la batería de C-02. C-03 conserva los nueve clips; la revisión técnica no equivale a aceptación artística. C-04/C-05 siguen aplazados y no bloquean software.
+3. C-15 cerrado en software; no hay otra tarea principal activa. La canción definitiva se selecciona desde el control. Los límites de reconocimiento y la aceptación aplazada están documentados.
+4. C-12 conserva su pendiente técnico: repetir mediciones con carga reducida y un proveedor con acceso, antes de cerrar la batería de C-02. C-03 conserva los nueve clips; la revisión técnica no equivale a aceptación artística. C-04/C-05 siguen aplazados y no bloquean software.
 
 Se conservan LLM intercambiables, TTS/STT locales, cancelación, reserva exclusiva de audio y calibración v1. Se añade modo manos libres opcional **«Ey Cortana»** en el visor (activado explícitamente en navegador/HTTPS LAN), manteniendo el dictado manual revisable en el control PC. No hay herramientas de juego, autonomía de dispositivos, sincronización labial ni exportación instalada en el alcance actual.
 

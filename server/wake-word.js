@@ -4,7 +4,7 @@ const stripAccents = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g,
 // Acepta prefijos de saludo comunes en español/inglés o «Cortana» al inicio exacto de la frase,
 // evitando falsos positivos cuando se menciona el nombre en medio de una conversación normal.
 const NAME = '(?:cortan[ao]|cortanna|kortana)';
-const PREFIXED = new RegExp(`(?:^|[\\s,.;:!?¿¡"'()\\-])(?:ey|hey|ei|eh|oye|hola|hay|ay|ai|oiga)\\s*[,.!?]?\\s*${NAME}\\b`, 'i');
+const PREFIXED = new RegExp(`^[\\s,.;:!?¿¡"'()\\-]*(?:ey|hey|ei|eh|e|ej|oye|hola|hay|ay|ai|oiga)\\s*[,.!?]?\\s*${NAME}\\b`, 'i');
 const LEADING = new RegExp(`^[\\s,.;:!?¿¡"'()\\-]*${NAME}\\b`, 'i');
 
 export function matchWakeWord(transcript) {

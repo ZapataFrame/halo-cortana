@@ -6,7 +6,7 @@ El PC mantiene TTS, STT y conversación. Los visores autorizados también reprod
 
 1. Inicia `npm run demo` y abre `/control` mediante localhost. En **Voz y micrófono**, pulsa **Preparar motores** antes de la demostración: carga Whisper y la voz sin activar micrófono ni altavoces. El arranque en frío puede ser bastante más lento que las consultas siguientes.
 2. Usa **Abrir visor con voz** o los enlaces de **Conectar otra pantalla**. Para enviarlo a otro dispositivo, copia la **dirección del enlace**, que incluye la autorización; copiar solo el texto visible de la URL no la incluye. El fragmento `#audio=...` autoriza escuchar esa sesión; no compartas el enlace con quien no deba oírla. Al reiniciar el servidor necesitas abrir un enlace nuevo. El `/hologram` sin ese fragmento conserva la representación pero no autoriza audio.
-3. Pulsa **Activar sonido del visor** una vez en cada navegador. Este gesto desbloquea Web Audio. Los controles se ocultan después de activar; reaparecen al abrir calibración o cuando hay un fallo. No se sortea la política de autoplay.
+3. Pulsa **Solo activar sonido** una vez en cada navegador. Este gesto desbloquea Web Audio. Los controles se ocultan después de activar; reaparecen al abrir calibración o cuando hay un fallo. No se sortea la política de autoplay.
 4. En el PC pulsa **Probar voz**, **Escuchar respuesta** o activa **Leer respuestas automáticamente**. El backend genera un único WAV; cada visor conectado lo descarga y confirma preparación. El PC y los visores programan una fecha común, con estimación de desfase de relojes. El PC espera hasta cuatro segundos por los visores conectados y anuncia un error recuperable si alguno no está listo.
 5. **Detener voz**, nueva conversación, nueva pregunta, cambio de proveedor, desconexión del control o expiración de la reserva cancelan la lectura. El servidor elimina el WAV de memoria y avisa a los visores. Una lectura que llegue con más de 200 ms de retraso no se reinicia desde cero; se espera la siguiente.
 
@@ -44,7 +44,7 @@ La configuración por sí sola no acredita que los motores respondan: usar la pr
 
 El propietario confirmó **Linux** para la laptop de la presentación con RTX 3060. Ese es el destino del perfil CUDA descrito aquí; el equipo actual conserva su perfil CPU. La disponibilidad de la GPU y sus latencias todavía no se han verificado en la laptop de destino.
 
-Se conserva **faster-whisper**, que ya estaba instalado: motor gratuito con licencia MIT, cuantización int8 y VAD. Se añaden selección explícita de dispositivo/modelo/precisión, búsqueda de un candidato por defecto, dos hilos y contexto de vocabulario para Cortana/UNSC. La búsqueda más corta prioriza latencia; usar `STT_BEAM_SIZE=5` permite comparar calidad con el ajuste anterior. El silencio sigue rechazándose y la transcripción siempre se revisa antes de enviarla.
+Se conserva **faster-whisper**, que ya estaba instalado: motor gratuito con licencia MIT, cuantización int8 y VAD. Se añaden selección explícita de dispositivo/modelo/precisión, búsqueda de un candidato por defecto, dos hilos y contexto de vocabulario para Cortana/UNSC. La búsqueda más corta (`STT_BEAM_SIZE=1`) prioriza latencia; usar `STT_BEAM_SIZE=5` permite comparar calidad con el ajuste anterior. El silencio sigue rechazándose y la transcripción siempre se revisa antes de enviarla.
 
 Piper usa una sesión ONNX con hilos acotados, y RVC/Whisper reutilizan los modelos durante tres minutos de inactividad. Los instaladores acotan la compilación y reutilizan la revisión de fairseq ya preparada. No iniciar instalaciones ni comparar modelos mientras se expone.
 
@@ -173,3 +173,27 @@ La prueba independiente de la voz RVC de Cortana se conserva para comparar pará
 La conexión física y el ensayo humano siguen aplazados. Su aceptación futura exige diez frases reales, ≥8/10 con intención/datos conservados, revisión antes de enviar, permisos, interrupciones y recuperación. La interfaz de ensayo auxiliar se retiró para concentrar el producto en conversar; este criterio se conserva y no se declara cumplido por pruebas de código.
 
 Antes de cerrar el flujo completo: cinco conversaciones, dos interrupciones con recuperación y latencias por etapa. Identificar pruebas sintéticas, motores/proveedor reales y reproducción digital. `node tools/verify-stt.mjs` usa frases públicas y escribe evidencia sintética en `.stt-models/qa`; no abre micrófono ni certifica precisión humana.
+
+## Comandos y canción · C-15, 2026-11-25
+
+Desde el visor autorizado, activa **Hey Cortana (voz + mic)** una vez; en otra laptop usa el enlace HTTPS. Di «Hey Cortana», espera el tono y pide «baila», «baila Hip Hop», «baila la Macarena», «baila Gangnam Style», «baila Twerk» o «canta». Para los nombres ingleses también admite «baila el baile coreano» (Gangnam Style) y «baila perreo» (Twerk). También puedes unir llamado y orden. Tras la respuesta, el visor vuelve a standby. «Ey Cortana» sigue disponible. El reconocimiento usa el Whisper ya instalado: no añade servicios ni librerías de pago.
+
+Para cantar, carga tu grabación en **Voz y micrófono → Canción de Cortana** desde localhost. La selección explícita prepara WAV/MP3 con ffmpeg (20 MiB/cinco minutos), sin cambiar Piper/RVC ni hacer cantar al modelo. **Probar canción** permite ensayar PC y visores. Para «canta» por voz debe estar activado el sonido de un visor. El archivo permanece en el PC entre reinicios, en `.cortana-media/song.wav`; reiniciar sí exige abrir un enlace de visor nuevo.
+
+El micrófono permanece pausado mientras suena la canción. Puedes interrumpir con **Detener actuación** en el control o abriendo los ajustes del visor. Cuando termina el audio se libera la reserva y vuelve a escuchar el llamado tras una guarda de 600 ms. Las órdenes escritas en el chat también funcionan y no producen una lectura TTS adicional que interrumpa la canción.
+
+### Medición sintética de activación y comandos
+
+Prueba del 2026-11-25 con Piper → Whisper base real, CPU/int8, dos hilos y búsqueda de un candidato. No usa micrófono ni RVC. Son muestras breves de una misma voz sintética; no miden precisión de una población ni latencia completa de conversación. La transcripción incluye decodificación e inferencia, y excluye captura/VAD, red, LLM y reproducción.
+
+| Frase de entrada | Resultado | Transcripción |
+|---|---|---|
+| Hey Cortana | Activa escucha | 2.530 s, primer uso |
+| Hey Cortana, baila el baile coreano | Gangnam Style | 1.291 s |
+| Hey Cortana, baila perreo | Twerk | 1.305 s |
+| Hey Cortana, canta | Canción local | 1.288 s |
+| La investigación de Cortana continúa | No activa ni ejecuta comando | 1.279 s |
+
+El registro local se conserva en `.stt-models/qa/commands-20261125.json` (ignorado por Git). La comparación previa de los mismos ocho WAV con búsquedas de uno y tres candidatos resolvió cinco de siete llamados/órdenes y rechazó la frase de control en ambos perfiles; fallaron nombres ingleses en esas muestras. No acredita una mejora de precisión al aumentar candidatos. Se mantiene `STT_BEAM_SIZE=1` por su menor búsqueda; `3`/`5` siguen siendo selecciones explícitas para comparar, sin fallback automático. El vocabulario inicial y esos parámetros pertenecen a la [API de faster-whisper](https://github.com/SYSTRAN/faster-whisper/blob/master/faster_whisper/transcribe.py).
+
+La gramática completa de los cuatro nombres se verifica por texto y HTTP. Los alias anteriores se verificaron además con el motor real; una pronunciación, ruido o micrófono diferentes pueden cambiar la transcripción. El selector de movimiento del PC permanece disponible. La aceptación humana/física conserva su estado aplazado. Para cantar falta elegir el WAV/MP3 de la presentación: el tono usado en QA no se instala como canción del usuario.

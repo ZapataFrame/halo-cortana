@@ -9,7 +9,7 @@ test('visor HTTP LAN no depende de randomUUID reservado a contextos seguros', t 
 });
 function fixture(options = {}) {
   let channel, decode, unlock;
-  const states = [], played = [], ready = [];
+  const states = [], played = [], ready = [], playback = [];
   const output = { unlock: options.deferredUnlock ? () => new Promise(resolve => { unlock = resolve; }) : async () => {},
     prepare: () => new Promise((resolve, reject) => { decode = { resolve, reject }; }),
     pause() {}, close() {}, playAt: async (...args) => played.push(args) };
@@ -20,10 +20,11 @@ function fixture(options = {}) {
     } }) };
     if (url.includes('/audio/')) return { ok: true, blob: async () => new Blob(['fixture']) };
     if (url.endsWith('/ready')) { ready.push(JSON.parse(config.body)); return { ok: true }; }
+    if (url.endsWith('/playback')) { playback.push(JSON.parse(config.body)); return { ok: true }; }
     throw new Error('Ruta inesperada');
   };
   const viewer = createViewerAudio({ token: 'fixture', request, output, onState: state => states.push(state), uuid: () => 'viewer-fixture' });
-  return { viewer, states, played, ready, output, decode: () => decode, unlock: () => unlock(),
+  return { viewer, states, played, ready, playback, output, decode: () => decode, unlock: () => unlock(),
     cue: data => channel.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`)) };
 }
 test('visor cancelado durante decodificación no confirma ni reproduce audio antiguo', async () => {
@@ -43,6 +44,7 @@ test('visor confirma solo al decodificar y conserva la fecha común; suspensión
   const startAt = Date.now() + 800; f.cue({ phase: 'scheduled', speechId: 'current', startAt }); await tick();
   assert.equal(f.played[0][0], startAt);
   f.output.onplaying(); assert.equal(f.states.at(-1).phase, 'playing');
+  assert.deepEqual(f.playback[0], { clientId: 'viewer-fixture', speechId: 'current', playing: true });
   f.output.onerror(); assert.equal(f.states.at(-1).phase, 'error');
   f.viewer.stop(); await active;
 });

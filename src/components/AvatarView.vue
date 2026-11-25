@@ -71,13 +71,15 @@ onUnmounted(() => { disposed = true; viewer?.destroy(); wakeLock?.release(); doc
     <details v-if="!projection" class="calibration">
       <summary>Calibrar imagen</summary><CalibrationPanel v-model="settings" v-model:pattern="pattern" />
     </details>
-    <section v-else-if="open" class="calibration overlay" aria-label="Calibración del visor">
-      <div class="section-heading"><h2>Calibrar imagen</h2><button @click="open = false">Cerrar</button></div>
-      <p role="status">{{ diagnostic.detail }}</p><p v-if="!connected" role="status">PC sin conexión. Cortana sigue visible; reintentando…</p>
-      <CalibrationPanel v-model="settings" v-model:pattern="pattern" /><button @click="fullscreen">Pantalla completa</button>
-      <p v-if="notice" role="status">{{ notice }}</p>
-    </section>
-    <ViewerAudio v-if="projection" :token="audioToken" :settings-open="open" @phase="relayPhase = $event" />
+    <div v-if="projection" class="viewer-settings" :class="{ 'is-open': open }">
+      <div v-if="open" class="section-heading"><h2>Calibrar imagen</h2><button @click="open = false">Cerrar</button></div>
+      <ViewerAudio :token="audioToken" :settings-open="open" @phase="relayPhase = $event" />
+      <section v-if="open" class="calibration" aria-label="Calibración del visor">
+        <p role="status">{{ diagnostic.detail }}</p><p v-if="!connected" role="status">PC sin conexión. Cortana sigue visible; reintentando…</p>
+        <CalibrationPanel v-model="settings" v-model:pattern="pattern" /><button @click="fullscreen">Pantalla completa</button>
+        <p v-if="notice" role="status">{{ notice }}</p>
+      </section>
+    </div>
     <p v-if="!projection && notice" role="status">{{ notice }}</p>
   </section>
 </template>
@@ -97,6 +99,6 @@ onUnmounted(() => { disposed = true; viewer?.destroy(); wakeLock?.release(); doc
 .avatar-controls { padding:12px 0 20px; }
 .calibration { border-top:1px solid var(--line); padding:20px 0; }
 .calibration :deep(.calibration-fields) { margin-top:20px; }
-.overlay { position:absolute; z-index:2; top:12px; left:12px; width:min(360px,calc(100% - 24px)); max-height:calc(100dvh - 24px); overflow:auto; background:#141414; padding:20px; border:1px solid var(--line); }
+.viewer-settings.is-open { position:absolute; z-index:2; top:12px; left:12px; width:min(360px,calc(100% - 24px)); max-height:calc(100dvh - 24px); overflow:auto; background:#141414; padding:20px; border:1px solid var(--line); }
 @media(max-width:760px) { .viewport { height:420px; } }
 </style>

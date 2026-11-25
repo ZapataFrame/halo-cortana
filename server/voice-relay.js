@@ -1,7 +1,7 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 
 // Audio efímero para visores enlazados; el contrato público de presentación no cambia.
-export function createVoiceRelay({ now = Date.now, delayMs = 800, readyTimeoutMs = 4000, viewerLeaseMs = 15000 } = {}) {
+export function createVoiceRelay({ now = Date.now, delayMs = 800, readyTimeoutMs = 4000, viewerLeaseMs = 15000, onPlayback = () => {} } = {}) {
   const token = randomBytes(32).toString('base64url'), clients = new Map();
   let current, waiters = new Set();
   const send = (res, data) => res.write(`data: ${JSON.stringify({ ...data, serverNow: now() })}\n\n`);
@@ -21,10 +21,11 @@ export function createVoiceRelay({ now = Date.now, delayMs = 800, readyTimeoutMs
   const json = (res, status, data) => { res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(data)); };
   return {
     token,
+    get listenerCount() { return clients.size; },
     authorize,
     prepare(id, bytes) {
       if (current) this.stop();
-      current = { id, bytes, phase: 'prepared', durationMs: Math.max(0, (bytes.length - 44) / 44.1), ready: new Set() };
+      current = { id, bytes, phase: 'prepared', durationMs: Math.max(0, (bytes.length - 44) / 44.1), ready: new Set(), playing: new Set() };
       broadcast();
     },
     stop() { if (!current) return; current = undefined; broadcast(); },
@@ -66,7 +67,15 @@ export function createVoiceRelay({ now = Date.now, delayMs = 800, readyTimeoutMs
           if (now() - client.seenAt >= viewerLeaseMs) { res.end(); return; }
           send(res, { phase: 'heartbeat' });
         }, Math.min(5000, viewerLeaseMs / 2)); heartbeat.unref();
-        res.on('close', () => { clearInterval(heartbeat); if (clients.get(id)?.res === res) clients.delete(id); wake(); });
+        res.on('close', () => {
+          clearInterval(heartbeat);
+          if (clients.get(id)?.res === res) {
+            clients.delete(id);
+            const job = current;
+            if (job?.playing.delete(id)) onPlayback(job.id, job.playing.size > 0);
+          }
+          wake();
+        });
         return true;
       }
       if (req.method === 'GET' && pathname.startsWith('/api/voice/audio/')) {
@@ -74,11 +83,21 @@ export function createVoiceRelay({ now = Date.now, delayMs = 800, readyTimeoutMs
         else { res.writeHead(200, { 'Content-Type': 'audio/wav', 'Cache-Control': 'no-store' }); res.end(current.bytes); }
         return true;
       }
-      if (req.method === 'POST' && ['/api/voice/ready', '/api/voice/heartbeat'].includes(pathname)) {
+      if (req.method === 'POST' && ['/api/voice/ready', '/api/voice/heartbeat', '/api/voice/playback'].includes(pathname)) {
         if (!req.headers['content-type']?.startsWith('application/json')) { json(res, 400, { error: 'Envía JSON.' }); return true; }
         let raw = '';
         for await (const chunk of req) { raw += chunk; if (raw.length > 512) { json(res, 400, { error: 'Solicitud demasiado grande.' }); return true; } }
         const body = JSON.parse(raw);
+        if (pathname.endsWith('/playback')) {
+          if (!body || Object.keys(body).sort().join(',') !== 'clientId,playing,speechId' || typeof body.playing !== 'boolean'
+            || !clients.has(body.clientId) || current?.id !== body.speechId || current.phase !== 'scheduled' || !current.ready.has(body.clientId)) {
+            json(res, 409, { error: 'La reproducción ya no está disponible.' }); return true;
+          }
+          const job = current;
+          if (body.playing) job.playing.add(body.clientId); else job.playing.delete(body.clientId);
+          onPlayback(job.id, job.playing.size > 0);
+          json(res, 200, { ready: true }); return true;
+        }
         if (pathname.endsWith('/heartbeat')) {
           if (!body || Object.keys(body).join(',') !== 'clientId' || !clients.has(body.clientId)) json(res, 409, { error: 'Reconecta el sonido del visor.' });
           else { clients.get(body.clientId).seenAt = now(); json(res, 200, { ready: true }); }

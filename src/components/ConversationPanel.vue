@@ -13,7 +13,7 @@ function append(text) { draft.value = draft.value.trim() ? `${draft.value.trim()
 async function submit() {
   if (locked.value) return;
   const requestId = await send(draft.value);
-  if (requestId) { draft.value = ''; voice.value?.readAutomatic(requestId); }
+  if (requestId) { draft.value = ''; if (!messages.value.at(-1)?.command) voice.value?.readAutomatic(requestId); }
   await nextTick(); editor.value?.focus();
 }
 function keydown(event) {
@@ -34,7 +34,7 @@ watch(() => props.presentation?.sessionId, (value, previous) => { if (previous &
       <div v-if="!messages.length" class="empty"><h3>Habla con Cortana.</h3><p>Escribe una pregunta o utiliza el micrófono del PC.</p><button :disabled="locked" @click="draft = 'Preséntate como Cortana'; editor?.focus()">Preparar un saludo</button></div>
       <article v-for="message in messages" :key="message.id" class="message" :class="message.role">
         <strong>{{ message.role === 'user' ? 'Tú' : 'Cortana' }}</strong><p>{{ message.text }}</p>
-        <template v-if="message.role === 'assistant'"><p class="muted">{{ message.model }} · {{ (message.elapsedMs / 1000).toFixed(1) }} s<span v-if="message.truncated"> · Respuesta limitada</span></p><button :disabled="locked || !voiceReady" @click="voice?.read(message.id)">Escuchar respuesta</button></template>
+        <template v-if="message.role === 'assistant'"><p class="muted">{{ message.model }} · {{ (message.elapsedMs / 1000).toFixed(1) }} s<span v-if="message.truncated"> · Respuesta limitada</span></p><button v-if="!message.command" :disabled="locked || !voiceReady" @click="voice?.read(message.id)">Escuchar respuesta</button></template>
       </article>
     </div>
     <p role="status" class="chat-status">{{ status || (!connected ? 'Conectando con el PC…' : info?.health?.ready === false ? info.health.detail : 'El texto se envía solo cuando tú lo decides.') }}</p>

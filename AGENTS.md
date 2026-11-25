@@ -5,6 +5,7 @@ Prototipo conversacional: Vue 3 + Three.js en navegador, Node en PC, voz local P
 ## Contexto vigente
 
 - Solo Cortana. El simulador y los avatares alternativos se retiraron por decisión del propietario el 2026-10-23; el 2026-11-19 autorizó mantener los bailes manuales **Gangnam Style**, **Hip Hop**, **Macarena** y **Twerk** (clip original `Twerking` del GLB) sobre el rig de Cortana.
+- El 2026-11-25 el propietario autorizó activación «Hey Cortana», comandos deterministas de esos cuatro bailes y canto mediante un WAV/MP3 seleccionado explícitamente en el PC. Los LLM siguen sin herramientas; la canción usa el canal sincronizado y pausa el micrófono.
 - Leer [README](README.md), [roadmap](ROADMAP.MD) y [arquitectura](docs/ARQUITECTURA.md) antes de cambiar contratos.
 - Voz/instalación/atribución: [docs/VOZ_PC.md](docs/VOZ_PC.md). Procedencia del avatar: [public/models/README.md](public/models/README.md).
 - Conexión física y ensayo humano están aplazados. No bloquear software ni solicitarlos como siguiente paso; conservar aceptación futura.

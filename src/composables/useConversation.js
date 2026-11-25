@@ -15,7 +15,7 @@ export function useConversation({ beforeAction = async () => {}, request = reque
       status.value = 'Cortana está preparando su respuesta…';
       const data = await request('/api/chat', { method: 'POST', body: { message, requestId }, signal: job.controller.signal, timeoutMs: 65000 });
       if (active !== job || job.controller.signal.aborted) return;
-      messages.value = [...messages.value, { id: requestId, role: 'assistant', text: data.reply, model: data.model, elapsedMs: data.elapsedMs, truncated: data.truncated }];
+      messages.value = [...messages.value, { id: requestId, role: 'assistant', text: data.reply, model: data.model, elapsedMs: data.elapsedMs, truncated: data.truncated, command: data.command }];
       status.value = 'Respuesta recibida.'; retry = undefined; return requestId;
     } catch (error) {
       if (active !== job) return;

@@ -54,7 +54,7 @@ def transcribe(raw):
         raise ValueError("STT_NO_SPEECH")
     initialize()
     segments, _info = model.transcribe(audio, language="es", beam_size=int(os.environ.get("STT_BEAM_SIZE", "1")), temperature=0,
-                                     initial_prompt="Cortana, UNSC, investigación, ingeniería, demostración.",
+                                     initial_prompt="Hey Cortana. Ey Cortana. Baila, cantar, canta, Gangnam Style, Hip Hop, Macarena, Twerk, baile coreano, perreo. UNSC, investigación, ingeniería, demostración.",
                                      condition_on_previous_text=False, vad_filter=True,
                                      vad_parameters={"min_silence_duration_ms": 400}, max_new_tokens=128)
     text = " ".join(segment.text.strip() for segment in segments).strip()

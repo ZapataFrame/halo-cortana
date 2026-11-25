@@ -29,7 +29,7 @@ export function createSpeechPlayer({ request = fetch, createAudio = () => new Au
   async function play(requestId) {
     const pending = stop(false);
     const job = { id: uuid(), requestId, controller: new AbortController(), started: now() };
-    current = job; report('preparing', 'Preparando voz en español…');
+    current = job; report('preparing', requestId === 'song' ? 'Preparando la canción…' : 'Preparando voz en español…');
     try { await unlockAudio(); } catch (error) { if (current === job) { stop(false); report('error', error.message); } return; }
     await pending;
     if (current !== job) return;
@@ -47,7 +47,7 @@ export function createSpeechPlayer({ request = fetch, createAudio = () => new Au
       if (synchronize) await job.audio.prepare(blob, job.controller.signal);
       else job.audio.src = job.url;
       if (current !== job) return;
-      job.audio.onended = () => { if (current === job) { stop(false); report('stopped', 'Lectura terminada.'); } };
+      job.audio.onended = () => { if (current === job) { stop(false); report('stopped', requestId === 'song' ? 'Canción terminada.' : 'Lectura terminada.'); } };
       job.audio.onerror = () => { if (current === job) { stop(false); report('error', 'No se pudo reproducir la voz. El texto sigue disponible.'); } };
       job.audio.onplaying = async () => {
         if (current !== job || job.announced) return;
@@ -57,7 +57,7 @@ export function createSpeechPlayer({ request = fetch, createAudio = () => new Au
           if (current !== job) return;
           job.playingRevision = state.revision;
           job.playing = true;
-          report('playing', 'Cortana está hablando.', { synthesisMs: job.synthesisMs, startMs: Math.round(now() - job.started) });
+          report('playing', requestId === 'song' ? 'Cortana está cantando la grabación seleccionada.' : 'Cortana está hablando.', { synthesisMs: job.synthesisMs, startMs: Math.round(now() - job.started) });
           job.heartbeat = setInterval(() => notify(job, true).catch(() => {
             if (current === job) { stop(false); report('error', 'Se perdió la conexión de voz. Pulsa Escuchar para reintentar.'); }
           }), heartbeatMs);

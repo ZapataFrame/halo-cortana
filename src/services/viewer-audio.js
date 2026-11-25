@@ -5,6 +5,11 @@ const viewerId = () => Array.from(crypto.getRandomValues(new Uint8Array(16)), by
 export function createViewerAudio({ token, request = fetch, output = createClockedAudio(), onState = () => {}, uuid = viewerId } = {}) {
   let controller, prepared, preparing, heartbeat, offset = 0, run = 0;
   const clientId = uuid(), headers = { Authorization: `Bearer ${token}`, 'X-Voice-Client': clientId };
+  async function notifyPlayback(speechId, playing, signal) {
+    const response = await request('/api/voice/playback', { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId, speechId, playing }), signal: AbortSignal.any([signal, AbortSignal.timeout(3000)]) });
+    if (!response.ok) throw new Error('Se perdió la sincronización del audio. Activa el sonido de nuevo.');
+  }
   const report = (phase, detail) => onState({ phase, detail });
   function clear() { prepared = undefined; preparing = undefined; output.onplaying = output.onended = output.onerror = null; output.pause(); }
   function stop() { run++; clearInterval(heartbeat); controller?.abort(); controller = undefined; clear(); report('off', 'Sonido del visor desactivado.'); }
@@ -26,8 +31,11 @@ export function createViewerAudio({ token, request = fetch, output = createClock
       if (!ready.ok) throw new Error('La lectura cambió. Espera la siguiente.');
     } else if (cue.phase === 'scheduled') {
       if (prepared !== cue.speechId) { report('ready', 'Conectado. La próxima lectura se reproducirá aquí.'); return; }
-      output.onplaying = () => report('playing', 'Cortana está hablando.');
-      output.onended = () => { clear(); report('ready', 'Lectura terminada. Sonido del visor activado.'); };
+      output.onplaying = () => {
+        report('playing', 'Cortana está reproduciendo audio.');
+        notifyPlayback(cue.speechId, true, signal).catch(error => { if (ownRun === run && prepared === cue.speechId) { clear(); report('error', error.message); } });
+      };
+      output.onended = () => { clear(); report('ready', 'Audio terminado. Sonido del visor activado.'); notifyPlayback(cue.speechId, false, signal).catch(() => {}); };
       output.onerror = () => { clear(); report('error', 'El navegador suspendió el sonido. Actívalo de nuevo para la siguiente lectura.'); };
       await output.playAt(cue.startAt, offset);
     }

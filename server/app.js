@@ -9,6 +9,8 @@ import { createTts, speechText } from './tts.js';
 import { createVoiceRelay } from './voice-relay.js';
 import { createWhisper, AUDIO_LIMIT, validateAudioType, validateAudio } from './stt.js';
 import { matchWakeWord } from './wake-word.js';
+import { parseCommand } from './commands.js';
+import { createSongStore, SONG_LIMIT } from './song.js';
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.glb': 'model/gltf-binary', '.json': 'application/json', '.md': 'text/plain; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml' };
 const LOCAL = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
@@ -34,7 +36,7 @@ async function readJson(req) {
   try { return JSON.parse(text); } catch { throw new Error('JSON inválido.'); }
 }
 
-function readAudio(req, signal) {
+function readAudio(req, signal, limit = AUDIO_LIMIT) {
   return new Promise((resolveBytes, reject) => {
     const chunks = []; let size = 0;
     const cleanup = () => { req.off('data', data); req.off('end', end); req.off('error', error); signal.removeEventListener('abort', abort); };
@@ -42,7 +44,7 @@ function readAudio(req, signal) {
     const abort = () => { cleanup(); req.resume(); reject(new Error('STT_CANCELLED')); };
     const data = chunk => {
       size += chunk.length;
-      if (size > AUDIO_LIMIT) { cleanup(); req.resume(); reject(new Error('STT_AUDIO_TOO_LARGE')); }
+      if (size > limit) { cleanup(); req.resume(); reject(new Error('STT_AUDIO_TOO_LARGE')); }
       else chunks.push(chunk);
     };
     const end = () => { cleanup(); resolveBytes(Buffer.concat(chunks)); };
@@ -52,12 +54,17 @@ function readAudio(req, signal) {
   });
 }
 
-export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, httpsPort = null, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile, tts = createTts(), ttsTimeoutMs = tts.timeoutMs || 20000, speechLeaseMs = 15000, stt = createWhisper(), sttTimeoutMs = 30000, captureLeaseMs = 35000, wakeLeaseMs = 15000, animationMs, relayOptions } = {}) {
+export function createApp({ config, configs = { [config.provider]: config }, models = localModels, root = resolve('dist'), port = 3000, httpsPort = null, reply = generateReply, health = providerHealth, check = checkProviderConnection, checkTimeoutMs = 8000, timeoutMs = 60000, readAsset = readFile, tts = createTts(), ttsTimeoutMs = tts.timeoutMs || 20000, speechLeaseMs = 15000, stt = createWhisper(), sttTimeoutMs = 30000, captureLeaseMs = 35000, wakeLeaseMs = 15000, animationMs, relayOptions, songs = createSongStore() } = {}) {
   const sessionId = randomUUID();
   let revision = 0, chatGeneration = 0, phase = 'idle', animation = 'idle', active = null, history = [];
   const completed = new Map();
   let animationTimer;
-  const relay = createVoiceRelay(relayOptions);
+  const relay = createVoiceRelay({ ...relayOptions, onPlayback(id, playing) {
+    if (speech?.id !== id) return;
+    const audible = Boolean(playing || speech.pcPlaying);
+    if (!audible && speech.playing && speech.owner !== 'pc') { stopSpeech(); return; }
+    if (speech.playing !== audible) { speech.playing = audible; revision++; }
+  } });
   let speech;
   function stopSpeech() {
     relay.stop();
@@ -96,6 +103,55 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
     if (req.headers.origin && req.headers.origin !== `http://${host}` && req.headers.origin !== `https://${host}`) { json(res, 403, { error: 'Origen no permitido.' }); return false; }
     return true;
   };
+  function setAnimation(value) {
+    clearTimeout(animationTimer); animation = value; revision++;
+    if (value !== 'idle') {
+      animationTimer = setTimeout(() => { animation = 'idle'; revision++; }, animationMs ?? ANIMATIONS[value].manualSeconds * 1000);
+      animationTimer.unref();
+    }
+  }
+  function remember(requestId, message, result) {
+    history.push({ role: 'user', content: message }, { role: 'assistant', content: result.reply });
+    history = history.slice(-12);
+    completed.set(requestId, { message, result });
+    if (completed.size > 20) completed.delete(completed.keys().next().value);
+  }
+  async function runCommand(command, message, requestId, req, res) {
+    let answer, speechId;
+    const start = performance.now();
+    if (command.type === 'sing') {
+      if (!relay.listenerCount) throw new Error('Activa el sonido en un visor antes de decir «canta», o usa «Probar canción» en el PC.');
+      const token = { id: randomUUID(), requestId, controller: new AbortController(), prepared: false, playing: false };
+      speech = token; renewSpeech(15000);
+      const disconnected = () => { if (!res.writableEnded && speech === token) stopSpeech(); };
+      res.on('close', disconnected);
+      try {
+        const { audio } = await songs.read();
+        if (speech !== token || token.controller.signal.aborted) throw new Error('Reproducción cancelada.');
+        token.prepared = true; relay.prepare(token.id, audio);
+        const scheduled = await relay.schedule(token.id);
+        if (speech !== token || token.controller.signal.aborted) throw new Error('Reproducción cancelada.');
+        const delay = Math.max(0, scheduled.startAt - scheduled.serverNow);
+        renewSpeech(delay + scheduled.durationMs + 500);
+        speechId = token.id; answer = 'Reproduciendo la canción preparada en el PC.';
+      } catch (error) { if (speech === token) stopSpeech(); throw error; }
+      finally { res.off('close', disconnected); }
+    } else if (command.type === 'dance') {
+      setAnimation(command.animation); answer = `Bailando ${ANIMATIONS[command.animation].label}.`;
+    } else if (command.type === 'stop') {
+      stopSpeech(); setAnimation('idle'); answer = 'Actuación detenida.';
+    } else if (command.type === 'wake') {
+      answer = 'Aquí estoy. Puedes pedirme «baila la Macarena», «canta» o hacerme una pregunta.';
+    } else {
+      answer = 'Puedo bailar Gangnam Style, Hip Hop, Macarena y Twerk. Dime, por ejemplo, «baila Hip Hop».';
+    }
+    setPhase('responded');
+    const result = { reply: answer, transcript: message, command: command.type, spoken: Boolean(speechId),
+      ...(speechId ? { speechId } : {}), provider: 'local-command', model: 'Comando local', truncated: false,
+      elapsedMs: Math.round(performance.now() - start), ...state() };
+    remember(requestId, message, result);
+    return result;
+  }
   function sttFailure(error, timedOut, cancelled) {
     const details = {
       STT_NOT_CONFIGURED: [503, 'Falta instalar reconocimiento local. Ejecuta npm run setup:stt en el PC.'],
@@ -159,6 +215,15 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
       if (req.method === 'GET' && pathname === '/api/voice/link') {
         if (!localWrite(req, res)) return;
         json(res, 200, { token: relay.token }); return;
+      }
+      if (req.method === 'POST' && ['/api/voice/stop', '/api/performance/stop'].includes(pathname)) {
+        if (pathname === '/api/voice/stop' ? !relay.authorize(req) : !localWrite(req, res)) {
+          if (!res.writableEnded) json(res, 403, { error: 'Enlace de voz no autorizado.' }); return;
+        }
+        const body = await readJson(req);
+        if (!body || Array.isArray(body) || Object.keys(body).length) { json(res, 400, { error: 'Envía un objeto vacío.' }); return; }
+        stopSpeech(); stopCapture(); setAnimation('idle');
+        json(res, 200, state()); return;
       }
       if (req.method === 'POST' && ['/api/voice/state', '/api/voice/wake', '/api/voice/ask'].includes(pathname)) {
         if (!relay.authorize(req)) {
@@ -240,6 +305,12 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
         }
         if (active || speech || capture) { json(res, 409, { error: 'Cortana está ocupada. Espera a que termine.' }); return; }
         const requestId = randomUUID();
+        const command = parseCommand(question);
+        if (command) {
+          try { json(res, 200, await runCommand(command, question, requestId, req, res)); }
+          catch (error) { if (!res.destroyed) json(res, 422, { error: error.message }); }
+          return;
+        }
         const controller = new AbortController();
         const requestConfig = config;
         const chatToken = { requestId, controller };
@@ -283,7 +354,6 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
           speechToken.prepared = true; relay.prepare(speechToken.id, audio);
           const scheduled = await relay.schedule(speechToken.id);
           if (speechToken.controller.signal.aborted || speech !== speechToken) throw new Error('TTS_CANCELLED');
-          speechToken.playing = true; revision++;
           const remainingMs = Math.max(1000, Math.ceil(Math.max(0, scheduled.startAt - scheduled.serverNow) + scheduled.durationMs + 500));
           renewSpeech(remainingMs);
           if (!res.destroyed) json(res, 200, { ...result, spoken: true, speechId: speechToken.id, ...state() });
@@ -301,6 +371,10 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
       if (req.method === 'GET' && pathname === '/api/tts') {
         if (!localWrite(req, res)) return;
         json(res, 200, await tts.health()); return;
+      }
+      if (req.method === 'GET' && pathname === '/api/song') {
+        if (!localWrite(req, res)) return;
+        json(res, 200, await songs.status()); return;
       }
       if (req.method === 'GET' && pathname === '/api/stt') {
         if (!localWrite(req, res)) return;
@@ -324,6 +398,25 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
       }
       if (req.method === 'POST' && pathname.startsWith('/api/')) {
         if (!localWrite(req, res)) return;
+        if (pathname === '/api/song') {
+          if (active || speech || capture) { json(res, 409, { error: 'Detén la voz o el micrófono antes de cargar la canción.' }); return; }
+          if (!['audio/wav', 'audio/x-wav', 'audio/mpeg'].includes(req.headers['content-type']?.split(';')[0])) {
+            json(res, 400, { error: 'Selecciona un WAV o MP3.' }); return;
+          }
+          if (Number(req.headers['content-length']) > SONG_LIMIT) { req.resume(); json(res, 413, { error: 'La canción supera 20 MiB.' }); return; }
+          const token = { id: randomUUID(), controller: new AbortController() }; speech = token; renewSpeech(30000);
+          const disconnected = () => { if (!res.writableEnded && speech === token) stopSpeech(); };
+          res.on('close', disconnected);
+          try {
+            const bytes = await readAudio(req, token.controller.signal, SONG_LIMIT);
+            const result = await songs.save(bytes, token.controller.signal);
+            if (speech !== token || token.controller.signal.aborted) throw new Error('Preparación de canción cancelada.');
+            json(res, 200, result);
+          } catch (error) {
+            if (!res.destroyed) json(res, error.message === 'STT_AUDIO_TOO_LARGE' ? 413 : 422, { error: error.message === 'STT_AUDIO_TOO_LARGE' ? 'La canción supera 20 MiB.' : error.message });
+          } finally { res.off('close', disconnected); if (speech === token) stopSpeech(); }
+          return;
+        }
         if (pathname === '/api/stt') {
           const token = capture;
           if (!token || token.id !== req.headers['x-capture-id'] || token.stage !== 'stopped') {
@@ -443,21 +536,23 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
             if (active || speech?.id !== body.speechId || !speech?.prepared) {
               json(res, 409, { error: 'La voz ya no está disponible. Pulsa Escuchar de nuevo.' }); return;
             }
+            speech.pcPlaying = true;
             if (!speech.playing) { speech.playing = true; revision++; }
             renewSpeech(); json(res, 200, state()); return;
           }
           if (active || speech || capture) { json(res, 409, { error: 'Hay otra voz, micrófono o respuesta en curso. Deténla antes de escuchar.' }); return; }
           const text = body.requestId === 'voice-test'
-            ? 'Hola, soy Cortana. Esta es una prueba de voz en español.' : completed.get(body.requestId)?.result.reply;
+            ? 'Hola, soy Cortana. Esta es una prueba de voz en español.' : body.requestId === 'song'
+              ? 'Canción local.' : completed.get(body.requestId)?.result.reply;
           if (!text || !speechText(text)) { json(res, 404, { error: 'Esta respuesta ya no está en la conversación. Envía un mensaje nuevo.' }); return; }
-          const token = { id: body.speechId, controller: new AbortController(), playing: false, prepared: false };
+          const token = { id: body.speechId, controller: new AbortController(), playing: false, prepared: false, owner: 'pc' };
           speech = token;
           const started = performance.now(); let timedOut = false;
           const timer = setTimeout(() => { timedOut = true; token.controller.abort(); }, ttsTimeoutMs);
           const disconnected = () => { if (!res.writableEnded && speech === token) stopSpeech(); };
           res.on('close', disconnected);
           try {
-            const audio = await tts.synthesize(speechText(text), token.controller.signal);
+            const audio = body.requestId === 'song' ? (await songs.read()).audio : await tts.synthesize(speechText(text), token.controller.signal);
             if (token.controller.signal.aborted || speech !== token) throw new Error('TTS_CANCELLED');
             token.prepared = true; relay.prepare(token.id, audio); renewSpeech();
             res.writeHead(200, { 'Content-Type': 'audio/wav', 'Cache-Control': 'no-store',
@@ -468,7 +563,7 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
             if (speech === token) stopSpeech();
             const missing = error.message === 'TTS_NOT_CONFIGURED', tooLong = error.message === 'TTS_TOO_LONG';
             if (!res.destroyed) json(res, timedOut ? 504 : cancelled ? 499 : tooLong ? 422 : missing ? 503 : 502,
-              { error: tooLong ? 'La lectura supera dos minutos. Pide una respuesta más breve; el texto sigue disponible.' : timedOut ? 'La voz tardó demasiado. El texto sigue disponible.' : missing
+              { error: body.requestId === 'song' ? 'No se pudo leer la canción. Carga de nuevo un WAV o MP3 en el PC.' : tooLong ? 'La lectura supera dos minutos. Pide una respuesta más breve; el texto sigue disponible.' : timedOut ? 'La voz tardó demasiado. El texto sigue disponible.' : missing
                 ? 'Falta preparar la voz local seleccionada. Revisa la configuración del PC y reinicia el servidor.' : 'No se pudo generar la voz. El texto sigue disponible.' });
           } finally { clearTimeout(timer); res.off('close', disconnected); }
           return;
@@ -518,15 +613,12 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
         }
         if (pathname === '/api/animation') {
           if (!body || Object.keys(body).length !== 1 || !hasAnimation(body.animation)) { json(res, 400, { error: 'Animación no disponible.' }); return; }
-          clearTimeout(animationTimer); animation = body.animation; revision++;
-          if (animation !== 'idle') {
-            animationTimer = setTimeout(() => { animation = 'idle'; revision++; }, animationMs ?? ANIMATIONS[animation].manualSeconds * 1000);
-            animationTimer.unref();
-          }
+          setAnimation(body.animation);
           json(res, 200, state()); return;
         }
         if (pathname === '/api/cancel') {
           if (active && active.requestId === body.requestId) { active.controller.abort(); active = null; setPhase('idle'); }
+          if (speech?.requestId === body.requestId) stopSpeech();
           json(res, 200, state()); return;
         }
         if (pathname === '/api/reset') {
@@ -542,6 +634,12 @@ export function createApp({ config, configs = { [config.provider]: config }, mod
         }
         if (active) { json(res, 409, { error: 'Hay una respuesta en curso. Espera o cancélala.' }); return; }
         stopSpeech(); stopCapture();
+        const command = parseCommand(message);
+        if (command) {
+          try { json(res, 200, await runCommand(command, message, requestId, req, res)); }
+          catch (error) { if (!res.destroyed) json(res, 422, { error: error.message }); }
+          return;
+        }
         const controller = new AbortController();
         const requestConfig = config;
         const token = { requestId, controller };

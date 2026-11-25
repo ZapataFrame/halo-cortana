@@ -46,10 +46,14 @@ async function setup(options = {}) {
 test('matchWakeWord reconoce variantes de «Ey Cortana», extrae pregunta y rechaza menciones en medio de frases', () => {
   assert.deepEqual(matchWakeWord('Ey Cortana'), { matched: true, command: '' });
   assert.deepEqual(matchWakeWord('Hey, Cortana!'), { matched: true, command: '' });
+  assert.deepEqual(matchWakeWord('E Cortana.'), { matched: true, command: '' });
+  assert.deepEqual(matchWakeWord('Ej Cortana, canta'), { matched: true, command: 'canta' });
   assert.deepEqual(matchWakeWord('Oye Cortana, ¿qué hora es?'), { matched: true, command: '¿qué hora es?' });
   assert.deepEqual(matchWakeWord('Hola Cortana cuéntame sobre física cuántica'), { matched: true, command: 'cuéntame sobre física cuántica' });
   assert.deepEqual(matchWakeWord('Cortana, ¿cómo estás?'), { matched: true, command: '¿cómo estás?' });
   assert.deepEqual(matchWakeWord('El holograma de Cortana funciona bien'), { matched: false, command: '' });
+  assert.deepEqual(matchWakeWord('Cuando digo Hey Cortana se activa'), { matched: false, command: '' });
+  assert.deepEqual(matchWakeWord('Hey Cortana, baila Hip Hop'), { matched: true, command: 'baila Hip Hop' });
   assert.deepEqual(matchWakeWord('Buenas tardes a todos'), { matched: false, command: '' });
   assert.deepEqual(matchWakeWord(''), { matched: false, command: '' });
 });
@@ -57,7 +61,7 @@ test('matchWakeWord reconoce variantes de «Ey Cortana», extrae pregunta y rech
 test('rutas manos libres del visor exigen token/origen, aceptan HTTPS del mismo host y no filtran datos en presentación', async () => {
   const f = await setup({ httpsPort: 3443 });
   try {
-    for (const path of ['/api/voice/wake', '/api/voice/ask', '/api/voice/state']) {
+    for (const path of ['/api/voice/wake', '/api/voice/ask', '/api/voice/state', '/api/voice/stop', '/api/voice/playback']) {
       assert.equal((await fetch(f.base + path, { method: 'POST', body: '{}' })).status, 403);
       assert.equal((await fetch(f.base + path, { method: 'POST', headers: { ...f.headers, Origin: 'https://evil.example' }, body: '{}' })).status, 403);
     }
@@ -135,7 +139,12 @@ test('flujo completo Ey Cortana -> escucha -> pregunta -> LLM -> voz sincronizad
     assert.equal(askData.transcript, '¿Quién eres?');
     assert.equal(askData.reply, 'Respuesta para ¿Quién eres?');
     assert.equal(askData.spoken, true);
-    assert.equal(askData.phase, 'speaking');
+    assert.equal(askData.phase, 'responded'); // El horario no confirma reproducción real.
+    await fetch(`${f.base}/api/voice/playback`, {
+      method: 'POST', headers: { ...f.headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId: 'visor-laptop-01', speechId: askData.speechId, playing: true }),
+    });
+    assert.equal((await fetch(`${f.base}/api/presentation`).then(r => r.json())).phase, 'speaking');
     for (let i = 0; i < 20 && !cues.some(c => c.phase === 'scheduled' && c.speechId === askData.speechId); i++) {
       await new Promise(r => setTimeout(r, 10));
     }
@@ -249,4 +258,46 @@ test('createViewerWake exige HTTPS en LAN, pausa mientras habla y ejecuta chime 
   assert.ok(phases.includes('processing'));
   wake.stop();
   assert.equal(trackStopped, true);
+});
+
+test('voz iniciada durante una captura descarta el fragmento y vuelve a standby sin enviar eco', async () => {
+  let level = .2, busy = false, captures = 0;
+  const requests = [];
+  const wake = createViewerWake({ token: 'fixture', supportCheck: () => ({ ready: true }),
+    getMedia: async () => ({ getTracks: () => [{ stop() {} }] }),
+    createContext: () => ({ state: 'running', close: async () => {}, createMediaStreamSource: () => ({ connect() {} }),
+      createAnalyser: () => ({ fftSize: 4, getFloatTimeDomainData(samples) { samples.fill(level); } }) }),
+    createRecorder: () => ({ state: 'inactive', start() { this.state = 'recording'; captures++; },
+      stop() { this.state = 'inactive'; this.ondataavailable?.({ data: new Blob([WEBM]) }); this.onstop?.(); } }),
+    pollMs: 5, wakeMinMs: 10, wakeMaxMs: 100, wakeSilenceMs: 20, postSpeechGuardMs: 10,
+    isBusy: () => busy, request: async url => { requests.push(url); return Response.json({ matched: false }); },
+  });
+  try {
+    await wake.enable();
+    await new Promise(resolve => setTimeout(resolve, 20));
+    assert.equal(captures, 1);
+    busy = true;
+    await new Promise(resolve => setTimeout(resolve, 30));
+    assert.equal(wake.mode, 'standby'); assert.equal(requests.length, 0);
+    level = 0; busy = false; wake.notifySpeechEnded();
+    await new Promise(resolve => setTimeout(resolve, 20));
+    assert.equal(captures, 1);
+  } finally { wake.stop(false); }
+});
+
+test('dos activaciones con permiso pendiente descartan solo el micrófono antiguo', async () => {
+  const pending = []; let oldStopped = false, newStopped = false;
+  const wake = createViewerWake({ token: 'fixture', supportCheck: () => ({ ready: true }),
+    getMedia: () => new Promise(resolve => pending.push(resolve)),
+    createContext: () => ({ state: 'running', close: async () => {}, createMediaStreamSource: () => ({ connect() {} }),
+      createAnalyser: () => ({ fftSize: 4, getFloatTimeDomainData(samples) { samples.fill(0); } }) }),
+  });
+  try {
+    const old = wake.enable(), current = wake.enable();
+    pending[1]({ getTracks: () => [{ stop() { newStopped = true; } }] });
+    assert.equal(await current, true);
+    pending[0]({ getTracks: () => [{ stop() { oldStopped = true; } }] });
+    assert.equal(await old, false); assert.equal(oldStopped, true); assert.equal(newStopped, false);
+  } finally { wake.stop(false); }
+  assert.equal(newStopped, true);
 });
